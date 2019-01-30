@@ -3,8 +3,13 @@ Code to let a swarm of Zebro robots effectively work together to search an area,
 
 To run the simulation, you need to have Argos installed: https://www.argos-sim.info
 Then, enter the build folder and run the following commands:
+
 mkdir build
+
 cmake ..
+
 make
+
 cd ..
+
 argos3 -c searchandrescue.argos
