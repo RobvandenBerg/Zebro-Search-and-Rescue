@@ -13,12 +13,18 @@ set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Og -DDEBUG")
 
 include_directories(.)
 include_directories(./inc/)
+include_directories(./includes/)
 include_directories(./wiringPi/inc/)
 
 link_directories(./wiringPi/lib/)
 
 set(SOURCES 
 	./main.cpp
+	./footbot_zebrolike.cpp
+	./footbot_zebrolike.h
+	./includes/utility/datatypes/byte_array.cpp
+	./includes/utility/math/angles.cpp
+	./includes/arpa/inet.h
 )
 	
 add_executable(${CMAKE_PROJECT_NAME} ${SOURCES})

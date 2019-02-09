@@ -9,7 +9,7 @@ SET(CMAKE_CXX_COMPILER $ENV{HOME}/Toolchain/RaspberryPi/arm-bcm2708/arm-rpi-4.9.
 # Define the sysroot path for the RaspberryPi distribution in our tools folder
 SET(CMAKE_FIND_ROOT_PATH $ENV{HOME}/Toolchain/RaspberryPi/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/arm-linux-gnueabihf/sysroot/)
 
-SET(RASPI_IP 192.168.43.53)
+SET(RASPI_IP 192.168.1.51)
 SET(RASPI_PASSWORD raspberry)
 
 # Use our definitions for compiler tools
