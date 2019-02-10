@@ -8,6 +8,8 @@
 #include <iostream>
 #include <cstdlib>
 
+#include <my_defines.h>
+
 using namespace std;
 
 /****************************************/
@@ -28,6 +30,13 @@ SearchAndRescueBehaviour::SearchAndRescueBehaviour() :
 
 /****************************************/
 /****************************************/
+
+#ifdef IS_SIMULATION
+void SearchAndRescueBehaviour::Init(TConfigurationNode& t_node) {
+	Init();
+}
+#endif
+
 
 void SearchAndRescueBehaviour::Init() {
    /*
@@ -179,15 +188,20 @@ void SearchAndRescueBehaviour::Init() {
 /****************************************/
 
 void SearchAndRescueBehaviour::ControlStep() {
-	
+	std::cout << "ControlStep called." << std::endl;
 	CheckForReceivedMessages();
+	std::cout << "Checked for received messages." << std::endl;
 	CheckPositioning();
+	std::cout << "Checked positioning." << std::endl;
 	//AvoidObstaclesAutomatically();
 	
 	Loop();
+	std::cout << "called loop." << std::endl;
 	
 	TrackOwnPosition();
+	std::cout << "Tracked Own position." << std::endl;
 	SendMessageFromQueue();
+	std::cout << "Done!" << std::endl;
 }
 
 void SearchAndRescueBehaviour::FindTarget(CVector3 targetPosition, Real maxDistance)
@@ -2818,4 +2832,6 @@ void SearchAndRescueBehaviour::TestBehaviour()
 /* to replace
 REGISTER_CONTROLLER(CFootBotZebrolike, "footbot_zebrolike_controller")
 */
-
+#ifdef IS_SIMULATION
+	REGISTER_CONTROLLER(SearchAndRescueBehaviour, "footbot_zebrolike_controller")
+#endif

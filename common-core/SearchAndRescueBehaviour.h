@@ -34,20 +34,24 @@ public:
    SearchAndRescueBehaviour();
 
    /* Class destructor. */
-   ~SearchAndRescueBehaviour() {}
+   virtual ~SearchAndRescueBehaviour() {}
 
    /*
     * This function initializes the controller.
     * The 't_node' variable points to the <parameters> section in the XML
     * file in the <controllers><footbot_diffusion_controller> section.
     */
-   void Init(); // to replace
+	#ifdef IS_SIMULATION
+   		virtual void Init(TConfigurationNode& t_node); // to replace
+	#endif
+	
+	void Init();
 
    /*
     * This function is called once every time step.
     * The length of the time step is set in the XML file.
     */
-   void ControlStep();
+   virtual void ControlStep();
 
    /*
     * This function resets the controller to its state right after the
@@ -57,7 +61,7 @@ public:
     * so the function could have been omitted. It's here just for
     * completeness.
     */
-   void Reset() {}
+   virtual void Reset() {}
 
    /*
     * Called to cleanup what done by Init() when the experiment finishes.
@@ -65,7 +69,7 @@ public:
     * so the function could have been omitted. It's here just for
     * completeness.
     */
-   void Destroy() {}
+   virtual void Destroy() {}
    
    void Loop();
    void BecomeCandidate();

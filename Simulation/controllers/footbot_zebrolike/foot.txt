@@ -2918,4 +2918,5 @@ void CFootBotZebrolike::TestBehaviour()
  * controller class to instantiate.
  * See also the configuration files for an example of how this is used.
  */
-// REGISTER_CONTROLLER(CFootBotZebrolike, "footbot_zebrolike_controller")
+REGISTER_CONTROLLER(CFootBotZebrolike, "footbot_zebrolike_controller")
+
