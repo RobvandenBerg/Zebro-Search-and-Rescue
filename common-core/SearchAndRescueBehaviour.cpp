@@ -1,5 +1,5 @@
 /* Include the controller definition */
-#include "footbot_zebrolike.h"
+#include "SearchAndRescueBehaviour.h"
 
 /* Math functions */
 #include <math.h>
@@ -13,7 +13,7 @@ using namespace std;
 /****************************************/
 /****************************************/
 
-CFootBotZebrolike::CFootBotZebrolike() :
+SearchAndRescueBehaviour::SearchAndRescueBehaviour() :
 /* to replace
    m_pcWheels(NULL),
    m_pcProximity(NULL),
@@ -29,7 +29,7 @@ CFootBotZebrolike::CFootBotZebrolike() :
 /****************************************/
 /****************************************/
 
-void CFootBotZebrolike::Init() {
+void SearchAndRescueBehaviour::Init() {
    /*
     * Get sensor/actuator handles
     *
@@ -134,7 +134,7 @@ void CFootBotZebrolike::Init() {
    
    lastParentUpdate = 0;
    
-   myId = (unsigned char)(rand()%(255-0 + 1) + 0); // Random byte
+   myId = ZebroIdentifier((unsigned char)(rand()%(255-0 + 1) + 0)); // Random byte
    
    direction = 3;
    leftLegsVelocity = 0.0f;
@@ -172,13 +172,13 @@ void CFootBotZebrolike::Init() {
    GetNodeAttributeOrDefault(t_node, "velocity", m_fWheelVelocity, m_fWheelVelocity);
    */
 	
-	cout << "Inited CFootBotZebrolike" << endl;
+	cout << "Inited SearchAndRescueBehaviour" << endl;
 }
 
 /****************************************/
 /****************************************/
 
-void CFootBotZebrolike::ControlStep() {
+void SearchAndRescueBehaviour::ControlStep() {
 	
 	CheckForReceivedMessages();
 	CheckPositioning();
@@ -190,7 +190,7 @@ void CFootBotZebrolike::ControlStep() {
 	SendMessageFromQueue();
 }
 
-void CFootBotZebrolike::FindTarget(CVector3 targetPosition, Real maxDistance)
+void SearchAndRescueBehaviour::FindTarget(CVector3 targetPosition, Real maxDistance)
 {
 	if(targetFound)
 	{
@@ -204,11 +204,11 @@ void CFootBotZebrolike::FindTarget(CVector3 targetPosition, Real maxDistance)
 	{
 		targetFound = true;
 		sentFoundTargetMessage = false;
-		cout << "Bot " << myId << " found the target!" << std::endl;
+		cout << "Bot " << myId.ToString() << " found the target!" << std::endl;
 	}
 }
 
-void CFootBotZebrolike::CheckPositioning()
+void SearchAndRescueBehaviour::CheckPositioning()
 {
 	/* to replace
 	
@@ -241,7 +241,7 @@ void CFootBotZebrolike::CheckPositioning()
 	*/
 }
 
-CByteArray CFootBotZebrolike::CompressPosition(CVector3 position)
+CByteArray SearchAndRescueBehaviour::CompressPosition(CVector3 position)
 {
 	// Compresses a position vector into 4 bytes
 	
@@ -261,7 +261,7 @@ CByteArray CFootBotZebrolike::CompressPosition(CVector3 position)
 	return result;
 }
 
-CByteArray CFootBotZebrolike::ConvertLengthTo2Bytes(Real length)
+CByteArray SearchAndRescueBehaviour::ConvertLengthTo2Bytes(Real length)
 {
 	Real maxLength = 30;
 	if(length > maxLength) { length = maxLength; }
@@ -269,7 +269,7 @@ CByteArray CFootBotZebrolike::ConvertLengthTo2Bytes(Real length)
 	return ConvertFractionTo2Bytes(lengthFraction);
 }
 
-Real CFootBotZebrolike::Convert2BytesToLength(CByteArray compressedLength)
+Real SearchAndRescueBehaviour::Convert2BytesToLength(CByteArray compressedLength)
 {
 	Real maxLength = 30;
 	
@@ -278,7 +278,7 @@ Real CFootBotZebrolike::Convert2BytesToLength(CByteArray compressedLength)
 }
 
 
-CVector3 CFootBotZebrolike::DecompressPosition(CByteArray compressedPosition)
+CVector3 SearchAndRescueBehaviour::DecompressPosition(CByteArray compressedPosition)
 {
 	// Decompresses a 4 byte representation of a position back into a position vector
 	Real maxLength = 30;
@@ -302,7 +302,7 @@ CVector3 CFootBotZebrolike::DecompressPosition(CByteArray compressedPosition)
 	return result;
 }
 
-CVector3 CFootBotZebrolike::DecompressPosition(unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2)
+CVector3 SearchAndRescueBehaviour::DecompressPosition(unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2)
 {
 	CByteArray compressedPosition = CByteArray(4);
 	compressedPosition[0] = rotationByte1;
@@ -312,7 +312,7 @@ CVector3 CFootBotZebrolike::DecompressPosition(unsigned char rotationByte1, unsi
 	return DecompressPosition(compressedPosition);
 }
 
-CByteArray CFootBotZebrolike::ConvertFractionTo2Bytes(Real input)
+CByteArray SearchAndRescueBehaviour::ConvertFractionTo2Bytes(Real input)
 {
 	// Converts a number between 0 and 1 to a representation of 2 bytes
 	
@@ -325,7 +325,7 @@ CByteArray CFootBotZebrolike::ConvertFractionTo2Bytes(Real input)
 	return output;
 }
 
-Real CFootBotZebrolike::Convert2BytesToFraction(CByteArray input)
+Real SearchAndRescueBehaviour::Convert2BytesToFraction(CByteArray input)
 {
 	// Converts a representation of 2 bytes back into a number between 0 and 1
 	
@@ -335,13 +335,13 @@ Real CFootBotZebrolike::Convert2BytesToFraction(CByteArray input)
 	return output;
 }
 
-bool CFootBotZebrolike::isBasekeeper()
+bool SearchAndRescueBehaviour::isBasekeeper()
 {
 	// This function gets used by the draw functions to draw a red range circle around basekeepers
 	return role == ROLE_BASEKEEPER;
 }
 
-void CFootBotZebrolike::TrackOwnPosition()
+void SearchAndRescueBehaviour::TrackOwnPosition()
 {
 	// things to consider:
 	// "North" might need to be subtracted in the angle in the real Zebro
@@ -365,14 +365,14 @@ void CFootBotZebrolike::TrackOwnPosition()
 	//cout << "my Tracked Position 2: " << myTrackedPosition.GetX() << ", " << myTrackedPosition.GetY() << std::endl;
 }
 
-CVector3 CFootBotZebrolike::GetMyPosition()
+CVector3 SearchAndRescueBehaviour::GetMyPosition()
 {
 	// returns own tracked position
 	return myLastAbsolutePosition + myTrackedPosition;
 	//return myTrackedPosition + 
 }
 
-void CFootBotZebrolike::Loop()
+void SearchAndRescueBehaviour::Loop()
 {
 	//cout << "In Zebro thingy loop" << endl;
 	if(role == ROLE_SEARCHER && targetFound && !sentFoundTargetMessage)
@@ -380,7 +380,7 @@ void CFootBotZebrolike::Loop()
 		sentFoundTargetMessage = true;
 		sendMessageId++;
 		unsigned char msgNum = (unsigned char) sendMessageId;
-		cout << "[" << myId << "]: Sending found target message because I found it myself." << std::endl;
+		cout << "[" << myId.ToString() << "]: Sending found target message because I found it myself." << std::endl;
 		SendFoundTargetMessage(myId, msgNum, basekeeper, myAbsolutePosition);
 	}
 	decaTickCounter++;
@@ -440,13 +440,13 @@ void CFootBotZebrolike::Loop()
 					if(ticksSinceStartedLookingForNewBasekeeper == 1100)
 					{
 						// ok, we're done waiting for replies. Let's pick the best candidate as new basekeeper.
-						if(bestApplicant != 0x00)
+						if(!bestApplicant.IsEmpty())
 						{
 							// Accept this applicant
 							ticksSinceLastBasekeeperAppointment = 0;
 							ticksSinceStartedLookingForNewBasekeeper = -1;
 							failedNewBasekeeperAttempts = 0;
-							cout << "Accept this applicant as new basekeeper: " << bestApplicant << "!" << std::endl;
+							cout << "Accept this applicant as new basekeeper: " << bestApplicant.ToString() << "!" << std::endl;
 							
 							sendMessageId++;
 							unsigned char msgNum = (unsigned char) sendMessageId;
@@ -458,7 +458,7 @@ void CFootBotZebrolike::Loop()
 						else
 						{
 							failedNewBasekeeperAttempts++;
-							cout << "Basekeeper " << myId << " did not appoint a new basekeeper, because nobody meets the criteria!" << std::endl;
+							cout << "Basekeeper " << myId.ToString() << " did not appoint a new basekeeper, because nobody meets the criteria!" << std::endl;
 						}
 					}
 					
@@ -474,7 +474,7 @@ void CFootBotZebrolike::Loop()
 				{
 					if(groundCovered >= 80 && childrenBasekeepersTotal == 0 && failedNewBasekeeperAttempts >= 2)
 					{
-						cout << "Basekeeper " << myId << " is disbanding because it is an end node and covered over 80% ground and it failed to create a new node more than twice" << std::endl;
+						cout << "Basekeeper " << myId.ToString() << " is disbanding because it is an end node and covered over 80% ground and it failed to create a new node more than twice" << std::endl;
 						Disband();
 					}
 					else if(groundCovered >= 100  && mySearchersTotal > 1)
@@ -517,7 +517,7 @@ void CFootBotZebrolike::Loop()
 			ticksSinceLastHeartbeat++;
 			if(ticksSinceLastHeartbeat >= 100) // send heartbeat every 100 ticks
 			{
-				if(basekeeper != 0x00 && !iAmAPathpoint) { SendHeartbeat(); }
+				if(!basekeeper.IsEmpty() && !iAmAPathpoint) { SendHeartbeat(); }
 				ticksSinceLastHeartbeat = 0;
 			}
 			if(!targetFound)
@@ -542,7 +542,7 @@ void CFootBotZebrolike::Loop()
 					
 					if(ticksSinceStartedApplyingAsBasekeeper == 500)
 					{
-						if(closestBasekeeper != basekeeper || closestBasekeeperDistance < 1)
+						if(!closestBasekeeper.Equals(basekeeper) || closestBasekeeperDistance < 1)
 						{
 							// closestBasekeeper != basekeeper, so... This searcher cannot become a new basekeeper.
 							// or, this bot is too close to its basekeeper.
@@ -559,7 +559,7 @@ void CFootBotZebrolike::Loop()
 					if(ticksSinceStartedApplyingAsBasekeeper > 1200)
 					{
 						// Apparently this searcher did not become the new basekeeper.
-						cout << "Bot " << myId << " concludes it did not become the new basekeeper." << std::endl;
+						cout << "Bot " << myId.ToString() << " concludes it did not become the new basekeeper." << std::endl;
 						ticksSinceStartedApplyingAsBasekeeper = -1;
 					}
 					break;
@@ -651,7 +651,7 @@ void CFootBotZebrolike::Loop()
 	}
 }
 
-void CFootBotZebrolike::DonateSearchers(int amountOfDonations)
+void SearchAndRescueBehaviour::DonateSearchers(int amountOfDonations)
 {
 	
 	// now let's start the donation process
@@ -675,7 +675,7 @@ void CFootBotZebrolike::DonateSearchers(int amountOfDonations)
 		return; // nothing can be done
 	}
 	
-	cout << "Basekeeper " << myId << " has covered " << groundCovered << " ground and is going to donate " << amountOfDonations << "  of its " << mySearchersTotal << " searchers. (children basekeepers: " << childrenBasekeepersTotal <<")" << std::endl;
+	cout << "Basekeeper " << myId.ToString() << " has covered " << groundCovered << " ground and is going to donate " << amountOfDonations << "  of its " << mySearchersTotal << " searchers. (children basekeepers: " << childrenBasekeepersTotal <<")" << std::endl;
 	// first let's share our location so all searchers will know my current location to make relocation easier
 	sendMessageId++;
 	unsigned char msgNum = (unsigned char) sendMessageId;
@@ -695,7 +695,7 @@ void CFootBotZebrolike::DonateSearchers(int amountOfDonations)
 			bestApplicantDistance = 0;
 			bestApplicantPosition = CVector3();
 			bestApplicant = 0x00;
-			cout << "Bot " << myId << " is going to start looking for a new basekeeper." << std::endl;
+			cout << "Bot " << myId.ToString() << " is going to start looking for a new basekeeper." << std::endl;
 			SendRecruitNewBasekeeperMessage();
 			canCreateNewBasekeeper = false;
 		}
@@ -737,23 +737,23 @@ void CFootBotZebrolike::DonateSearchers(int amountOfDonations)
 	}
 }
 
-void CFootBotZebrolike::RelocateRandomSearcherToChildBasekeeper(unsigned char childBasekeeperId, CVector3 position)
+void SearchAndRescueBehaviour::RelocateRandomSearcherToChildBasekeeper(ZebroIdentifier childBasekeeperId, CVector3 position)
 {
 	CByteArray compressedPosition = CompressPosition(position);
 	RelocateRandomSearcherToChildBasekeeper(childBasekeeperId, compressedPosition[0], compressedPosition[1], compressedPosition[2], compressedPosition[3]);
 }
 
-void CFootBotZebrolike::RelocateRandomSearcherToChildBasekeeper(unsigned char childBasekeeperId, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2)
+void SearchAndRescueBehaviour::RelocateRandomSearcherToChildBasekeeper(ZebroIdentifier childBasekeeperId, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2)
 {
 	// pick a zebro to relocate to a kid, and pick a kid to relocate it to.
-	unsigned char pickedSearcherId = 0x00;
+	ZebroIdentifier pickedSearcherId = ZebroIdentifier(0x00);
 	unsigned char pickedSearcherLastTick = 255;
 	int pickedSearcherIndex = 0;
 	for(int i = 0; i < 10; i++)
 	{
 		if(mySearchers[i*2] != 0x00 && (mySearchers[i*2+1] < pickedSearcherLastTick || pickedSearcherLastTick == 255))
 		{
-			pickedSearcherId = mySearchers[i*2];
+			pickedSearcherId = ZebroIdentifier(mySearchers[i*2]);
 			pickedSearcherLastTick = mySearchers[i*2+1];
 			pickedSearcherIndex = i*2;
 		}
@@ -773,32 +773,32 @@ void CFootBotZebrolike::RelocateRandomSearcherToChildBasekeeper(unsigned char ch
 	RelocateSearcher(myId, messageNumber, pickedSearcherId, childBasekeeperId, rotationByte1, rotationByte2, lengthByte1, lengthByte2);
 }
 
-void CFootBotZebrolike::AppointNewBasekeeper(unsigned char from, unsigned char messageNumber, unsigned char newBasekeeperId, unsigned char basekeeperL)
+void SearchAndRescueBehaviour::AppointNewBasekeeper(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier newBasekeeperId, unsigned char basekeeperL)
 {
 	AppointNewBasekeeper(from, messageNumber, newBasekeeperId, CompressPosition(myAbsolutePosition), basekeeperL);
 }
 
-void CFootBotZebrolike::AppointNewBasekeeper(unsigned char from, unsigned char messageNumber, unsigned char newBasekeeperId, CByteArray compressedPosition, unsigned char basekeeperL)
+void SearchAndRescueBehaviour::AppointNewBasekeeper(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier newBasekeeperId, CByteArray compressedPosition, unsigned char basekeeperL)
 {
 	CByteArray cBuf(7);
 	cBuf[0] = MESSAGETYPE_APPOINTNEWBASEKEEPER;
 
-	cBuf[1] = newBasekeeperId;
+	cBuf[1] = newBasekeeperId.GetUnsignedCharValue();
 	cBuf[2] = compressedPosition[0];
 	cBuf[3] = compressedPosition[1];
 	cBuf[4] = compressedPosition[2];
 	cBuf[5] = compressedPosition[3];
 	cBuf[6] = basekeeperL;
 	
-	if(from == myId)
+	if(from.Equals(myId))
 	{
-		cout << " bot " << myId << " is appointing bot " << newBasekeeperId << " as new basekeeper" << std::endl;
+		cout << " bot " << myId.ToString() << " is appointing bot " << newBasekeeperId.ToString() << " as new basekeeper" << std::endl;
 	}
 	
 	SendMessage(cBuf, from, messageNumber);
 }
 
-void CFootBotZebrolike::ApplyAsNewBasekeeper()
+void SearchAndRescueBehaviour::ApplyAsNewBasekeeper()
 {
 	sendMessageId++;
 	unsigned char messageNumber = (unsigned char) sendMessageId;
@@ -811,24 +811,24 @@ void CFootBotZebrolike::ApplyAsNewBasekeeper()
 	cBuf[3] = compressedPosition[2];
 	cBuf[4] = compressedPosition[3];
 	
-	// cout << " bot " << myId << " is applying as basekeeper!" << std::endl;
+	// cout << " bot " << myId.ToString() << " is applying as basekeeper!" << std::endl;
 	
 	SendMessage(cBuf, myId, messageNumber, basekeeper);
 }
 
-void CFootBotZebrolike::SendRecruitNewBasekeeperMessage()
+void SearchAndRescueBehaviour::SendRecruitNewBasekeeperMessage()
 {
 	sendMessageId++;
 	unsigned char messageNumber = (unsigned char) sendMessageId;
 	CByteArray cBuf(7);
 	cBuf[0] = MESSAGETYPE_RECRUITNEWBASEKEEPER;
 	
-	cout << " bot " << myId << " is recruiting a new basekeeper." << std::endl;
+	cout << " bot " << myId.ToString() << " is recruiting a new basekeeper." << std::endl;
 	
 	SendMessage(cBuf, myId, messageNumber);
 }
 
-void CFootBotZebrolike::SearchRandomly()
+void SearchAndRescueBehaviour::SearchRandomly()
 {
 	AvoidObstaclesAutomatically();
 	if(avoidingObstacleTicksLeft != 0)
@@ -866,12 +866,12 @@ void CFootBotZebrolike::SearchRandomly()
 	actionTicks --;
 }
 
-bool CFootBotZebrolike::MoveTowardsPosition(CVector3 destination)
+bool SearchAndRescueBehaviour::MoveTowardsPosition(CVector3 destination)
 {
 	MoveTowardsPosition(destination, 2);
 }
 
-bool CFootBotZebrolike::MoveTowardsPosition(CVector3 destination, Real radius)
+bool SearchAndRescueBehaviour::MoveTowardsPosition(CVector3 destination, Real radius)
 {
 	AvoidObstaclesAutomatically();
 	if(avoidingObstacleTicksLeft != 0)
@@ -921,7 +921,7 @@ bool CFootBotZebrolike::MoveTowardsPosition(CVector3 destination, Real radius)
 	}
 }
 
-void CFootBotZebrolike::AvoidObstaclesAutomatically()
+void SearchAndRescueBehaviour::AvoidObstaclesAutomatically()
 {
 	/* to replace
 	
@@ -982,16 +982,17 @@ void CFootBotZebrolike::AvoidObstaclesAutomatically()
    }*/
 }
 
-int CFootBotZebrolike::GetId()
+int SearchAndRescueBehaviour::GetId()
 {
-	return myId;
+	return 100; // to replace
+	//return myId;
 }
 
-void CFootBotZebrolike::BecomeCandidate()
+void SearchAndRescueBehaviour::BecomeCandidate()
 {
 	cout << "NEW CAND: ";
 	cout << "I (id ";
-	cout << myId;
+	cout << myId.ToString();
 	cout << "), am becoming leader candidate!";
 	cout << std::endl;
 	
@@ -1006,21 +1007,25 @@ void CFootBotZebrolike::BecomeCandidate()
 	
 	sendMessageId++;
 	unsigned char msgNum = (unsigned char) sendMessageId;
+	cout << "a." << endl;
 	SendCaptureBroadcast(myId, msgNum, 0x01, level, myId);
+	cout << "b." << endl;
 	
 	role = ROLE_CANDIDATE;
 	
 	SharpRightTurn();
+	
+	cout << "SendMessage was triggered." << endl;
 }
 
-void CFootBotZebrolike::ReceiveMessage(CByteArray message)
+void SearchAndRescueBehaviour::ReceiveMessage(CByteArray message)
 {
-	unsigned char senderId = message[0];
+	ZebroIdentifier senderId = ZebroIdentifier(message[0]);
 	unsigned char messageNumber = message[1];
-	unsigned char intendedReceiver = message[2];
+	ZebroIdentifier intendedReceiver = ZebroIdentifier(message[2]);
 	if(role == ROLE_PASSIVE || role == ROLE_SEARCHER || role == ROLE_BASEKEEPER)
 	{
-		if(role == ROLE_BASEKEEPER && mainBasekeeper == myId)
+		if(role == ROLE_BASEKEEPER && mainBasekeeper.Equals(myId))
 		{
 			// I am the main basekeeper.
 		}
@@ -1031,15 +1036,15 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 				case MESSAGETYPE_CAPTUREACK:
 				{
 					unsigned char hopsLeft = message[4];
-					unsigned char candidateId = message[5];
+					ZebroIdentifier candidateId = message[5];
 					// int receivedLevel = (int) message[6]; there's no level
-					unsigned char capturedNodeId = message[6];
-					unsigned char capturedNodeId2 = message[7];
-					unsigned char capturedNodeId3 = message[8];
+					ZebroIdentifier capturedNodeId = ZebroIdentifier(message[6]);
+					ZebroIdentifier capturedNodeId2 = ZebroIdentifier(message[7]);
+					ZebroIdentifier capturedNodeId3 = ZebroIdentifier(message[8]);
 					
 					
 					bool propagateAck = true;
-					if(hopsLeft < hopsToOwner || candidateId != owner)
+					if(hopsLeft < hopsToOwner || !candidateId.Equals(owner))
 					{
 						// Cannot propagate this ack.
 						propagateAck = false;
@@ -1047,9 +1052,9 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 					// Can propagate this ack!
 					
 					bool newCaptureAck = false;
-					unsigned char from = senderId;
+					ZebroIdentifier from = senderId.Copy();
 					unsigned char msgNum = messageNumber;
-					if((capturedNodeId == father || capturedNodeId2 == father || capturedNodeId3 == father) && father != 0x0)
+					if((capturedNodeId.Equals(father) || capturedNodeId2.Equals(father) || capturedNodeId3.Equals(father)) && !father.IsEmpty())
 					{
 						// Father has fallen!
 						// Ack owner
@@ -1057,12 +1062,12 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 						mainBasekeeper = father;
 						basekeeper = mainBasekeeper;
 						hopsToFather = hopsToOwner;
-						if(capturedNodeId3 != 0x00 || !propagateAck)
+						if(!capturedNodeId3.IsEmpty() || !propagateAck)
 						{
 							// also send a new capture ack for myself
 							newCaptureAck = true;
 						}
-						else if(capturedNodeId2 != 0x00)
+						else if(!capturedNodeId2.IsEmpty())
 						{
 							capturedNodeId3 = myId;
 							from = myId;
@@ -1093,11 +1098,11 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 				
 				case MESSAGETYPE_CAPTUREBROADCAST:
 				{
-					unsigned char candidateId = message[5];
+					ZebroIdentifier candidateId = ZebroIdentifier(message[5]);
 					int receivedLevel = (int) message[6];
 					unsigned char hopsMade = message[4];
 					
-					unsigned int from = senderId;
+					ZebroIdentifier from = senderId.Copy();
 					
 					
 					// This is a capture broadcast
@@ -1113,11 +1118,11 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 						level = receivedLevel;
 						owner = candidateId;
 						hopsToOwner = hopsMade;
-						if(father == owner)
+						if(father.Equals(owner))
 						{
 							hopsToFather = hopsToOwner; // is this neccesary?
 						}
-						if(father == 0x00)
+						if(father.IsEmpty())
 						{
 							// You can change father immediately
 							father = owner;
@@ -1139,7 +1144,7 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 				
 				case MESSAGETYPE_SHAREPOSITION:
 				{
-					if(role == ROLE_SEARCHER && basekeeper == 0x00)
+					if(role == ROLE_SEARCHER && basekeeper.IsEmpty())
 					{
 						getAdoptedBy(senderId);
 					}
@@ -1149,14 +1154,14 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 					compressedPosition[2] = message[7];
 					compressedPosition[3] = message[8];
 					unsigned char hopsMade = message[4];
-					unsigned char parent = message[9];
+					ZebroIdentifier parent = ZebroIdentifier(message[9]);
 					
-					if(senderId == basekeeper || parent == parentBasekeeper || senderId == parentBasekeeper || hopsMade < 2)
+					if(senderId.Equals(basekeeper) || parent.Equals(parentBasekeeper) || senderId.Equals(parentBasekeeper) || hopsMade < 2)
 					{
 						SharePosition(senderId, messageNumber, hopsMade+1, compressedPosition, parent); // propagate it
 					}
 					
-					if(role != ROLE_SEARCHER || senderId != basekeeper)
+					if(role != ROLE_SEARCHER || !senderId.Equals(basekeeper))
 					{
 						break;
 					}
@@ -1171,7 +1176,7 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 				
 				case MESSAGETYPE_DISBAND:
 				{
-					if(role != ROLE_SEARCHER || senderId != basekeeper)
+					if(role != ROLE_SEARCHER || !senderId.Equals(basekeeper))
 					{
 						break;
 					}
@@ -1182,7 +1187,7 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 					compressedPosition[3] = message[7];
 					SendDisbandMessage(senderId, messageNumber, compressedPosition); // propagate it
 					
-					cout << "Bot " << myId << " knows its parent basekeeper disbanded" << std::endl;
+					cout << "Bot " << myId.ToString() << " knows its parent basekeeper disbanded" << std::endl;
 					
 					basekeeper = 0x00;
 					basekeeperPositionKnown = false;
@@ -1196,7 +1201,7 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 				
 				case MESSAGETYPE_RECRUITNEWBASEKEEPER:
 				{
-					if(role != ROLE_SEARCHER || senderId != basekeeper)
+					if(role != ROLE_SEARCHER || !senderId.Equals(basekeeper))
 					{
 						break;
 					}
@@ -1207,7 +1212,7 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 					
 					// start applying as basekeeper
 					ticksSinceStartedApplyingAsBasekeeper = 0;
-					closestBasekeeper = 0x00;
+					closestBasekeeper = ZebroIdentifier();
 					closestBasekeeperDistance = 1000;
 					
 					// ping all basekeepers
@@ -1231,17 +1236,17 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 					
 					// todo: draw green lines between basekeepers and their parent.
 					
-					if(allowAsNewBasekeeper == 0x00 && senderId != basekeeper)
+					if(allowAsNewBasekeeper == 0x00 && !senderId.Equals(basekeeper))
 					{
 						// This basekeeper is preventing me from becoming a new basekeeper. Let's honor their rejection and stop becoming a new basekeeper.
 						ticksSinceStartedApplyingAsBasekeeper = -1;
-						cout << "Bot " << myId << " is refraining from appplying as basekeeper because " << senderId << " rejected it" << std::endl;
+						cout << "Bot " << myId.ToString() << " is refraining from appplying as basekeeper because " << senderId.ToString() << " rejected it" << std::endl;
 						break;
 					}
 					
 					CVector3 absoluteResponsePosition = DecompressPosition(compressedPosition);
 					CVector3 relativeResponsePosition = absoluteResponsePosition - myAbsolutePosition;
-					if(senderId == basekeeper)
+					if(senderId.Equals(basekeeper))
 					{
 						// as an extra, you can update your own position if this ping was from your current basekeeper :)
 						lastMeasuredBasekeeperPosition = relativeResponsePosition;
@@ -1261,11 +1266,11 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 				
 				case MESSAGETYPE_APPOINTNEWBASEKEEPER:
 				{
-					if(senderId != basekeeper)
+					if(!senderId.Equals(basekeeper))
 					{
 						break;
 					}
-					unsigned char newBasekeeperId = message[4];
+					ZebroIdentifier newBasekeeperId = ZebroIdentifier(message[4]);
 					CByteArray compressedPosition(4);
 					compressedPosition[0] = message[5];
 					compressedPosition[1] = message[6];
@@ -1275,7 +1280,7 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 					CVector3 absoluteResponsePosition = DecompressPosition(compressedPosition);
 					CVector3 relativeResponsePosition = absoluteResponsePosition - myAbsolutePosition;
 					
-					if(newBasekeeperId == myId)
+					if(newBasekeeperId.Equals(myId))
 					{
 						basekeeperLevel = basekeeperL;
 						absoluteParentBasekeeperPosition = absoluteResponsePosition;
@@ -1288,7 +1293,7 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 					else
 					{
 						ticksSinceStartedApplyingAsBasekeeper = -1;
-						cout << "Bot " << myId << " now knows that " << newBasekeeperId << " became the new basekeeper" << std::endl;
+						cout << "Bot " << myId.ToString() << " now knows that " << newBasekeeperId.ToString() << " became the new basekeeper" << std::endl;
 						// propagate the message
 						AppointNewBasekeeper(senderId, messageNumber, newBasekeeperId, compressedPosition, basekeeperL);
 					}
@@ -1297,22 +1302,22 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 				
 				case MESSAGETYPE_RELOCATESEARCHER:
 				{
-					if(senderId != basekeeper)
+					if(!senderId.Equals(basekeeper))
 					{
 						break;
 					}
-					unsigned char searcherId = message[4];
-					unsigned char basekeeperId = message[5];
+					ZebroIdentifier searcherId = ZebroIdentifier(message[4]);
+					ZebroIdentifier basekeeperId = ZebroIdentifier(message[5]);
 					CByteArray compressedPosition(4);
 					compressedPosition[0] = message[6];
 					compressedPosition[1] = message[7];
 					compressedPosition[2] = message[8];
 					compressedPosition[3] = message[9];
 					
-					if(searcherId == myId)
+					if(searcherId.Equals(myId))
 					{
 						// This message is meant for me! Switch basekeeper!
-						cout << "Bot " << myId << " is relocating from basekeeper " << basekeeper << " to " << basekeeperId << std::endl;
+						cout << "Bot " << myId.ToString() << " is relocating from basekeeper " << basekeeper.ToString() << " to " << basekeeperId.ToString() << std::endl;
 						basekeeper = basekeeperId;
 						
 						// to do: rewrite this to keep in mind relative positioning
@@ -1332,14 +1337,14 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 				
 				case MESSAGETYPE_FOUNDTARGET:
 				{
-					unsigned char parent = message[4];
+					ZebroIdentifier parent = ZebroIdentifier(message[4]);
 					targetFound = true;
-					if((basekeeper == parent || parentBasekeeper == parent) && senderId != myId)
+					if((basekeeper.Equals(parent) || parentBasekeeper.Equals(parent)) && !senderId.Equals(myId))
 					{
 						// propagate the message
-						if(myId == 41)
+						if(myId.Equals((unsigned char) 41))
 						{
-							cout << "sending foundtarget again because propogate message from " << senderId << "." << std::endl;
+							cout << "sending foundtarget again because propogate message from " << senderId.ToString() << "." << std::endl;
 						}
 						SendFoundTargetMessage(senderId, messageNumber, parent, message[5], message[6], message[7], message[8]);
 					}
@@ -1348,10 +1353,10 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 				
 				case MESSAGETYPE_FOUNDTARGETUPSTREAM:
 				{
-					unsigned char parent = message[4];
+					ZebroIdentifier parent = ZebroIdentifier(message[4]);
 					unsigned char hopsMade = message[6];
 					targetFound = true;
-					if(basekeeper == parent || parentBasekeeper == parent)
+					if(basekeeper.Equals(parent) || parentBasekeeper.Equals(parent))
 					{
 						// propagate the message
 						SendFoundTargetUpstreamMessage(senderId, messageNumber, parent, message[5], hopsMade, message[7], message[8]);
@@ -1365,8 +1370,8 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 					{
 						break;
 					}
-					unsigned char to = message[4];
-					if(senderId == basekeeper || to == basekeeper || to == parentBasekeeper)
+					ZebroIdentifier to = ZebroIdentifier(message[4]);
+					if(senderId.Equals(basekeeper) || to.Equals(basekeeper) || to.Equals(parentBasekeeper))
 					{
 						// propagate this message
 						unsigned char hopsLeftToTarget = message[5];
@@ -1380,22 +1385,22 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 				
 				case MESSAGETYPE_BECOMEPATHPOINT:
 				{
-					unsigned char searcherId = message[4];
+					ZebroIdentifier searcherId = ZebroIdentifier(message[4]);
 					CByteArray compressedPosition(4);
 					compressedPosition[0] = message[5];
 					compressedPosition[1] = message[6];
 					compressedPosition[2] = message[7];
 					compressedPosition[3] = message[8];
-					if(searcherId == myId)
+					if(searcherId.Equals(myId))
 					{
 						iAmAPathpoint = true;
 						targetFound = true;
-						cout << "Searcher " << myId << " is now a pathpoint for " << basekeeper << "!" << std::endl;
+						cout << "Searcher " << myId.ToString() << " is now a pathpoint for " << basekeeper.ToString() << "!" << std::endl;
 						pathpointPositionFromBasekeeper = DecompressPosition(compressedPosition);
 						break;
 					}
 					// propagate it
-					if(senderId != myId)
+					if(!senderId.Equals(myId))
 					{
 						InstructSearcherToBecomePathPoint(senderId, messageNumber, searcherId, compressedPosition[0], compressedPosition[1], compressedPosition[2], compressedPosition[3]);
 					}
@@ -1406,7 +1411,7 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 	}
 	if(role == ROLE_CANDIDATE || role == ROLE_LEADER || role == ROLE_BASEKEEPER)
 	{
-		if(mainBasekeeper == myId)
+		if(mainBasekeeper.Equals(myId))
 		{
 			// here comes the mainBasekeeper code
 			switch(message[3])
@@ -1415,24 +1420,24 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 				{
 					
 					unsigned char hopsLeft = message[4];
-					unsigned char candidateId = message[5];
+					ZebroIdentifier candidateId = message[5];
 					// int receivedLevel = (int) message[6]; there's no level
-					unsigned char capturedNodeId = message[6];
-					unsigned char capturedNodeId2 = message[7];
-					unsigned char capturedNodeId3 = message[8];
+					ZebroIdentifier capturedNodeId = ZebroIdentifier(message[6]);
+					ZebroIdentifier capturedNodeId2 = ZebroIdentifier(message[7]);
+					ZebroIdentifier capturedNodeId3 = ZebroIdentifier(message[8]);
 
-					if(candidateId != myId) { break; }
+					if(!candidateId.Equals(myId)) { break; }
 					
 					// capturedNodeId has been captured
-					cout << "I (id " << myId << ") captured nodes: "<< capturedNodeId << "," << capturedNodeId2 << "," << capturedNodeId3<<std::endl;
+					cout << "I (id " << myId.ToString() << ") captured nodes: "<< capturedNodeId.ToString() << "," << capturedNodeId2.ToString() << "," << capturedNodeId3.ToString() << std::endl;
 					AddToCapturedNodes(capturedNodeId);
 					AddToMySearchers(capturedNodeId);
-					if(capturedNodeId2 != 0x00)
+					if(!capturedNodeId2.IsEmpty())
 					{
 						AddToCapturedNodes(capturedNodeId2);
 						AddToMySearchers(capturedNodeId);
 					}
-					if(capturedNodeId3 != 0x00)
+					if(!capturedNodeId3.IsEmpty())
 					{
 						AddToCapturedNodes(capturedNodeId3);
 						AddToMySearchers(capturedNodeId3);
@@ -1452,13 +1457,13 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 				}
 				case MESSAGETYPE_CAPTUREBROADCAST:
 				{
-					unsigned char candidateId = message[5];
+					ZebroIdentifier candidateId = ZebroIdentifier(message[5]);
 					int receivedLevel = (int) message[6];
 					unsigned char hopsMade = message[4];
 					
-					if(candidateId == myId) { break; } // don't have to process a capture broadcast from yourself
+					if(candidateId.Equals(myId)) { break; } // don't have to process a capture broadcast from yourself
 					
-					unsigned int from = senderId;
+					ZebroIdentifier from = senderId.Copy();
 					
 					
 					// This is a capture broadcast from another node
@@ -1477,7 +1482,7 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 						hopsToFather = hopsMade;
 						killed = true;
 						cout << "I (id ";
-						cout << myId;
+						cout << myId.ToString();
 						cout << ") got killed by this message";
 						cout << std::endl;
 						role = ROLE_SEARCHER;
@@ -1509,7 +1514,7 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 				unsigned char allowAsNewBasekeeper = 0x01;
 				// todo: also reject new basekeeper if it's closer to me than my farthest child basekeeper
 				Real farthestChildBasekeeperDistance = GetFarthestChildBasekeeperDistance();
-				if(mainBasekeeper != myId && relativeResponsePosition.Length() < lastMeasuredParentBasekeeperPosition.Length())
+				if(!mainBasekeeper.Equals(myId) && relativeResponsePosition.Length() < lastMeasuredParentBasekeeperPosition.Length())
 				{
 					// prevent this node from becoming a new basekeeper, because it is closer to me than I am to my parent.
 					allowAsNewBasekeeper = 0x00;
@@ -1561,7 +1566,7 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 			
 			case MESSAGETYPE_SHAREPOSITION:
 			{
-				if(senderId == myId)
+				if(senderId.Equals(myId))
 				{
 					break;
 				}
@@ -1573,7 +1578,7 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 				compressedPosition[3] = message[8];
 				unsigned char basekeeperL = message[9];
 				
-				if(senderId == parentBasekeeper)
+				if(senderId.Equals(parentBasekeeper))
 				{
 					// todo: change parentBasekeeperPosition with weights.
 					lastParentUpdate = 0;
@@ -1585,9 +1590,9 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 					break;
 				}
 				
-				if(!IsChildBasekeeper(senderId) && mainBasekeeper != myId && senderId != parentBasekeeper)
+				if(!IsChildBasekeeper(senderId) && !mainBasekeeper.Equals(myId) && !senderId.Equals(parentBasekeeper))
 				{
-					//if(hopsMade == 1 && (basekeeperL < basekeeperLevel || (basekeeperL == basekeeperLevel && CompareId(myId,senderId) == -1))
+					//if(hopsMade == 1 && (basekeeperL < basekeeperLevel || (basekeeperL.Equals(basekeeper)Level && CompareId(myId,senderId) == -1))
 					if(hopsMade == 1)
 					{
 						// if we're too closer to this basekeeper than to our parent basekeeper, we should disband.
@@ -1598,7 +1603,7 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 						Real distanceToParentBasekeeper = lastMeasuredParentBasekeeperPosition.Length();
 						if(distanceToOtherBasekeeper < distanceToParentBasekeeper)
 						{
-							cout << "Basekeeper " << myId << " wants to disband because basekeeper " << senderId << " is closer to it in a direct line than it is to its parent" << std::endl;
+							cout << "Basekeeper " << myId.ToString() << " wants to disband because basekeeper " << senderId.ToString() << " is closer to it in a direct line than it is to its parent" << std::endl;
 							Disband();
 							ticksSinceStartedApplyingAsBasekeeper = -1;
 						}
@@ -1615,7 +1620,7 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 				// todo: what to do in case disbanded node is my child.
 				// todo: implement wandering bots behaviour
 				// todo: implement behaviour of losing connection to parent or child.
-				if(myId == mainBasekeeper || parentBasekeeper != senderId)
+				if(myId.Equals(mainBasekeeper) || !parentBasekeeper.Equals(senderId))
 				{
 					break;
 				}
@@ -1631,7 +1636,7 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 				role = ROLE_SEARCHER;
 				ticksSinceStartedApplyingAsBasekeeper = -1;
 				
-				cout << "Bot " << myId << " disbanded because its parent basekeeper disbanded!" << std::endl;
+				cout << "Bot " << myId.ToString() << " disbanded because its parent basekeeper disbanded!" << std::endl;
 				
 				CVector3 absoluteResponsePosition = DecompressPosition(compressedPosition);
 				CVector3 relativeResponsePosition = absoluteResponsePosition - myAbsolutePosition;
@@ -1642,9 +1647,9 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 			
 			case MESSAGETYPE_FOUNDTARGET:
 			{
-				unsigned char parent = message[4];
+				ZebroIdentifier parent = ZebroIdentifier(message[4]);
 				targetFound = true;
-				if(parent == myId)
+				if(parent.Equals(myId))
 				{
 					linkToTarget = senderId;
 					
@@ -1661,7 +1666,7 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 					distanceLeft = distanceToNextNode;
 					hopsLeftToTarget = 1;
 					
-					if(mainBasekeeper == myId)
+					if(mainBasekeeper.Equals(myId))
 					{
 						int useAmountOfNodes = mySearchersTotal;
 						int useAmountOfSearchers = useAmountOfNodes - 1; // subtract the one searcher that found the node
@@ -1687,11 +1692,11 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 			
 			case MESSAGETYPE_FOUNDTARGETUPSTREAM:
 			{
-				unsigned char parent = message[4];
+				ZebroIdentifier parent = ZebroIdentifier(message[4]);
 				unsigned char hopsMade = message[6];
 				unsigned char totalSearchers = message[5] + mySearchersTotal;
 				targetFound = true;
-				if(parent == myId)
+				if(parent.Equals(myId))
 				{
 					linkToTarget = senderId;
 					vectorToTarget = GetVectorToChild(senderId);
@@ -1706,7 +1711,7 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 					
 					hopsLeftToTarget = hopsMade;
 					
-					if(mainBasekeeper == myId)
+					if(mainBasekeeper.Equals(myId))
 					{
 						// arrived at mainBasekeeper
 						
@@ -1752,7 +1757,7 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 			
 			case MESSAGETYPE_PATHDATA:
 			{
-				if(message[4] != myId)
+				if(!myId.Equals(ZebroIdentifier(message[4])))
 				{
 					break;
 				}
@@ -1800,11 +1805,11 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 	}
 }
 
-CVector3 CFootBotZebrolike::GetVectorToChild(unsigned char nodeId)
+CVector3 SearchAndRescueBehaviour::GetVectorToChild(ZebroIdentifier nodeId)
 {
 	for(int i = 0; i < 4; i++)
 	{
-		if(childrenBasekeepers[i*6] != nodeId)
+		if(!nodeId.Equals(childrenBasekeepers[i*6]))
 		{
 			continue;
 		}
@@ -1821,10 +1826,10 @@ CVector3 CFootBotZebrolike::GetVectorToChild(unsigned char nodeId)
 }
 
 /* to replace
-CRay3 CFootBotZebrolike::GetDrawGreenLine()
+CRay3 SearchAndRescueBehaviour::GetDrawGreenLine()
 {
 	// draw a green line from a basekeeper to its parent
-	if(role != ROLE_BASEKEEPER || mainBasekeeper == myId)
+	if(role != ROLE_BASEKEEPER || mainBasekeeper.Equals(myId))
 	{
 		return CRay3(CVector3(), CVector3());
 	}
@@ -1838,12 +1843,12 @@ CRay3 CFootBotZebrolike::GetDrawGreenLine()
 }
 */
 
-void CFootBotZebrolike::getAdoptedBy(unsigned char basekeeperId)
+void SearchAndRescueBehaviour::getAdoptedBy(ZebroIdentifier basekeeperId)
 {
 	// todo: mainBasekeeper might not be my new basekeeper's mainBasekeeper
 	// todo: what to do if you lose connection to your basekeeper.
 	
-	cout << "Bot " << myId << " gets adopted by basekeeper " << basekeeperId << std::endl;
+	cout << "Bot " << myId.ToString() << " gets adopted by basekeeper " << basekeeperId.ToString() << std::endl;
 	
 	basekeeper = basekeeperId;
 	ticksSinceStartedApplyingAsBasekeeper = -1;
@@ -1851,7 +1856,7 @@ void CFootBotZebrolike::getAdoptedBy(unsigned char basekeeperId)
 	ticksSinceLastHeartbeat = 0;
 }
 
-void CFootBotZebrolike::Disband()
+void SearchAndRescueBehaviour::Disband()
 {
 	basekeeper = parentBasekeeper;
 	role = ROLE_SEARCHER;
@@ -1859,7 +1864,7 @@ void CFootBotZebrolike::Disband()
 	sendMessageId++;
 	unsigned char messageNumber = (unsigned char) sendMessageId;
 	
-	cout << "Bot " << myId << " is disbanding as a basekeeper." << std::endl;
+	cout << "Bot " << myId.ToString() << " is disbanding as a basekeeper." << std::endl;
 	SendDisbandMessage(myId, messageNumber, absoluteParentBasekeeperPosition);
 	
 	// todo: inform all searchers and childrenBasekeepers that we're disbanding
@@ -1867,7 +1872,7 @@ void CFootBotZebrolike::Disband()
 	// todo: deny pinging basekeepers if they're too close
 }
 
-void CFootBotZebrolike::SendDisbandMessage(unsigned char from, unsigned char messageNumber, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2)
+void SearchAndRescueBehaviour::SendDisbandMessage(ZebroIdentifier from, unsigned char messageNumber, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2)
 {
 	CByteArray cBuf(7);
 	cBuf[0] = MESSAGETYPE_DISBAND;
@@ -1876,22 +1881,22 @@ void CFootBotZebrolike::SendDisbandMessage(unsigned char from, unsigned char mes
 	cBuf[3] = lengthByte1;
 	cBuf[4] = lengthByte2;
 	
-	// cout << " bot " << myId << " is sharing position of bot " << from << "." << std::endl;
+	// cout << " bot " << myId.ToString() << " is sharing position of bot " << from << "." << std::endl;
 	
 	SendMessage(cBuf, from, messageNumber);
 }
 
-void CFootBotZebrolike::SendDisbandMessage(unsigned char from, unsigned char messageNumber, CByteArray compressedPosition)
+void SearchAndRescueBehaviour::SendDisbandMessage(ZebroIdentifier from, unsigned char messageNumber, CByteArray compressedPosition)
 {
 	SendDisbandMessage(from, messageNumber, compressedPosition[0], compressedPosition[1], compressedPosition[2], compressedPosition[3]);
 }
 
-void CFootBotZebrolike::SendDisbandMessage(unsigned char from, unsigned char messageNumber, CVector3 safePosition)
+void SearchAndRescueBehaviour::SendDisbandMessage(ZebroIdentifier from, unsigned char messageNumber, CVector3 safePosition)
 {
 	SendDisbandMessage(from, messageNumber, CompressPosition(safePosition));
 }
 
-void CFootBotZebrolike::BecomeBasekeeper()
+void SearchAndRescueBehaviour::BecomeBasekeeper()
 {
 	role = ROLE_BASEKEEPER;
 	groundCovered = 0;
@@ -1905,13 +1910,13 @@ void CFootBotZebrolike::BecomeBasekeeper()
 	amountOfRemainingSearchersToInstruct = 0;
 	myTotalPathPoints = 1;
 	cout << "I (id ";
-	cout << myId;
+	cout << myId.ToString();
 	cout << ") am becoming a basekeeper";
 	cout << std::endl;
 	SharpRightTurn();
 }
 
-void CFootBotZebrolike::PingAllBasekeepers()
+void SearchAndRescueBehaviour::PingAllBasekeepers()
 {
 	sendMessageId++;
 	unsigned char messageNumber = (unsigned char) sendMessageId;
@@ -1925,12 +1930,12 @@ void CFootBotZebrolike::PingAllBasekeepers()
 	cBuf[3] = compressedPosition[2];
 	cBuf[4] = compressedPosition[3];
 	
-	// cout << " bot " << myId << " is pinging all basekeepers." << std::endl;
+	// cout << " bot " << myId.ToString() << " is pinging all basekeepers." << std::endl;
 	
 	SendMessage(cBuf, myId, messageNumber);
 }
 
-void CFootBotZebrolike::SendPingReply(unsigned char to, CVector3 position, unsigned char allowAsNewBasekeeper)
+void SearchAndRescueBehaviour::SendPingReply(ZebroIdentifier to, CVector3 position, unsigned char allowAsNewBasekeeper)
 {
 	sendMessageId++;
 	unsigned char messageNumber = (unsigned char) sendMessageId;
@@ -1945,29 +1950,29 @@ void CFootBotZebrolike::SendPingReply(unsigned char to, CVector3 position, unsig
 	cBuf[4] = compressedPosition[3];
 	cBuf[5] = allowAsNewBasekeeper;
 	
-	// cout << " bot " << myId << " is replying to the ping of " << to << "." << std::endl;
+	// cout << " bot " << myId.ToString() << " is replying to the ping of " << to.ToString() <<  "." << std::endl;
 	
 	SendMessage(cBuf, myId, messageNumber, to);
 }
 
-void CFootBotZebrolike::AddToCapturedNodes(unsigned char nodeId)
+void SearchAndRescueBehaviour::AddToCapturedNodes(ZebroIdentifier nodeId)
 {
 	for(int i = 0; i < 10; i++)
 	{
-		if(capturedNodes[i] == nodeId)
+		if(nodeId.Equals(capturedNodes[i]))
 		{
 				return;
 		}
 		if(capturedNodes[i] == 0x00)
 		{
-			capturedNodes[i] = nodeId;
+			capturedNodes[i] = nodeId.GetUnsignedCharValue();
 			level = i + 1;
 			return;
 		}
 	}
 }
 
-void CFootBotZebrolike::AddToMySearchers(unsigned char nodeId)
+void SearchAndRescueBehaviour::AddToMySearchers(ZebroIdentifier nodeId)
 {
 	int latestTickEntry = -1;
 	unsigned char latestTick = 0x00;
@@ -1975,7 +1980,7 @@ void CFootBotZebrolike::AddToMySearchers(unsigned char nodeId)
 	int emptySpotPointer = -1;
 	for(int i = 0; i < 10; i++)
 	{
-		if(mySearchers[i*2] == nodeId)
+		if(nodeId.Equals(mySearchers[i*2]))
 		{
 				mySearchers[i*2+1] = 0x00;
 				return;
@@ -2006,16 +2011,16 @@ void CFootBotZebrolike::AddToMySearchers(unsigned char nodeId)
 		return;
 	}
 	
-	cout << "Added " << nodeId << " to my searchers." << std::endl;
-	mySearchers[pointer] = nodeId;
+	cout << "Added " << nodeId.ToString() << " to my searchers." << std::endl;
+	mySearchers[pointer] = nodeId.GetUnsignedCharValue();
 	mySearchers[pointer+1] = 0x00;
 }
 
-void CFootBotZebrolike::RemoveFromMySearchers(unsigned char nodeId)
+void SearchAndRescueBehaviour::RemoveFromMySearchers(ZebroIdentifier nodeId)
 {
 	for(int i = 0; i < 10; i++)
 	{
-		if(mySearchers[i*2] == nodeId)
+		if(nodeId.Equals(mySearchers[i*2]))
 		{
 			mySearchers[i*2] = 0x00;
 			mySearchers[i*2+1] = 0x00;
@@ -2026,7 +2031,7 @@ void CFootBotZebrolike::RemoveFromMySearchers(unsigned char nodeId)
 	}
 }
 
-void CFootBotZebrolike::updateMySearchersTicks()
+void SearchAndRescueBehaviour::updateMySearchersTicks()
 {
 	int newMySearchersTotal = 0;
 	for(int i = 0; i < 10; i++)
@@ -2048,7 +2053,7 @@ void CFootBotZebrolike::updateMySearchersTicks()
 	mySearchersTotal = newMySearchersTotal;
 }
 
-Real CFootBotZebrolike::GetFarthestChildBasekeeperDistance()
+Real SearchAndRescueBehaviour::GetFarthestChildBasekeeperDistance()
 {
 	Real farthestDistance = 0;
 	for(int i = 0; i < 4; i++)
@@ -2068,16 +2073,16 @@ Real CFootBotZebrolike::GetFarthestChildBasekeeperDistance()
 	return farthestDistance;
 }
 
-void CFootBotZebrolike::AddToChildrenBasekeepers(unsigned char nodeId, CVector3 position)
+void SearchAndRescueBehaviour::AddToChildrenBasekeepers(ZebroIdentifier nodeId, CVector3 position)
 {
 	int latestTickEntry = -1;
 	unsigned char latestTick = 0x00;
 	int emptySpotPointer = -1;
 	for(int i = 0; i < 4; i++)
 	{
-		if(childrenBasekeepers[i*6] == nodeId)
+		if(nodeId.Equals(childrenBasekeepers[i*6]))
 		{
-			childrenBasekeepers[i*6] = nodeId;
+			childrenBasekeepers[i*6] = nodeId.GetUnsignedCharValue();
 			CVector3 oldPosition = DecompressPosition(childrenBasekeepers[i*6+1], childrenBasekeepers[i*6+2], childrenBasekeepers[i*6+3], childrenBasekeepers[i*6+4]);
 			CByteArray newCompressedPosition = CompressPosition(CreateWeightedAverageVector(position, 1, oldPosition, 5));
 			// todo: fix this.
@@ -2087,10 +2092,10 @@ void CFootBotZebrolike::AddToChildrenBasekeepers(unsigned char nodeId, CVector3 
 			childrenBasekeepers[i*6+4] = newCompressedPosition[3];
 			childrenBasekeepers[i*6+5] = 0x00;
 			
-			if(myId == 81)
+			if(myId.Equals((unsigned char) 81))
 			{
 				CVector3 nvtt = DecompressPosition(newCompressedPosition);
-				cout << "nvtt2 " << nodeId << ": ("<<nvtt.GetX()<<","<<nvtt.GetY()<<")"<<std::endl;
+				cout << "nvtt2 " << nodeId.ToString() << ": ("<<nvtt.GetX()<<","<<nvtt.GetY()<<")"<<std::endl;
 			}
 			return;
 		}
@@ -2119,7 +2124,7 @@ void CFootBotZebrolike::AddToChildrenBasekeepers(unsigned char nodeId, CVector3 
 	{
 		return;
 	}
-	childrenBasekeepers[pointer] = nodeId;
+	childrenBasekeepers[pointer] = nodeId.GetUnsignedCharValue();
 	CByteArray newCompressedPosition = CompressPosition(position);
 	childrenBasekeepers[pointer+1] = newCompressedPosition[0];
 	childrenBasekeepers[pointer+2] = newCompressedPosition[1];
@@ -2127,14 +2132,14 @@ void CFootBotZebrolike::AddToChildrenBasekeepers(unsigned char nodeId, CVector3 
 	childrenBasekeepers[pointer+4] = newCompressedPosition[3];
 	childrenBasekeepers[pointer+5] = 0x00;
 	
-	if(myId == 81)
+	if(myId.Equals(ZebroIdentifier((unsigned char) 81)))
 	{
 		CVector3 nvtt = DecompressPosition(newCompressedPosition);
-		cout << "nvtt1 " << nodeId << ": ("<<nvtt.GetX()<<","<<nvtt.GetY()<<")"<<std::endl;
+		cout << "nvtt1 " << nodeId.ToString() << ": ("<<nvtt.GetX()<<","<<nvtt.GetY()<<")"<<std::endl;
 	}
 }
 
-void CFootBotZebrolike::UpdateChildrenBasekeepersTicks()
+void SearchAndRescueBehaviour::UpdateChildrenBasekeepersTicks()
 {
 	int newchildrenBasekeepersTotal = 0;
 	for(int i = 0; i < 4; i++)
@@ -2144,7 +2149,7 @@ void CFootBotZebrolike::UpdateChildrenBasekeepersTicks()
 			childrenBasekeepers[i*6+5]++;
 			if(childrenBasekeepers[i*6+5] > 50) // 500 ticks
 			{
-				cout << "Basekeeper " << myId << " lost connection to basekeeper " << childrenBasekeepers[i*6] << "." << std::endl;
+				cout << "Basekeeper " << myId.ToString() << " lost connection to basekeeper " << childrenBasekeepers[i*6] << "." << std::endl;
 				childrenBasekeepers[i*6] = 0x00;
 				childrenBasekeepers[i*6+1] = 0x00;
 				childrenBasekeepers[i*6+2] = 0x00;
@@ -2166,23 +2171,23 @@ void CFootBotZebrolike::UpdateChildrenBasekeepersTicks()
 	}
 }
 
-void CFootBotZebrolike::CheckConnectionToParent()
+void SearchAndRescueBehaviour::CheckConnectionToParent()
 {
 	// todo: what to do if a searcher loses connection to parent?
-	if(mainBasekeeper == myId) { return; }
+	if(mainBasekeeper.Equals(myId)) { return; }
 	lastParentUpdate++;
 	if(lastParentUpdate > 50) // 500 ticks
 	{
-		cout << "Basekeeper " << myId << " lost connection to its parent basekeeper ("<< parentBasekeeper << ")." << std::endl;
+		cout << "Basekeeper " << myId.ToString() << " lost connection to its parent basekeeper ("<< parentBasekeeper.ToString() << ")." << std::endl;
 		Disband();
 	}
 }
 
-bool CFootBotZebrolike::IsChildBasekeeper(unsigned char nodeId)
+bool SearchAndRescueBehaviour::IsChildBasekeeper(ZebroIdentifier nodeId)
 {
 	for(int i = 0; i < 4; i++)
 	{
-		if(childrenBasekeepers[i*6] == nodeId)
+		if(nodeId.Equals(childrenBasekeepers[i*6]))
 		{
 			return true;
 		}
@@ -2190,20 +2195,20 @@ bool CFootBotZebrolike::IsChildBasekeeper(unsigned char nodeId)
 	return false;
 }
 
-CVector3 CFootBotZebrolike::CreateWeightedAverageVector(CVector3 position1, int weight1, CVector3 position2, int weight2)
+CVector3 SearchAndRescueBehaviour::CreateWeightedAverageVector(CVector3 position1, int weight1, CVector3 position2, int weight2)
 {
 	CVector3 result = CVector3((position1.GetX() * weight1 + position2.GetX() * weight2)/(weight1 + weight2), (position1.GetY() * weight1 + position2.GetY() * weight2)/(weight1 + weight2), (position1.GetZ() * weight1 + position2.GetZ() * weight2)/(weight1 + weight2));
 	return result;
 }
 
-void CFootBotZebrolike::AddToIgnoreSearchers(unsigned char nodeId)
+void SearchAndRescueBehaviour::AddToIgnoreSearchers(ZebroIdentifier nodeId)
 {
 	int leastTicksLeftEntry = -1;
 	unsigned char leastTicksLeft = 0xff;
 	int emptySpotPointer = -1;
 	for(int i = 0; i < 10; i++)
 	{
-		if(ignoreSearchers[i*2] == nodeId)
+		if(nodeId.Equals(ignoreSearchers[i*2]))
 		{
 				ignoreSearchers[i*2+1] = (unsigned char) 20; // ignore for 200 ticks (20 decaticks)
 				return;
@@ -2232,11 +2237,11 @@ void CFootBotZebrolike::AddToIgnoreSearchers(unsigned char nodeId)
 	{
 		return;
 	}
-	ignoreSearchers[pointer] = nodeId;
+	ignoreSearchers[pointer] = nodeId.GetUnsignedCharValue();
 	ignoreSearchers[pointer+1] = (unsigned char) 20;
 }
 
-void CFootBotZebrolike::updateIgnoreSearchersTicks()
+void SearchAndRescueBehaviour::updateIgnoreSearchersTicks()
 {
 	for(int i = 0; i < 10; i++)
 	{
@@ -2252,11 +2257,11 @@ void CFootBotZebrolike::updateIgnoreSearchersTicks()
 	}
 }
 
-bool CFootBotZebrolike::IsIgnoringSearcher(unsigned char nodeId)
+bool SearchAndRescueBehaviour::IsIgnoringSearcher(ZebroIdentifier nodeId)
 {
 	for(int i = 0; i < 10; i++)
 	{
-		if(ignoreSearchers[i*2] == nodeId)
+		if(nodeId.Equals(ignoreSearchers[i*2]))
 		{
 			return true;
 		}
@@ -2264,7 +2269,7 @@ bool CFootBotZebrolike::IsIgnoringSearcher(unsigned char nodeId)
 	return false;
 }
 
-void CFootBotZebrolike::SendHeartbeat()
+void SearchAndRescueBehaviour::SendHeartbeat()
 {
 	sendMessageId++;
 	unsigned char messageNumber = (unsigned char) sendMessageId;
@@ -2272,113 +2277,113 @@ void CFootBotZebrolike::SendHeartbeat()
 	CByteArray cBuf(7);
 	cBuf[0] = MESSAGETYPE_HEARTBEAT;
 	
-	// cout << " bot " << myId << " is sending a heartbeat to " << basekeeper << "." << std::endl;
+	// cout << " bot " << myId.ToString() << " is sending a heartbeat to " << basekeeper.ToString() << "." << std::endl;
 	
 	SendMessage(cBuf, myId, messageNumber, basekeeper);
 }
 
-void CFootBotZebrolike::SendFoundTargetMessage(unsigned char from, unsigned char messageNumber, unsigned char parent, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2)
+void SearchAndRescueBehaviour::SendFoundTargetMessage(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier parent, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2)
 {
 	CByteArray cBuf(7);
 	cBuf[0] = MESSAGETYPE_FOUNDTARGET;
-	cBuf[1] = parent;
+	cBuf[1] = parent.GetUnsignedCharValue();
 	cBuf[2] = rotationByte1;
 	cBuf[3] = rotationByte2;
 	cBuf[4] = lengthByte1;
 	cBuf[5] = lengthByte2;
 	
-	if(from == myId)
+	if(from.Equals(myId))
 	{
-		cout << " bot " << myId << " is sending found target message to " << parent <<"." << std::endl;
+		cout << " bot " << myId.ToString() << " is sending found target message to " << parent.ToString() <<"." << std::endl;
 	}
 	
 	SendMessage(cBuf, from, messageNumber);
 }
 
-void CFootBotZebrolike::SendFoundTargetMessage(unsigned char from, unsigned char messageNumber, unsigned char parent, CVector3 position)
+void SearchAndRescueBehaviour::SendFoundTargetMessage(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier parent, CVector3 position)
 {
 	CByteArray compressedPosition = CompressPosition(position);
 	SendFoundTargetMessage(from, messageNumber, parent, compressedPosition[0], compressedPosition[1], compressedPosition[2], compressedPosition[3]);
 }
 
-void CFootBotZebrolike::SendFoundTargetUpstreamMessage(unsigned char from, unsigned char messageNumber, unsigned char parent, unsigned char totalSearchers, unsigned char hopsMade, Real totalDistance)
+void SearchAndRescueBehaviour::SendFoundTargetUpstreamMessage(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier parent, unsigned char totalSearchers, unsigned char hopsMade, Real totalDistance)
 {
 	CByteArray compressedLength = ConvertLengthTo2Bytes(totalDistance);
 	SendFoundTargetUpstreamMessage(from, messageNumber, parent, totalSearchers, hopsMade, compressedLength[0], compressedLength[1]);
 }
 
-void CFootBotZebrolike::SendFoundTargetUpstreamMessage(unsigned char from, unsigned char messageNumber, unsigned char parent, unsigned char totalSearchers, unsigned char hopsMade, unsigned char distanceByte1, unsigned char distanceByte2)
+void SearchAndRescueBehaviour::SendFoundTargetUpstreamMessage(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier parent, unsigned char totalSearchers, unsigned char hopsMade, unsigned char distanceByte1, unsigned char distanceByte2)
 {
 	CByteArray cBuf(7);
 	cBuf[0] = MESSAGETYPE_FOUNDTARGETUPSTREAM;
-	cBuf[1] = parent;
+	cBuf[1] = parent.GetUnsignedCharValue();
 	cBuf[2] = totalSearchers;
 	cBuf[3] = hopsMade;
 	cBuf[4] = distanceByte1;
 	cBuf[5] = distanceByte2;
 	
-	if(from == myId)
+	if(from.Equals(myId))
 	{
-		cout << " bot " << myId << " is sending found target upstream message to " << parent << "." << std::endl;
+		cout << " bot " << myId.ToString() << " is sending found target upstream message to " << parent.ToString() << "." << std::endl;
 	}
 	
 	SendMessage(cBuf, from, messageNumber);
 }
 
-void CFootBotZebrolike::SendPathData(unsigned char from, unsigned char messageNumber, unsigned char linkToTarget, unsigned char hopsLeftToTarget, int amountOfSearchersLeft, int sendSearchersNumber)
+void SearchAndRescueBehaviour::SendPathData(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier linkToTarget, unsigned char hopsLeftToTarget, int amountOfSearchersLeft, int sendSearchersNumber)
 {
 	CByteArray cBuf(7);
 	cBuf[0] = MESSAGETYPE_PATHDATA;
-	cBuf[1] = linkToTarget;
+	cBuf[1] = linkToTarget.GetUnsignedCharValue();
 	cBuf[2] = hopsLeftToTarget;
 	cBuf[3] = (unsigned char) amountOfSearchersLeft;
 	cBuf[4] = (char) sendSearchersNumber;
 	
-	if(from == myId)
+	if(from.Equals(myId))
 	{
-		cout << "Basekeeper " << myId << " is sending pathdata message to " << linkToTarget << "." << std::endl;
+		cout << "Basekeeper " << myId.ToString() << " is sending pathdata message to " << linkToTarget.ToString() << "." << std::endl;
 	}
 	
 	SendMessage(cBuf, from, messageNumber);
 }
 
-void CFootBotZebrolike::InstructSearcherToBecomePathPoint(unsigned char from, unsigned char messageNumber, unsigned char searcherId, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2)
+void SearchAndRescueBehaviour::InstructSearcherToBecomePathPoint(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier searcherId, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2)
 {
 	CByteArray cBuf(7);
 	cBuf[0] = MESSAGETYPE_BECOMEPATHPOINT;
-	cBuf[1] = searcherId;
+	cBuf[1] = searcherId.GetUnsignedCharValue();
 	cBuf[2] = rotationByte1;
 	cBuf[3] = rotationByte2;
 	cBuf[4] = lengthByte1;
 	cBuf[5] = lengthByte2;
 	
-	if(from == myId)
+	if(from.Equals(myId))
 	{
-		cout << "Basekeeper " << myId << " is instructing " << searcherId << " to become a path point." << std::endl;
+		cout << "Basekeeper " << myId.ToString() << " is instructing " << searcherId.ToString() << " to become a path point." << std::endl;
 	}
 	
 	SendMessage(cBuf, from, messageNumber);
 }
 
-void CFootBotZebrolike::InstructSearcherToBecomePathPoint(unsigned char from, unsigned char messageNumber, unsigned char searcherId, CVector3 position)
+void SearchAndRescueBehaviour::InstructSearcherToBecomePathPoint(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier searcherId, CVector3 position)
 {
 	CByteArray compressedPosition = CompressPosition(position);
 	InstructSearcherToBecomePathPoint(from, messageNumber, searcherId, compressedPosition[0], compressedPosition[1], compressedPosition[2], compressedPosition[3]);
 }
 
-void CFootBotZebrolike::TryToInstructSearchers()
+void SearchAndRescueBehaviour::TryToInstructSearchers()
 {
 	// todo: set iAmAPathpoint to true
 	while(mySearchersTotal > 0 && amountOfRemainingSearchersToInstruct > 0)
 	{
 		int pickedSearcherIndex = 0;
-		unsigned char pickedSearcherId;
+		ZebroIdentifier pickedSearcherId;
 		unsigned char pickedSearcherLastTick = 255;
 		for(int i = 0; i < 10; i++)
 		{
-			if(mySearchers[i*2] != 0x00 && mySearchers[i*2] != linkToTarget && (mySearchers[i*2+1] < pickedSearcherLastTick || pickedSearcherLastTick == 255))
+			if(mySearchers[i*2] != 0x00 && !linkToTarget.Equals(mySearchers[i*2]) && (mySearchers[i*2+1] < pickedSearcherLastTick || pickedSearcherLastTick == 255))
 			{
-				pickedSearcherId = mySearchers[i*2];
+				pickedSearcherId = ZebroIdentifier(mySearchers[i*2]);
 				pickedSearcherLastTick = mySearchers[i*2+1];
 				pickedSearcherIndex = i*2;
 			}
@@ -2394,18 +2399,18 @@ void CFootBotZebrolike::TryToInstructSearchers()
 	}
 }
 
-void CFootBotZebrolike::RelocateSearchersNeededElsewhere()
+void SearchAndRescueBehaviour::RelocateSearchersNeededElsewhere()
 {
 	while((searchersToSendDownstream != 0 || searchersToSendUpstream != 0) && mySearchersTotal > 0)
 	{
 		int pickedSearcherIndex = 0;
-		unsigned char pickedSearcherId;
+		ZebroIdentifier pickedSearcherId;
 		unsigned char pickedSearcherLastTick = 255;
 		for(int i = 0; i < 10; i++)
 		{
 			if(mySearchers[i*2] != 0x00 && (mySearchers[i*2+1] < pickedSearcherLastTick || pickedSearcherLastTick == 255))
 			{
-				pickedSearcherId = mySearchers[i*2];
+				pickedSearcherId = ZebroIdentifier(mySearchers[i*2]);
 				pickedSearcherLastTick = mySearchers[i*2+1];
 				pickedSearcherIndex = i*2;
 			}
@@ -2419,14 +2424,14 @@ void CFootBotZebrolike::RelocateSearchersNeededElsewhere()
 		sendMessageId++;
 		unsigned char messageNumber = (unsigned char) sendMessageId;
 		
-		unsigned char to;
+		ZebroIdentifier to;
 		CVector3 toPosition;
 		if(searchersToSendUpstream > 0)
 		{
 			to = parentBasekeeper;
 			toPosition = lastMeasuredParentBasekeeperPosition;
 			searchersToSendUpstream--;
-			cout << "Basekeeper " << myId << " is sending searcher " << pickedSearcherId << " upstream to " << to << std::endl;
+			cout << "Basekeeper " << myId.ToString() << " is sending searcher " << pickedSearcherId.ToString() << " upstream to " << to.ToString() <<  std::endl;
 		}
 		else if(searchersToSendDownstream > 0)
 		{
@@ -2434,13 +2439,13 @@ void CFootBotZebrolike::RelocateSearchersNeededElsewhere()
 			CVector3 absoluteToPosition = GetVectorToChild(linkToTarget);
 			CVector3 toPosition = absoluteToPosition - myAbsolutePosition;
 			searchersToSendDownstream--;
-			cout << "Basekeeper " << myId << " is sending searcher " << pickedSearcherId << " downstream to " << to << std::endl;
+			cout << "Basekeeper " << myId.ToString() << " is sending searcher " << pickedSearcherId.ToString() << " downstream to " << to.ToString() <<  std::endl;
 		}
 		RelocateSearcher(myId, messageNumber, pickedSearcherId, to, toPosition);
 	}
 }
 
-void CFootBotZebrolike::SharePosition(unsigned char from, unsigned char messageNumber, unsigned char hopsMade, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2, unsigned char parent)
+void SearchAndRescueBehaviour::SharePosition(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsMade, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2, ZebroIdentifier parent)
 {
 	CByteArray cBuf(7);
 	cBuf[0] = MESSAGETYPE_SHAREPOSITION;
@@ -2449,43 +2454,43 @@ void CFootBotZebrolike::SharePosition(unsigned char from, unsigned char messageN
 	cBuf[3] = rotationByte2;
 	cBuf[4] = lengthByte1;
 	cBuf[5] = lengthByte2;
-	cBuf[6] = parent;
+	cBuf[6] = parent.GetUnsignedCharValue();
 	
-	// cout << " bot " << myId << " is sharing position of bot " << from << "." << std::endl;
+	// cout << " bot " << myId.ToString() << " is sharing position of bot " << from << "." << std::endl;
 	
 	SendMessage(cBuf, from, messageNumber);
 }
 
-void CFootBotZebrolike::SharePosition(unsigned char from, unsigned char messageNumber, unsigned char hopsMade, CByteArray compressedPosition, unsigned char parent)
+void SearchAndRescueBehaviour::SharePosition(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsMade, CByteArray compressedPosition, ZebroIdentifier parent)
 {
 	SharePosition(from, messageNumber, hopsMade, compressedPosition[0], compressedPosition[1], compressedPosition[2], compressedPosition[3], parent);
 }
 
-void CFootBotZebrolike::SharePosition(unsigned char from, unsigned char messageNumber, unsigned char hopsMade, CVector3 position, unsigned char parent)
+void SearchAndRescueBehaviour::SharePosition(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsMade, CVector3 position, ZebroIdentifier parent)
 {
 	SharePosition(from, messageNumber, hopsMade, CompressPosition(position), parent);
 }
 
-void CFootBotZebrolike::RelocateSearcher(unsigned char from, unsigned char messageNumber, unsigned char searcherId, unsigned char basekeeperId, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2)
+void SearchAndRescueBehaviour::RelocateSearcher(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier searcherId, ZebroIdentifier basekeeperId, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2)
 {
 	CByteArray cBuf(7);
 	cBuf[0] = MESSAGETYPE_RELOCATESEARCHER;
-	cBuf[1] = searcherId;
-	cBuf[2] = basekeeperId;
+	cBuf[1] = searcherId.GetUnsignedCharValue();
+	cBuf[2] = basekeeperId.GetUnsignedCharValue();
 	cBuf[3] = rotationByte1;
 	cBuf[4] = rotationByte2;
 	cBuf[5] = lengthByte1;
 	cBuf[6] = lengthByte2;
 	
-	if(from == myId)
+	if(from.Equals(myId))
 	{
-		cout << "Bot " << myId << " is sending a message to relocate searcher " << searcherId << " to basekeeper " << basekeeperId << "." << std::endl;
+		cout << "Bot " << myId.ToString() << " is sending a message to relocate searcher " << searcherId.ToString() << " to basekeeper " << basekeeperId.ToString() << "." << std::endl;
 	}
 	
 	SendMessage(cBuf, from, messageNumber);
 }
 
-void CFootBotZebrolike::RelocateSearcher(unsigned char from, unsigned char messageNumber, unsigned char searcherId, unsigned char basekeeperId, CVector3 basekeeperPosition)
+void SearchAndRescueBehaviour::RelocateSearcher(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier searcherId, ZebroIdentifier basekeeperId, CVector3 basekeeperPosition)
 {
 	CByteArray compressedPosition = CompressPosition(basekeeperPosition);
 	RelocateSearcher(from, messageNumber, searcherId, basekeeperId, compressedPosition[0], compressedPosition[1], compressedPosition[2], compressedPosition[3]);
@@ -2493,30 +2498,35 @@ void CFootBotZebrolike::RelocateSearcher(unsigned char from, unsigned char messa
 
 // SendCaptureAck(from, hopsLeft - 1, father, capturedNodeId, capturedNodeId2, capturedNodeId3);
 
-void CFootBotZebrolike::SendCaptureAck(unsigned char from, unsigned char messageNumber, unsigned char hopsLeft, unsigned char candidateId, unsigned char capturedNodeId, unsigned char capturedNodeId2, unsigned char capturedNodeId3)
+void SearchAndRescueBehaviour::SendCaptureAck(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsLeft, ZebroIdentifier candidateId, ZebroIdentifier capturedNodeId, ZebroIdentifier capturedNodeId2, ZebroIdentifier capturedNodeId3)
 {
 	CByteArray cBuf(7);
 	cBuf[0] = MESSAGETYPE_CAPTUREACK; // type of message
 	cBuf[1] = hopsLeft; // hops left
-	cBuf[2] = candidateId; // candidate id
-	cBuf[3] = capturedNodeId; // father
-	cBuf[4] = capturedNodeId2; // the id of the node that got captured
-	cBuf[5] = capturedNodeId3;
+	cBuf[2] = candidateId.GetUnsignedCharValue(); // candidate id
+	cBuf[3] = capturedNodeId.GetUnsignedCharValue(); // father
+	cBuf[4] = capturedNodeId2.GetUnsignedCharValue(); // the id of the node that got captured
+	cBuf[5] = capturedNodeId3.GetUnsignedCharValue();
 	SendMessage(cBuf, from, messageNumber);
 }
 
 
-void CFootBotZebrolike::SendCaptureBroadcast(unsigned char from, unsigned char messageNumber, unsigned char hopsMade, unsigned char level, unsigned char candidateId)
+void SearchAndRescueBehaviour::SendCaptureBroadcast(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsMade, unsigned char level, ZebroIdentifier candidateId)
 {
+	cout << "c." << endl;
 	CByteArray cBuf(7);
+	cout << "d." << endl;
 	cBuf[0] = MESSAGETYPE_CAPTUREBROADCAST; // type of message
 	cBuf[1] = hopsMade; // hops made
-	cBuf[2] = candidateId; // candidate id
+	cBuf[2] = candidateId.GetUnsignedCharValue(); // candidate id
 	cBuf[3] = level; // father
+	cout << "e." << endl;
 	SendMessage(cBuf, from, messageNumber);
+	cout << "f." << endl;
 }
 
-int CFootBotZebrolike::CompareId(unsigned char id1, unsigned char id2)
+/*
+int SearchAndRescueBehaviour::CompareId(ZebroIdentifier id1, ZebroIdentifier id2)
 {
 	// if id1 > id2: return 1
 	// if id1 = id2: return 0
@@ -2527,9 +2537,9 @@ int CFootBotZebrolike::CompareId(unsigned char id1, unsigned char id2)
 	if(convertedId1 > convertedId2) { return 1;}
 	if(convertedId1 < convertedId2) { return -1;}
 	return 0;
-}
+}*/
 
-int CFootBotZebrolike::CompareLevelAndId(int level1, unsigned char id1, int level2, unsigned char id2)
+int SearchAndRescueBehaviour::CompareLevelAndId(int level1, ZebroIdentifier id1, int level2, ZebroIdentifier id2)
 {
 	// if level1, id1 > level2, id2: return 1
 	// if level1, id1 = level2, id2: return 0
@@ -2543,11 +2553,14 @@ int CFootBotZebrolike::CompareLevelAndId(int level1, unsigned char id1, int leve
 	{
 		return -1;
 	}
-	return CompareId(id1, id2);
+	
+	return id1.CompareTo(id2);
+	
+	//return CompareId(id1, id2);
 }
 
 
-void CFootBotZebrolike::CheckForReceivedMessages()
+void SearchAndRescueBehaviour::CheckForReceivedMessages()
 {
 	/* to replace
 	
@@ -2592,12 +2605,12 @@ void CFootBotZebrolike::CheckForReceivedMessages()
 		  
 		  
 		  
-		  if(newMessageSender == myId)
+		  if(newMessageSender.Equals(myId))
 		  {
 			  // The other bot has an overlapping id with you... Choose a new random id
 			  // myId = (unsigned char)(rand()%(255-0 + 1) + 0); // Random byte
 		  }
-		  if((receiverId == myId || receiverId == 0x00) && (newMessageId != 0 || newMessageSender != 0))
+		  if((receiverId.Equals(myId) || receiverId == 0x00) && (newMessageId != 0 || newMessageSender != 0))
 		  {
 			 
 			  ReceiveMessage(tPackets[i].Data);
@@ -2607,13 +2620,13 @@ void CFootBotZebrolike::CheckForReceivedMessages()
 	  */
 }
 
-void CFootBotZebrolike::BroadcastMessage(CByteArray& bytesToSend)
+void SearchAndRescueBehaviour::BroadcastMessage(CByteArray& bytesToSend)
 {
 	sendMessageId++;
 	SendMessage(bytesToSend, 0x00, (unsigned char) sendMessageId, 0x00); // 0x00 is broadcast
 }
 
-void CFootBotZebrolike::SendMessageFromQueue()
+void SearchAndRescueBehaviour::SendMessageFromQueue()
 {
 	messageQueuePointer = messageQueuePointer;
 	
@@ -2637,39 +2650,37 @@ void CFootBotZebrolike::SendMessageFromQueue()
 	m_pcRABAct->SetData(cBuf);
 	*/
 	
-	// cout << "Node " << myId << " sent a message: "<<cBuf[0]<<","<<cBuf[1]<<","<<cBuf[2]<<","<<cBuf[3]<<","<<cBuf[4]<<","<<cBuf[5]<<","<<cBuf[6]<<","<<cBuf[7]<<","<<cBuf[8]<<","<<cBuf[9]<< std::endl;
+	// cout << "Node " << myId.ToString() << " sent a message: "<<cBuf[0]<<","<<cBuf[1]<<","<<cBuf[2]<<","<<cBuf[3]<<","<<cBuf[4]<<","<<cBuf[5]<<","<<cBuf[6]<<","<<cBuf[7]<<","<<cBuf[8]<<","<<cBuf[9]<< std::endl;
 }
 
 /*
-void CFootBotZebrolike::SendMessage(CByteArray& bytesToSend, unsigned char senderId) {
+void SearchAndRescueBehaviour::SendMessage(CByteArray& bytesToSend, ZebroIdentifier senderId) {
 	sendMessageId++;
 	SendMessage(bytesToSend, receiverId, (unsigned char) sendMessageId);
 }*/
-
-void CFootBotZebrolike::SendMessage(CByteArray& bytesToSend, unsigned char senderId, unsigned char messageNumber)
+						   
+void SearchAndRescueBehaviour::SendMessage(CByteArray& bytesToSend, ZebroIdentifier senderId, unsigned char messageNumber)
 {
 	SendMessage(bytesToSend, senderId, messageNumber, 0x00);
 }
 
-void CFootBotZebrolike::SendMessage(CByteArray& bytesToSend, unsigned char senderId, unsigned char messageNumber, unsigned char receiverId)
+void SearchAndRescueBehaviour::SendMessage(CByteArray& bytesToSend, ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier receiverId)
 {
 	/* Send counter value */
 	
    CByteArray cBuf(10);
-   cBuf[0] = senderId;
+   cBuf[0] = senderId.GetUnsignedCharValue();
    cBuf[1] = messageNumber;
-   cBuf[2] = receiverId;
+   cBuf[2] = receiverId.GetUnsignedCharValue();
    
-	cout << "g." << endl;
 	cBuf[3] = bytesToSend[0];
-	cout << "h." << endl;
    cBuf[4] = bytesToSend[1];
    cBuf[5] = bytesToSend[2];
    cBuf[6] = bytesToSend[3];
    cBuf[7] = bytesToSend[4];
    cBuf[8] = bytesToSend[5];
    cBuf[9] = bytesToSend[6];
-   cout << "i." << endl;
+   
    for(size_t i = 0; i < messageQueueSize; i++)
    {
 		int j = i + messageQueuePointer;
@@ -2687,81 +2698,80 @@ void CFootBotZebrolike::SendMessage(CByteArray& bytesToSend, unsigned char sende
 			break;
 		}
    }
-	cout << "j." << endl;
    //m_pcRABAct->SetData(cBuf);
-   /* Write on robot cout the sent value */
+   /* Write on robot log the sent value */
    
    
-  // cout << "Node " << myId << " enqueued message: "<<cBuf[0]<<","<<cBuf[1]<<","<<cBuf[2]<<","<<cBuf[3]<<","<<cBuf[4]<<","<<cBuf[5]<<","<<cBuf[6]<<","<<cBuf[7]<<","<<cBuf[8]<<","<<cBuf[9]<<","<< std::endl;
+  // RLOG << "Node " << myId << " enqueued message: "<<cBuf[0]<<","<<cBuf[1]<<","<<cBuf[2]<<","<<cBuf[3]<<","<<cBuf[4]<<","<<cBuf[5]<<","<<cBuf[6]<<","<<cBuf[7]<<","<<cBuf[8]<<","<<cBuf[9]<<","<< std::endl;
    
    /* Increase counter */
 ++m_unCounter;
 }
 
-void CFootBotZebrolike::GoForwards() {
+void SearchAndRescueBehaviour::GoForwards() {
 	direction = 3;
 	leftLegsVelocity = m_fWheelVelocity;
 	rightLegsVelocity = m_fWheelVelocity;
 	UpdateLegVelocities();
 }
 
-void CFootBotZebrolike::GoBackwards() {
+void SearchAndRescueBehaviour::GoBackwards() {
 	direction = -3;
 	leftLegsVelocity = -m_fWheelVelocity;
 	rightLegsVelocity = -m_fWheelVelocity;
 	UpdateLegVelocities();
 }
 
-void CFootBotZebrolike::MildLeftTurn() {
+void SearchAndRescueBehaviour::MildLeftTurn() {
 	direction = 2;
 	leftLegsVelocity = 0.0f;
 	rightLegsVelocity = m_fWheelVelocity;
 	UpdateLegVelocities();
 }
 
-void CFootBotZebrolike::MildRightTurn() {
+void SearchAndRescueBehaviour::MildRightTurn() {
 	direction = 4;
 	leftLegsVelocity = m_fWheelVelocity;
 	rightLegsVelocity = 0.0f;
 	UpdateLegVelocities();
 }
 
-void CFootBotZebrolike::SharpLeftTurn() {
+void SearchAndRescueBehaviour::SharpLeftTurn() {
 	direction = 1;
 	leftLegsVelocity = -m_fWheelVelocity;
 	rightLegsVelocity = m_fWheelVelocity;
 	UpdateLegVelocities();
 }
 
-void CFootBotZebrolike::SharpRightTurn() {
+void SearchAndRescueBehaviour::SharpRightTurn() {
 	direction = 5;
 	leftLegsVelocity = m_fWheelVelocity;
 	rightLegsVelocity = -m_fWheelVelocity;
 	UpdateLegVelocities();
 }
 
-void CFootBotZebrolike::MildBackwardsLeftTurn() {
+void SearchAndRescueBehaviour::MildBackwardsLeftTurn() {
 	direction = -2;
 	leftLegsVelocity = 0.0f;
 	rightLegsVelocity = -m_fWheelVelocity;
 	UpdateLegVelocities();
 }
 
-void CFootBotZebrolike::MildBackwardsRightTurn() {
+void SearchAndRescueBehaviour::MildBackwardsRightTurn() {
 	direction = -4;
 	leftLegsVelocity = -m_fWheelVelocity;
 	rightLegsVelocity = 0.0f;
 	UpdateLegVelocities();
 }
 
-void CFootBotZebrolike::Stop(){
+void SearchAndRescueBehaviour::Stop(){
 	direction = 0;
 	leftLegsVelocity = 0.0f;
 	rightLegsVelocity = 0.0f;
 	UpdateLegVelocities();
 }
 
-void CFootBotZebrolike::UpdateLegVelocities()
+void SearchAndRescueBehaviour::UpdateLegVelocities()
 {
 	/* to replace
 	m_pcWheels->SetLinearVelocity(leftLegsVelocity, rightLegsVelocity);
@@ -2786,7 +2796,7 @@ void CFootBotZebrolike::UpdateLegVelocities()
 
 
 
-void CFootBotZebrolike::TestBehaviour()
+void SearchAndRescueBehaviour::TestBehaviour()
 {
 	/* to replace */
 }
@@ -2808,3 +2818,4 @@ void CFootBotZebrolike::TestBehaviour()
 /* to replace
 REGISTER_CONTROLLER(CFootBotZebrolike, "footbot_zebrolike_controller")
 */
+

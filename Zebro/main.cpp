@@ -7,7 +7,7 @@
 #include <wiringPiI2C.h>
 #include <iostream>
 
-#include <footbot_zebrolike.h>
+#include <../common-core/SearchAndRescueBehaviour.h>
 
 using namespace std;
 
@@ -18,15 +18,15 @@ int main() {
 	
 	// CFootBotZebrolike b = CFootBotZebrolike();
 	
-	CFootBotZebrolike b;
+	SearchAndRescueBehaviour s;
 	
-	b.Init();
+	s.Init();
 	
 	int i = 0;
 	while(i < 2000)
 	{
 		i++;
-		b.ControlStep();
+		s.ControlStep();
 	}
 	
 	return 0;

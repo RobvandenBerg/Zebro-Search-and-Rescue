@@ -22,6 +22,10 @@ set(SOURCES
 	./main.cpp
 	./footbot_zebrolike.cpp
 	./footbot_zebrolike.h
+	../common-core/SearchAndRescueBehaviour.cpp
+	../common-core/SearchAndRescueBehaviour.h
+	../common-core/ZebroIdentifier.cpp
+	../common-core/ZebroIdentifier.h
 	./includes/utility/datatypes/byte_array.cpp
 	./includes/utility/math/angles.cpp
 	./includes/arpa/inet.h
