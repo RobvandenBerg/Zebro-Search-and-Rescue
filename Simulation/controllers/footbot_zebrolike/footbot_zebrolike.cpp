@@ -55,6 +55,9 @@ void CFootBotZebrolike::Init(TConfigurationNode& t_node) {
     * list a device in the XML and then you request it here, an error
     * occurs.
     */
+	
+	std::cout << "init CFootBotZebrolike"<< std::endl;
+	
    m_pcWheels    = GetActuator<CCI_DifferentialSteeringActuator>("differential_steering");
    m_pcProximity = GetSensor  <CCI_FootBotProximitySensor      >("footbot_proximity");
    m_pcRABSens = GetSensor <CCI_RangeAndBearingSensor >("range_and_bearing" );

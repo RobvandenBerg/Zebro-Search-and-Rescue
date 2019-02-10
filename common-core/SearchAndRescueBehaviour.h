@@ -2,9 +2,15 @@
 #ifndef SEARCHANDRESCUEBEHAVIOUR_H
 #define SEARCHANDRESCUEBEHAVIOUR_H
 
+#include <my_defines.h>
 
-#include <includes/utility/datatypes/byte_array.h>
-#include <includes/utility/math/vector3.h>
+#ifdef IS_SIMULATION
+	#include <argos3/core/utility/datatypes/byte_array.h>
+	#include <argos3/core/utility/math/vector3.h>
+#else
+	#include <includes/utility/datatypes/byte_array.h>
+	#include <includes/utility/math/vector3.h>
+#endif
 
 #include <footbot_zebrolike.h>
 

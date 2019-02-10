@@ -29,6 +29,8 @@ int main() {
 		s.ControlStep();
 	}
 	
+	cout << "Done executing." << endl;
+	
 	return 0;
 }
 

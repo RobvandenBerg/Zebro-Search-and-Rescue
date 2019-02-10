@@ -1,7 +1,13 @@
 #ifndef ZEBRO_IDENTIFIER_H
 #define ZEBRO_IDENTIFIER_H
 
-#include <includes/utility/datatypes/byte_array.h>
+#include <my_defines.h>
+
+#ifdef IS_SIMULATION
+	#include <argos3/core/utility/datatypes/byte_array.h>
+#else
+	#include <includes/utility/datatypes/byte_array.h>
+#endif
 
 using namespace argos;
 

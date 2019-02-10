@@ -19,6 +19,7 @@ include_directories(./wiringPi/inc/)
 link_directories(./wiringPi/lib/)
 
 set(SOURCES 
+	./my_defines.h
 	./main.cpp
 	./footbot_zebrolike.cpp
 	./footbot_zebrolike.h
