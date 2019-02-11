@@ -256,6 +256,7 @@ void SearchAndRescueBehaviour::Loop()
 							unsigned char msgNum = (unsigned char) sendMessageId;
 							AppointNewBasekeeper(myId, msgNum, bestApplicant, basekeeperLevel + 1);
 							RemoveFromMySearchers(bestApplicant);
+							BOTDEBUG << "LFT2: " << myId.ToString() << " added " << bestApplicant.ToString() << " to its children basekeepers." << endl;
 							AddToChildrenBasekeepers(bestApplicant, bestApplicantPosition);
 							RelocateRandomSearcherToChildBasekeeper(bestApplicant, bestApplicantPosition);
 						}
@@ -800,6 +801,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_SHAREPOSITION(ZebroIdentifier send
 			return;
 		}
 
+		BOTDEBUG << "LFT: " << myId.ToString() << " added " << senderId.ToString() << " to its children basekeepers." << endl;
 		AddToChildrenBasekeepers(senderId, DecompressPosition(compressedPosition) - myAbsolutePosition);
 	}
 }

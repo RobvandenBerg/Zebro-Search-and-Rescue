@@ -5,7 +5,8 @@
 
 ZebroIdentifier::ZebroIdentifier()
 {
-	
+	charId = 0x00;
+	type = 0;
 }
 
 ZebroIdentifier::ZebroIdentifier(unsigned char id)

@@ -1055,6 +1055,7 @@ void CFootBotZebrolike::AddToMySearchers(ZebroIdentifier nodeId)
 
 void CFootBotZebrolike::RemoveFromMySearchers(ZebroIdentifier nodeId)
 {
+	bool deleted = false;
 	for(int i = 0; i < 10; i++)
 	{
 		if(nodeId.Equals(mySearchers[i*2]))
@@ -1062,9 +1063,16 @@ void CFootBotZebrolike::RemoveFromMySearchers(ZebroIdentifier nodeId)
 			BOTDEBUG << "Removed " << nodeId.ToString() << " from my searchers." << endl;
 			mySearchers[i*2] = 0x00;
 			mySearchers[i*2+1] = 0x00;
-			AddToIgnoreSearchers(nodeId);
-			mySearchersTotal--;
-			return;
+			if(!nodeId.IsEmpty())
+			{
+				if(deleted)
+				{
+					BOTDEBUG << "ERROR! deleted same node from mySearchers multiple times!" << endl;
+				}
+				AddToIgnoreSearchers(nodeId);
+				mySearchersTotal--;
+			}
+			deleted = true;
 		}
 	}
 }
@@ -1344,7 +1352,7 @@ void CFootBotZebrolike::SendFoundTargetUpstreamMessage(ZebroIdentifier from, uns
 	
 	if(from.Equals(myId))
 	{
-		BOTDEBUG << " bot " << myId.ToString() << " is sending found target upstream message to " << parent.ToString() << "." << std::endl;
+		BOTDEBUG << " bot " << myId.ToString() << " is sending found target upstream message to " << parent.ToString() << ". (totalSearchers is now " << totalSearchers << ")" << std::endl;
 	}
 	
 	SendMessage(cBuf, from, messageNumber);
@@ -1394,10 +1402,28 @@ void CFootBotZebrolike::InstructSearcherToBecomePathPoint(ZebroIdentifier from, 
 void CFootBotZebrolike::TryToInstructSearchers()
 {
 	// todo: set iAmAPathpoint to true
+	ZebroIdentifier pickedSearcherId;
+	if(amountOfRemainingSearchersToInstruct > 0)
+	{
+		BOTDEBUG << "Mysearchers total is "<< mySearchersTotal << " because I own: ";
+		for(int i = 0; i < 10; i++)
+		{
+			if(mySearchers[i*2] != 0x00)
+			{
+				BOTDEBUG << mySearchers[i*2] << ", ";
+			}
+		}
+		BOTDEBUG << endl;
+	}
+	
 	while(mySearchersTotal > 0 && amountOfRemainingSearchersToInstruct > 0)
 	{
 		int pickedSearcherIndex = 0;
-		ZebroIdentifier pickedSearcherId;
+		pickedSearcherId = ZebroIdentifier();
+		if(!pickedSearcherId.IsEmpty())
+		{
+			BOTDEBUG << "ERROR! non-empty picked searcher id (" << pickedSearcherId.ToString() << ") upon init" << endl;
+		}
 		unsigned char pickedSearcherLastTick = 255;
 		for(int i = 0; i < 10; i++)
 		{
@@ -1406,9 +1432,12 @@ void CFootBotZebrolike::TryToInstructSearchers()
 				pickedSearcherId = ZebroIdentifier(mySearchers[i*2]);
 				pickedSearcherLastTick = mySearchers[i*2+1];
 				pickedSearcherIndex = i*2;
-				
-				BOTDEBUG << myId.ToString() << " is going to instruct " << pickedSearcherId.ToString() << " to become pathpoint." << endl;
 			}
+		}
+		if(pickedSearcherId.IsEmpty())
+		{
+			BOTDEBUG << "ERROR! empty picked searcher id" << endl;
+			return;
 		}
 		Real fractionOfDistance = (Real)amountOfRemainingSearchersToInstruct/(Real) myTotalPathPoints;
 		CVector3 pathpointPosition = CVector3(vectorToTarget.GetX() * fractionOfDistance, vectorToTarget.GetY() * fractionOfDistance, vectorToTarget.GetZ() * fractionOfDistance);
