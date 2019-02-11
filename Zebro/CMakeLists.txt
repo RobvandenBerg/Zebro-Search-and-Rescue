@@ -23,6 +23,7 @@ set(SOURCES
 	./main.cpp
 	./footbot_zebrolike.cpp
 	./footbot_zebrolike.h
+	../common-core/constants.h
 	../common-core/SearchAndRescueBehaviour.cpp
 	../common-core/SearchAndRescueBehaviour.h
 	../common-core/ZebroIdentifier.cpp
