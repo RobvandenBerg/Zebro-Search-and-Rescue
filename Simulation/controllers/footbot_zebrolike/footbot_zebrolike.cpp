@@ -172,7 +172,7 @@ void CFootBotZebrolike::Init(TConfigurationNode& t_node) {
    GetNodeAttributeOrDefault(t_node, "velocity", m_fWheelVelocity, m_fWheelVelocity);
 
 	
-	cout << "Inited CFootBotZebrolike" << endl;
+	BOTDEBUG << "Inited CFootBotZebrolike" << endl;
 }
 
 /****************************************/
@@ -205,13 +205,13 @@ void CFootBotZebrolike::CheckPositioning()
 	Real deg = cZAngleDegrees.GetValue();
 	// end of own rotation extraction
 	myRotation = cZAngle.GetValue();
-	// cout << "myRotation: " << myRotation << std::endl;
+	// BOTDEBUG << "myRotation: " << myRotation << std::endl;
 	
 	CByteArray compressedPosition = CompressPosition(position);
 	CVector3 decompressedPosition = DecompressPosition(compressedPosition);
 
-	//cout << "Position: " << posX << ", " << posY << ", " << posZ << std::endl;
-	//cout << "Reconstructed: " << decompressedPosition.GetX() << ", " << decompressedPosition.GetY() << ", " << decompressedPosition.GetZ() << std::endl;
+	//BOTDEBUG << "Position: " << posX << ", " << posY << ", " << posZ << std::endl;
+	//BOTDEBUG << "Reconstructed: " << decompressedPosition.GetX() << ", " << decompressedPosition.GetY() << ", " << decompressedPosition.GetZ() << std::endl;
 }
 
 
@@ -331,13 +331,13 @@ void CFootBotZebrolike::TrackOwnPosition()
 	CVector3 currentMovementVector = CVector3(movementSpeed, 0, 0);
 	currentMovementVector.RotateZ(CRadians(myAngleFromNorth));
 	
-	//cout << "movementSpeed: " << movementSpeed << std::endl;
-	//cout << "current Movement: " << currentMovementVector.GetX() << ", " << currentMovementVector.GetY() << std::endl;
-	//cout << "my Tracked Position 1: " << myTrackedPosition.GetX() << ", " << myTrackedPosition.GetY() << std::endl;
+	//BOTDEBUG << "movementSpeed: " << movementSpeed << std::endl;
+	//BOTDEBUG << "current Movement: " << currentMovementVector.GetX() << ", " << currentMovementVector.GetY() << std::endl;
+	//BOTDEBUG << "my Tracked Position 1: " << myTrackedPosition.GetX() << ", " << myTrackedPosition.GetY() << std::endl;
 	
 	myTrackedPosition += currentMovementVector;
 	
-	//cout << "my Tracked Position 2: " << myTrackedPosition.GetX() << ", " << myTrackedPosition.GetY() << std::endl;
+	//BOTDEBUG << "my Tracked Position 2: " << myTrackedPosition.GetX() << ", " << myTrackedPosition.GetY() << std::endl;
 }
 
 CVector3 CFootBotZebrolike::GetMyPosition()
@@ -400,7 +400,7 @@ void CFootBotZebrolike::DonateSearchers(int amountOfDonations)
 			// if both actions are possible, this option has a chance of 66%
 			int chooseChildBasekeeper = rand()%(childrenBasekeepersTotal - 0 + 1 - 1) + 0;
 			
-			unsigned char pickedChildBasekeeperId = 0x00;
+			ZebroIdentifier pickedChildBasekeeperId;
 			unsigned char rotationByte1 = 0x00;
 			unsigned char rotationByte2 = 0x00;
 			unsigned char lengthByte1 = 0x00;
@@ -410,7 +410,7 @@ void CFootBotZebrolike::DonateSearchers(int amountOfDonations)
 			{
 				if(childrenBasekeepers[i*6] != 0x00)
 				{
-					pickedChildBasekeeperId = childrenBasekeepers[i*6];
+					pickedChildBasekeeperId = ZebroIdentifier(childrenBasekeepers[i*6]);
 					rotationByte1 = childrenBasekeepers[i*6+1];
 					rotationByte2 = childrenBasekeepers[i*6+2];
 					lengthByte1 = childrenBasekeepers[i*6+3];
@@ -488,7 +488,7 @@ void CFootBotZebrolike::AppointNewBasekeeper(ZebroIdentifier from, unsigned char
 	
 	if(from.Equals(myId))
 	{
-		cout << " bot " << myId.ToString() << " is appointing bot " << newBasekeeperId.ToString() << " as new basekeeper" << std::endl;
+		BOTDEBUG << " bot " << myId.ToString() << " is appointing bot " << newBasekeeperId.ToString() << " as new basekeeper" << std::endl;
 	}
 	
 	SendMessage(cBuf, from, messageNumber);
@@ -507,7 +507,7 @@ void CFootBotZebrolike::ApplyAsNewBasekeeper()
 	cBuf[3] = compressedPosition[2];
 	cBuf[4] = compressedPosition[3];
 	
-	// cout << " bot " << myId.ToString() << " is applying as basekeeper!" << std::endl;
+	// BOTDEBUG << " bot " << myId.ToString() << " is applying as basekeeper!" << std::endl;
 	
 	SendMessage(cBuf, myId, messageNumber, basekeeper);
 }
@@ -519,7 +519,7 @@ void CFootBotZebrolike::SendRecruitNewBasekeeperMessage()
 	CByteArray cBuf(7);
 	cBuf[0] = MESSAGETYPE_RECRUITNEWBASEKEEPER;
 	
-	cout << " bot " << myId.ToString() << " is recruiting a new basekeeper." << std::endl;
+	BOTDEBUG << " bot " << myId.ToString() << " is recruiting a new basekeeper." << std::endl;
 	
 	SendMessage(cBuf, myId, messageNumber);
 }
@@ -583,11 +583,11 @@ void CFootBotZebrolike::AvoidObstaclesAutomatically()
 
 void CFootBotZebrolike::BecomeCandidate()
 {
-	cout << "NEW CAND: ";
-	cout << "I (id ";
-	cout << myId.ToString();
-	cout << "), am becoming leader candidate!";
-	cout << std::endl;
+	BOTDEBUG << "NEW CAND: ";
+	BOTDEBUG << "I (id ";
+	BOTDEBUG << myId.ToString();
+	BOTDEBUG << "), am becoming leader candidate!";
+	BOTDEBUG << std::endl;
 	
 	capturedNodes[0] = 0x00; capturedNodes[1] = 0x00; capturedNodes[2] = 0x00; capturedNodes[3] = 0x00; capturedNodes[4] = 0x00; capturedNodes[5] = 0x00; capturedNodes[6] = 0x00; capturedNodes[7] = 0x00; capturedNodes[8] = 0x00; capturedNodes[9] = 0x00;
 	
@@ -606,7 +606,7 @@ void CFootBotZebrolike::BecomeCandidate()
 	
 	SharpRightTurn();
 	
-	cout << "SendMessage was triggered." << endl;
+	BOTDEBUG << "SendMessage was triggered." << endl;
 }
 
 void CFootBotZebrolike::ReceiveMessage_CAPTUREACK(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, unsigned char hopsLeft, ZebroIdentifier candidateId, ZebroIdentifier capturedNodeId, ZebroIdentifier capturedNodeId2, ZebroIdentifier capturedNodeId3)
@@ -690,291 +690,184 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 	ZebroIdentifier senderId = ZebroIdentifier(message[0]);
 	unsigned char messageNumber = message[1];
 	ZebroIdentifier intendedReceiver = ZebroIdentifier(message[2]);
-	if(role == ROLE_PASSIVE || role == ROLE_SEARCHER || role == ROLE_BASEKEEPER)
-	{
-		if(role == ROLE_BASEKEEPER && mainBasekeeper.Equals(myId))
-		{
-			// I am the main basekeeper.
-		}
-		else
-		{
-			switch(message[3])
-			{
-				case MESSAGETYPE_CAPTUREACK:
-				{
-					unsigned char hopsLeft = message[4];
-					ZebroIdentifier candidateId = message[5];
-					// int receivedLevel = (int) message[6]; there's no level
-					ZebroIdentifier capturedNodeId = ZebroIdentifier(message[6]);
-					ZebroIdentifier capturedNodeId2 = ZebroIdentifier(message[7]);
-					ZebroIdentifier capturedNodeId3 = ZebroIdentifier(message[8]);
-					
-					ReceiveMessage_CAPTUREACK(senderId, messageNumber, intendedReceiver, hopsLeft, candidateId, capturedNodeId, capturedNodeId2, capturedNodeId3);
-					break;
-				}
-				
-				case MESSAGETYPE_CAPTUREBROADCAST:
-				{
-					unsigned char hopsMade = message[4];
-					ZebroIdentifier candidateId = ZebroIdentifier(message[5]);
-					int receivedLevel = (int) message[6];
-					
-					ReceiveMessage_CAPTUREBROADCAST(senderId, messageNumber, intendedReceiver, hopsMade, candidateId, receivedLevel);
-					break;
-				}
-				
-				case MESSAGETYPE_SHAREPOSITION:
-				{
-					
-					unsigned char hopsMade = message[4];
-					CByteArray compressedPosition(4);
-					compressedPosition[0] = message[5];
-					compressedPosition[1] = message[6];
-					compressedPosition[2] = message[7];
-					compressedPosition[3] = message[8];
-					ZebroIdentifier parent = ZebroIdentifier(message[9]);
-					
-					ReceiveMessage_SHAREPOSITION(senderId, messageNumber, intendedReceiver, hopsMade, compressedPosition, parent);
-					break;
-				}
-				
-				case MESSAGETYPE_DISBAND:
-				{
-					CByteArray compressedPosition(4);
-					compressedPosition[0] = message[4];
-					compressedPosition[1] = message[5];
-					compressedPosition[2] = message[6];
-					compressedPosition[3] = message[7];
-					
-					ReceiveMessage_DISBAND(senderId, messageNumber, intendedReceiver, compressedPosition);
-					break;
-				}
-				
-				case MESSAGETYPE_RECRUITNEWBASEKEEPER:
-				{
-					ReceiveMessage_RECRUITNEWBASEKEEPER(senderId, messageNumber, intendedReceiver);
-					break;
-				}
-				
-				case MESSAGETYPE_PINGREPLY:
-				{
-					CByteArray compressedPosition(4);
-					compressedPosition[0] = message[4];
-					compressedPosition[1] = message[5];
-					compressedPosition[2] = message[6];
-					compressedPosition[3] = message[7];
-					unsigned char allowAsNewBasekeeper = message[8];
-					
-					ReceiveMessage_PINGREPLY(senderId, messageNumber, intendedReceiver, compressedPosition, allowAsNewBasekeeper);
-					break;
-				}
-				
-				case MESSAGETYPE_APPOINTNEWBASEKEEPER:
-				{
-					ZebroIdentifier newBasekeeperId = ZebroIdentifier(message[4]);
-					CByteArray compressedPosition(4);
-					compressedPosition[0] = message[5];
-					compressedPosition[1] = message[6];
-					compressedPosition[2] = message[7];
-					compressedPosition[3] = message[8];
-					unsigned char basekeeperL = message[9];
-					
-					ReceiveMessage_APPOINTNEWBASEKEEPER(senderId, messageNumber, intendedReceiver, newBasekeeperId, compressedPosition, basekeeperL);
-					break;
-				}
-				
-				case MESSAGETYPE_RELOCATESEARCHER:
-				{
-					ZebroIdentifier searcherId = ZebroIdentifier(message[4]);
-					ZebroIdentifier basekeeperId = ZebroIdentifier(message[5]);
-					CByteArray compressedPosition(4);
-					compressedPosition[0] = message[6];
-					compressedPosition[1] = message[7];
-					compressedPosition[2] = message[8];
-					compressedPosition[3] = message[9];
-					
-					ReceiveMessage_RELOCATESEARCHER(senderId, messageNumber, intendedReceiver, searcherId, basekeeperId, compressedPosition);
-					break;
-				}
-				
-				case MESSAGETYPE_FOUNDTARGET:
-				{
-					ZebroIdentifier parent = ZebroIdentifier(message[4]);
-					CByteArray compressedPosition(4);
-					compressedPosition[0] = message[5];
-					compressedPosition[1] = message[6];
-					compressedPosition[2] = message[7];
-					compressedPosition[3] = message[8];
-					
-					ReceiveMessage_FOUNDTARGET(senderId, messageNumber, intendedReceiver, parent, compressedPosition);
-					break;
-				}
-				
-				case MESSAGETYPE_FOUNDTARGETUPSTREAM:
-				{
-					ZebroIdentifier parent = ZebroIdentifier(message[4]);
-					unsigned char totalSearchers = message[5];
-					unsigned char hopsMade = message[6];
-					CByteArray compressedLength(2);
-					compressedLength[0] = message[7];
-					compressedLength[1] = message[8];
 
-					ReceiveMessage_FOUNDTARGETUPSTREAM(senderId, messageNumber, intendedReceiver, parent, totalSearchers, hopsMade, compressedLength);
-					break;
-				}
-				
-				case MESSAGETYPE_PATHDATA:
-				{
-					ZebroIdentifier to = ZebroIdentifier(message[4]);
-					unsigned char hopsLeftToTarget = message[5];
-					int amountOfSearchersLeft = (int) message[6];
-					int sendSearchersNumber = (int) message[7];
-					
-					ReceiveMessage_PATHDATA(senderId, messageNumber, intendedReceiver, to, hopsLeftToTarget, amountOfSearchersLeft, sendSearchersNumber);
-					break;
-				}
-				
-				case MESSAGETYPE_BECOMEPATHPOINT:
-				{
-					ZebroIdentifier searcherId = ZebroIdentifier(message[4]);
-					CByteArray compressedPosition(4);
-					compressedPosition[0] = message[5];
-					compressedPosition[1] = message[6];
-					compressedPosition[2] = message[7];
-					compressedPosition[3] = message[8];
-					
-					ReceiveMessage_BECOMEPATHPOINT(senderId, messageNumber, intendedReceiver, searcherId, compressedPosition);
-					break;
-				}
-			}
-		}
-	}
-	if(role == ROLE_CANDIDATE || role == ROLE_LEADER || role == ROLE_BASEKEEPER)
+	switch(message[3])
 	{
-		if(mainBasekeeper.Equals(myId))
+		case MESSAGETYPE_CAPTUREACK:
 		{
-			// here comes the mainBasekeeper code
-			switch(message[3])
-			{
-				case MESSAGETYPE_CAPTUREACK:
-				{
-					
-					unsigned char hopsLeft = message[4];
-					ZebroIdentifier candidateId = message[5];
-					// int receivedLevel = (int) message[6]; there's no level
-					ZebroIdentifier capturedNodeId = ZebroIdentifier(message[6]);
-					ZebroIdentifier capturedNodeId2 = ZebroIdentifier(message[7]);
-					ZebroIdentifier capturedNodeId3 = ZebroIdentifier(message[8]);
-					
-					ReceiveMessage_CAPTUREACK(senderId, messageNumber, intendedReceiver, hopsLeft, candidateId, capturedNodeId, capturedNodeId2, capturedNodeId3);
-					break;
-				}
-				case MESSAGETYPE_CAPTUREBROADCAST:
-				{
-					unsigned char hopsMade = message[4];
-					ZebroIdentifier candidateId = ZebroIdentifier(message[5]);
-					int receivedLevel = (int) message[6];
-					
-					ReceiveMessage_CAPTUREBROADCAST(senderId, messageNumber, intendedReceiver, hopsMade, candidateId, receivedLevel);
-					break;
-				}
-				break;
-			}
+			unsigned char hopsLeft = message[4];
+			ZebroIdentifier candidateId = message[5];
+			// int receivedLevel = (int) message[6]; there's no level
+			ZebroIdentifier capturedNodeId = ZebroIdentifier(message[6]);
+			ZebroIdentifier capturedNodeId2 = ZebroIdentifier(message[7]);
+			ZebroIdentifier capturedNodeId3 = ZebroIdentifier(message[8]);
+
+			ReceiveMessage_CAPTUREACK(senderId, messageNumber, intendedReceiver, hopsLeft, candidateId, capturedNodeId, capturedNodeId2, capturedNodeId3);
+			break;
 		}
-		
-		// now the general basekeeper code
-		switch(message[3])
+
+		case MESSAGETYPE_CAPTUREBROADCAST:
 		{
-			case MESSAGETYPE_PINGALLBASEKEEPERS:
-			{
-				CByteArray compressedPosition(4);
-				compressedPosition[0] = message[4];
-				compressedPosition[1] = message[5];
-				compressedPosition[2] = message[6];
-				compressedPosition[3] = message[7];
-				
-				ReceiveMessage_PINGALLBASEKEEPERS(senderId, messageNumber, intendedReceiver, compressedPosition);
-				break;
-			}
-			
-			case MESSAGETYPE_APPLYASBASEKEEPER:
-			{
-				CByteArray compressedPosition(4);
-				compressedPosition[0] = message[4];
-				compressedPosition[1] = message[5];
-				compressedPosition[2] = message[6];
-				compressedPosition[3] = message[7];
-				
-				ReceiveMessage_APPLYASBASEKEEPER(senderId, messageNumber, intendedReceiver, compressedPosition);
-				break;
-			}
-			
-			case MESSAGETYPE_HEARTBEAT:
-			{
-				ReceiveMessage_HEARTBEAT(senderId, messageNumber, intendedReceiver);
-				break;
-			}
-			
-			case MESSAGETYPE_SHAREPOSITION:
-			{
-				unsigned char hopsMade = message[4];
-				CByteArray compressedPosition(4);
-				compressedPosition[0] = message[5];
-				compressedPosition[1] = message[6];
-				compressedPosition[2] = message[7];
-				compressedPosition[3] = message[8];
-				ZebroIdentifier parent = message[9];
-				
-				ReceiveMessage_SHAREPOSITION(senderId, messageNumber, intendedReceiver, hopsMade, compressedPosition, parent);
-				break;
-			}
-			case MESSAGETYPE_DISBAND:
-			{
-				CByteArray compressedPosition(4);
-				compressedPosition[0] = message[4];
-				compressedPosition[1] = message[5];
-				compressedPosition[2] = message[6];
-				compressedPosition[3] = message[7];
-				
-				ReceiveMessage_DISBAND(senderId, messageNumber, intendedReceiver, compressedPosition);
-				break;
-			}
-			
-			case MESSAGETYPE_FOUNDTARGET:
-			{
-				ZebroIdentifier parent = ZebroIdentifier(message[4]);
-				CByteArray compressedPosition(4);
-				compressedPosition[0] = message[5];
-				compressedPosition[1] = message[6];
-				compressedPosition[2] = message[7];
-				compressedPosition[3] = message[8];
-				
-				ReceiveMessage_FOUNDTARGET(senderId, messageNumber, intendedReceiver, parent, compressedPosition);
-				break;
-			}
-			
-			case MESSAGETYPE_FOUNDTARGETUPSTREAM:
-			{
-				ZebroIdentifier parent = ZebroIdentifier(message[4]);
-				unsigned char totalSearchers = message[5];
-				unsigned char hopsMade = message[6];
-				CByteArray compressedLength(2);
-				compressedLength[0] = message[7];
-				compressedLength[1] = message[8];
-				
-				ReceiveMessage_FOUNDTARGETUPSTREAM(senderId, messageNumber, intendedReceiver, parent, totalSearchers, hopsMade, compressedLength);
-				break;
-			}
-			
-			case MESSAGETYPE_PATHDATA:
-			{
-				ZebroIdentifier to = ZebroIdentifier(message[4]);
-				unsigned char hopsLeftToTarget = message[5];
-				int amountOfSearchersLeft = (int) message[6];
-				int sendSearchersNumber = (int) message[7];
-				ReceiveMessage_PATHDATA(senderId, messageNumber, intendedReceiver, to, hopsLeftToTarget, amountOfSearchersLeft, sendSearchersNumber);
-				break;
-			}
+			unsigned char hopsMade = message[4];
+			ZebroIdentifier candidateId = ZebroIdentifier(message[5]);
+			int receivedLevel = (int) message[6];
+
+			ReceiveMessage_CAPTUREBROADCAST(senderId, messageNumber, intendedReceiver, hopsMade, candidateId, receivedLevel);
+			break;
+		}
+
+		case MESSAGETYPE_SHAREPOSITION:
+		{
+
+			unsigned char hopsMade = message[4];
+			CByteArray compressedPosition(4);
+			compressedPosition[0] = message[5];
+			compressedPosition[1] = message[6];
+			compressedPosition[2] = message[7];
+			compressedPosition[3] = message[8];
+			ZebroIdentifier parent = ZebroIdentifier(message[9]);
+
+			ReceiveMessage_SHAREPOSITION(senderId, messageNumber, intendedReceiver, hopsMade, compressedPosition, parent);
+			break;
+		}
+
+		case MESSAGETYPE_DISBAND:
+		{
+			CByteArray compressedPosition(4);
+			compressedPosition[0] = message[4];
+			compressedPosition[1] = message[5];
+			compressedPosition[2] = message[6];
+			compressedPosition[3] = message[7];
+
+			ReceiveMessage_DISBAND(senderId, messageNumber, intendedReceiver, compressedPosition);
+			break;
+		}
+
+		case MESSAGETYPE_RECRUITNEWBASEKEEPER:
+		{
+			ReceiveMessage_RECRUITNEWBASEKEEPER(senderId, messageNumber, intendedReceiver);
+			break;
+		}
+
+		case MESSAGETYPE_PINGREPLY:
+		{
+			CByteArray compressedPosition(4);
+			compressedPosition[0] = message[4];
+			compressedPosition[1] = message[5];
+			compressedPosition[2] = message[6];
+			compressedPosition[3] = message[7];
+			unsigned char allowAsNewBasekeeper = message[8];
+
+			ReceiveMessage_PINGREPLY(senderId, messageNumber, intendedReceiver, compressedPosition, allowAsNewBasekeeper);
+			break;
+		}
+
+		case MESSAGETYPE_APPOINTNEWBASEKEEPER:
+		{
+			ZebroIdentifier newBasekeeperId = ZebroIdentifier(message[4]);
+			CByteArray compressedPosition(4);
+			compressedPosition[0] = message[5];
+			compressedPosition[1] = message[6];
+			compressedPosition[2] = message[7];
+			compressedPosition[3] = message[8];
+			unsigned char basekeeperL = message[9];
+
+			ReceiveMessage_APPOINTNEWBASEKEEPER(senderId, messageNumber, intendedReceiver, newBasekeeperId, compressedPosition, basekeeperL);
+			break;
+		}
+
+		case MESSAGETYPE_RELOCATESEARCHER:
+		{
+			ZebroIdentifier searcherId = ZebroIdentifier(message[4]);
+			ZebroIdentifier basekeeperId = ZebroIdentifier(message[5]);
+			CByteArray compressedPosition(4);
+			compressedPosition[0] = message[6];
+			compressedPosition[1] = message[7];
+			compressedPosition[2] = message[8];
+			compressedPosition[3] = message[9];
+
+			ReceiveMessage_RELOCATESEARCHER(senderId, messageNumber, intendedReceiver, searcherId, basekeeperId, compressedPosition);
+			break;
+		}
+
+		case MESSAGETYPE_FOUNDTARGET:
+		{
+			ZebroIdentifier parent = ZebroIdentifier(message[4]);
+			CByteArray compressedPosition(4);
+			compressedPosition[0] = message[5];
+			compressedPosition[1] = message[6];
+			compressedPosition[2] = message[7];
+			compressedPosition[3] = message[8];
+
+			ReceiveMessage_FOUNDTARGET(senderId, messageNumber, intendedReceiver, parent, compressedPosition);
+			break;
+		}
+
+		case MESSAGETYPE_FOUNDTARGETUPSTREAM:
+		{
+			ZebroIdentifier parent = ZebroIdentifier(message[4]);
+			unsigned char totalSearchers = message[5];
+			unsigned char hopsMade = message[6];
+			CByteArray compressedLength(2);
+			compressedLength[0] = message[7];
+			compressedLength[1] = message[8];
+
+			ReceiveMessage_FOUNDTARGETUPSTREAM(senderId, messageNumber, intendedReceiver, parent, totalSearchers, hopsMade, compressedLength);
+			break;
+		}
+
+		case MESSAGETYPE_PATHDATA:
+		{
+			ZebroIdentifier to = ZebroIdentifier(message[4]);
+			unsigned char hopsLeftToTarget = message[5];
+			int amountOfSearchersLeft = (int) message[6];
+			int sendSearchersNumber = (int) message[7];
+
+			ReceiveMessage_PATHDATA(senderId, messageNumber, intendedReceiver, to, hopsLeftToTarget, amountOfSearchersLeft, sendSearchersNumber);
+			break;
+		}
+
+		case MESSAGETYPE_BECOMEPATHPOINT:
+		{
+			ZebroIdentifier searcherId = ZebroIdentifier(message[4]);
+			CByteArray compressedPosition(4);
+			compressedPosition[0] = message[5];
+			compressedPosition[1] = message[6];
+			compressedPosition[2] = message[7];
+			compressedPosition[3] = message[8];
+
+			ReceiveMessage_BECOMEPATHPOINT(senderId, messageNumber, intendedReceiver, searcherId, compressedPosition);
+			break;
+		}
+
+		case MESSAGETYPE_PINGALLBASEKEEPERS:
+		{
+			CByteArray compressedPosition(4);
+			compressedPosition[0] = message[4];
+			compressedPosition[1] = message[5];
+			compressedPosition[2] = message[6];
+			compressedPosition[3] = message[7];
+
+			ReceiveMessage_PINGALLBASEKEEPERS(senderId, messageNumber, intendedReceiver, compressedPosition);
+			break;
+		}
+
+		case MESSAGETYPE_APPLYASBASEKEEPER:
+		{
+			CByteArray compressedPosition(4);
+			compressedPosition[0] = message[4];
+			compressedPosition[1] = message[5];
+			compressedPosition[2] = message[6];
+			compressedPosition[3] = message[7];
+
+			ReceiveMessage_APPLYASBASEKEEPER(senderId, messageNumber, intendedReceiver, compressedPosition);
+			break;
+		}
+
+		case MESSAGETYPE_HEARTBEAT:
+		{
+			ReceiveMessage_HEARTBEAT(senderId, messageNumber, intendedReceiver);
+			break;
 		}
 	}
 }
@@ -1025,7 +918,7 @@ void CFootBotZebrolike::SendDisbandMessage(ZebroIdentifier from, unsigned char m
 	cBuf[3] = lengthByte1;
 	cBuf[4] = lengthByte2;
 	
-	// cout << " bot " << myId.ToString() << " is sharing position of bot " << from << "." << std::endl;
+	// BOTDEBUG << " bot " << myId.ToString() << " is sharing position of bot " << from << "." << std::endl;
 	
 	SendMessage(cBuf, from, messageNumber);
 }
@@ -1053,10 +946,10 @@ void CFootBotZebrolike::BecomeBasekeeper()
 	ticksSinceLastBasekeeperAppointment = 0;
 	amountOfRemainingSearchersToInstruct = 0;
 	myTotalPathPoints = 1;
-	cout << "I (id ";
-	cout << myId.ToString();
-	cout << ") am becoming a basekeeper";
-	cout << std::endl;
+	BOTDEBUG << "I (id ";
+	BOTDEBUG << myId.ToString();
+	BOTDEBUG << ") am becoming a basekeeper";
+	BOTDEBUG << std::endl;
 	SharpRightTurn();
 }
 
@@ -1074,7 +967,7 @@ void CFootBotZebrolike::PingAllBasekeepers()
 	cBuf[3] = compressedPosition[2];
 	cBuf[4] = compressedPosition[3];
 	
-	// cout << " bot " << myId.ToString() << " is pinging all basekeepers." << std::endl;
+	// BOTDEBUG << " bot " << myId.ToString() << " is pinging all basekeepers." << std::endl;
 	
 	SendMessage(cBuf, myId, messageNumber);
 }
@@ -1094,7 +987,7 @@ void CFootBotZebrolike::SendPingReply(ZebroIdentifier to, CVector3 position, uns
 	cBuf[4] = compressedPosition[3];
 	cBuf[5] = allowAsNewBasekeeper;
 	
-	// cout << " bot " << myId.ToString() << " is replying to the ping of " << to.ToString() <<  "." << std::endl;
+	// BOTDEBUG << " bot " << myId.ToString() << " is replying to the ping of " << to.ToString() <<  "." << std::endl;
 	
 	SendMessage(cBuf, myId, messageNumber, to);
 }
@@ -1155,7 +1048,7 @@ void CFootBotZebrolike::AddToMySearchers(ZebroIdentifier nodeId)
 		return;
 	}
 	
-	cout << "Added " << nodeId.ToString() << " to my searchers." << std::endl;
+	BOTDEBUG << "Added " << nodeId.ToString() << " to my searchers." << std::endl;
 	mySearchers[pointer] = nodeId.GetUnsignedCharValue();
 	mySearchers[pointer+1] = 0x00;
 }
@@ -1166,6 +1059,7 @@ void CFootBotZebrolike::RemoveFromMySearchers(ZebroIdentifier nodeId)
 	{
 		if(nodeId.Equals(mySearchers[i*2]))
 		{
+			BOTDEBUG << "Removed " << nodeId.ToString() << " from my searchers." << endl;
 			mySearchers[i*2] = 0x00;
 			mySearchers[i*2+1] = 0x00;
 			AddToIgnoreSearchers(nodeId);
@@ -1239,7 +1133,7 @@ void CFootBotZebrolike::AddToChildrenBasekeepers(ZebroIdentifier nodeId, CVector
 			if(myId.Equals((unsigned char) 81))
 			{
 				CVector3 nvtt = DecompressPosition(newCompressedPosition);
-				cout << "nvtt2 " << nodeId.ToString() << ": ("<<nvtt.GetX()<<","<<nvtt.GetY()<<")"<<std::endl;
+				BOTDEBUG << "nvtt2 " << nodeId.ToString() << ": ("<<nvtt.GetX()<<","<<nvtt.GetY()<<")"<<std::endl;
 			}
 			return;
 		}
@@ -1279,7 +1173,7 @@ void CFootBotZebrolike::AddToChildrenBasekeepers(ZebroIdentifier nodeId, CVector
 	if(myId.Equals(ZebroIdentifier((unsigned char) 81)))
 	{
 		CVector3 nvtt = DecompressPosition(newCompressedPosition);
-		cout << "nvtt1 " << nodeId.ToString() << ": ("<<nvtt.GetX()<<","<<nvtt.GetY()<<")"<<std::endl;
+		BOTDEBUG << "nvtt1 " << nodeId.ToString() << ": ("<<nvtt.GetX()<<","<<nvtt.GetY()<<")"<<std::endl;
 	}
 }
 
@@ -1293,7 +1187,7 @@ void CFootBotZebrolike::UpdateChildrenBasekeepersTicks()
 			childrenBasekeepers[i*6+5]++;
 			if(childrenBasekeepers[i*6+5] > 50) // 500 ticks
 			{
-				cout << "Basekeeper " << myId.ToString() << " lost connection to basekeeper " << childrenBasekeepers[i*6] << "." << std::endl;
+				BOTDEBUG << "Basekeeper " << myId.ToString() << " lost connection to basekeeper " << childrenBasekeepers[i*6] << "." << std::endl;
 				childrenBasekeepers[i*6] = 0x00;
 				childrenBasekeepers[i*6+1] = 0x00;
 				childrenBasekeepers[i*6+2] = 0x00;
@@ -1403,7 +1297,7 @@ void CFootBotZebrolike::SendHeartbeat()
 	CByteArray cBuf(7);
 	cBuf[0] = MESSAGETYPE_HEARTBEAT;
 	
-	// cout << " bot " << myId.ToString() << " is sending a heartbeat to " << basekeeper.ToString() << "." << std::endl;
+	// BOTDEBUG << " bot " << myId.ToString() << " is sending a heartbeat to " << basekeeper.ToString() << "." << std::endl;
 	
 	SendMessage(cBuf, myId, messageNumber, basekeeper);
 }
@@ -1420,7 +1314,7 @@ void CFootBotZebrolike::SendFoundTargetMessage(ZebroIdentifier from, unsigned ch
 	
 	if(from.Equals(myId))
 	{
-		cout << " bot " << myId.ToString() << " is sending found target message to " << parent.ToString() <<"." << std::endl;
+		BOTDEBUG << " bot " << myId.ToString() << " is sending found target message to " << parent.ToString() <<"." << std::endl;
 	}
 	
 	SendMessage(cBuf, from, messageNumber);
@@ -1450,7 +1344,7 @@ void CFootBotZebrolike::SendFoundTargetUpstreamMessage(ZebroIdentifier from, uns
 	
 	if(from.Equals(myId))
 	{
-		cout << " bot " << myId.ToString() << " is sending found target upstream message to " << parent.ToString() << "." << std::endl;
+		BOTDEBUG << " bot " << myId.ToString() << " is sending found target upstream message to " << parent.ToString() << "." << std::endl;
 	}
 	
 	SendMessage(cBuf, from, messageNumber);
@@ -1467,7 +1361,7 @@ void CFootBotZebrolike::SendPathData(ZebroIdentifier from, unsigned char message
 	
 	if(from.Equals(myId))
 	{
-		cout << "Basekeeper " << myId.ToString() << " is sending pathdata message to " << linkToTarget.ToString() << "." << std::endl;
+		BOTDEBUG << "Basekeeper " << myId.ToString() << " is sending pathdata message to " << linkToTarget.ToString() << "." << std::endl;
 	}
 	
 	SendMessage(cBuf, from, messageNumber);
@@ -1485,7 +1379,7 @@ void CFootBotZebrolike::InstructSearcherToBecomePathPoint(ZebroIdentifier from, 
 	
 	if(from.Equals(myId))
 	{
-		cout << "Basekeeper " << myId.ToString() << " is instructing " << searcherId.ToString() << " to become a path point." << std::endl;
+		BOTDEBUG << "Basekeeper " << myId.ToString() << " is instructing " << searcherId.ToString() << " to become a path point." << std::endl;
 	}
 	
 	SendMessage(cBuf, from, messageNumber);
@@ -1512,6 +1406,8 @@ void CFootBotZebrolike::TryToInstructSearchers()
 				pickedSearcherId = ZebroIdentifier(mySearchers[i*2]);
 				pickedSearcherLastTick = mySearchers[i*2+1];
 				pickedSearcherIndex = i*2;
+				
+				BOTDEBUG << myId.ToString() << " is going to instruct " << pickedSearcherId.ToString() << " to become pathpoint." << endl;
 			}
 		}
 		Real fractionOfDistance = (Real)amountOfRemainingSearchersToInstruct/(Real) myTotalPathPoints;
@@ -1557,7 +1453,7 @@ void CFootBotZebrolike::RelocateSearchersNeededElsewhere()
 			to = parentBasekeeper;
 			toPosition = lastMeasuredParentBasekeeperPosition;
 			searchersToSendUpstream--;
-			cout << "Basekeeper " << myId.ToString() << " is sending searcher " << pickedSearcherId.ToString() << " upstream to " << to.ToString() <<  std::endl;
+			BOTDEBUG << "Basekeeper " << myId.ToString() << " is sending searcher " << pickedSearcherId.ToString() << " upstream to " << to.ToString() <<  std::endl;
 		}
 		else if(searchersToSendDownstream > 0)
 		{
@@ -1565,7 +1461,7 @@ void CFootBotZebrolike::RelocateSearchersNeededElsewhere()
 			CVector3 absoluteToPosition = GetVectorToChild(linkToTarget);
 			CVector3 toPosition = absoluteToPosition - myAbsolutePosition;
 			searchersToSendDownstream--;
-			cout << "Basekeeper " << myId.ToString() << " is sending searcher " << pickedSearcherId.ToString() << " downstream to " << to.ToString() <<  std::endl;
+			BOTDEBUG << "Basekeeper " << myId.ToString() << " is sending searcher " << pickedSearcherId.ToString() << " downstream to " << to.ToString() <<  std::endl;
 		}
 		RelocateSearcher(myId, messageNumber, pickedSearcherId, to, toPosition);
 	}
@@ -1582,7 +1478,7 @@ void CFootBotZebrolike::SharePosition(ZebroIdentifier from, unsigned char messag
 	cBuf[5] = lengthByte2;
 	cBuf[6] = parent.GetUnsignedCharValue();
 	
-	// cout << " bot " << myId.ToString() << " is sharing position of bot " << from << "." << std::endl;
+	// BOTDEBUG << " bot " << myId.ToString() << " is sharing position of bot " << from << "." << std::endl;
 	
 	SendMessage(cBuf, from, messageNumber);
 }
@@ -1610,7 +1506,7 @@ void CFootBotZebrolike::RelocateSearcher(ZebroIdentifier from, unsigned char mes
 	
 	if(from.Equals(myId))
 	{
-		cout << "Bot " << myId.ToString() << " is sending a message to relocate searcher " << searcherId.ToString() << " to basekeeper " << basekeeperId.ToString() << "." << std::endl;
+		BOTDEBUG << "Bot " << myId.ToString() << " is sending a message to relocate searcher " << searcherId.ToString() << " to basekeeper " << basekeeperId.ToString() << "." << std::endl;
 	}
 	
 	SendMessage(cBuf, from, messageNumber);
@@ -1734,7 +1630,7 @@ void CFootBotZebrolike::SendMessageFromQueue()
 	
 	m_pcRABAct->SetData(cBuf);
 	
-	// cout << "Node " << myId.ToString() << " sent a message: "<<cBuf[0]<<","<<cBuf[1]<<","<<cBuf[2]<<","<<cBuf[3]<<","<<cBuf[4]<<","<<cBuf[5]<<","<<cBuf[6]<<","<<cBuf[7]<<","<<cBuf[8]<<","<<cBuf[9]<< std::endl;
+	// BOTDEBUG << "Node " << myId.ToString() << " sent a message: "<<cBuf[0]<<","<<cBuf[1]<<","<<cBuf[2]<<","<<cBuf[3]<<","<<cBuf[4]<<","<<cBuf[5]<<","<<cBuf[6]<<","<<cBuf[7]<<","<<cBuf[8]<<","<<cBuf[9]<< std::endl;
 }
 						   
 void CFootBotZebrolike::SendMessage(CByteArray& bytesToSend, ZebroIdentifier senderId, unsigned char messageNumber)
