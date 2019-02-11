@@ -95,6 +95,7 @@ public:
 	virtual void ReceiveMessage_APPLYASBASEKEEPER(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, CByteArray compressedPosition) override;
 	virtual void ReceiveMessage_HEARTBEAT(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver) override;
    
+	virtual void LostConnectionToChildBasekeeper(ZebroIdentifier lostChildId) override;
    
    void SearchRandomly();
    bool MoveTowardsPosition(CVector3 destination, Real radius);
@@ -131,8 +132,55 @@ public:
 
 private:
 	// to replace
-
+	bool returningToBasekeeper;
+	int actionNum;
+	int actionTicks;
+	int ticksUntilPositionShare;
+	int counter;
+	int ticksSinceLastHeartbeat;
+	bool iAmAPathpoint;
+	CVector3 pathpointPositionFromBasekeeper;
+	int searchersToSendDownstream;
+   int searchersToSendUpstream; // todo: probably set this to 0 this when becoming a basekeeper
+	int ticksSinceLastBasekeeperAppointment;
+	int ticksSinceStartedLookingForNewBasekeeper;
+	int ticksSinceStartedApplyingAsBasekeeper;
+	Real closestBasekeeperDistance;
+   ZebroIdentifier closestBasekeeper;
+	Real groundCovered;
+	bool targetFound;
+	bool sentFoundTargetMessage;
+	Real distanceToNextNode;
+	Real distanceLeft;
+	int hopsLeftToTarget; // todo: rename this var in some of the function parameters in CFootBotZebrolike?
+	ZebroIdentifier linkToTarget; // todo: rename this in that other file, too?
+	CVector3 vectorToTarget;
+	int amountOfRemainingSearchersToInstruct;
+	int myTotalPathPoints;
+	ZebroIdentifier owner;
+	ZebroIdentifier father;
+	unsigned char hopsToOwner;
+	unsigned char hopsToFather;
+	unsigned char basekeeperLevel;
+	Real bestApplicantDistance;
+	CVector3 bestApplicantPosition;
+	ZebroIdentifier bestApplicant;
+	
+	// my basekeeper vals:
+	CVector3 lastMeasuredBasekeeperPosition;
+	CVector3 absoluteBasekeeperPosition;
+	ZebroIdentifier basekeeper;
+	bool basekeeperPositionKnown;
+	ZebroIdentifier parentBasekeeper;
+	
+	int lastParentUpdate;
+	int failedNewBasekeeperAttempts;
+	int decaTickCounter;
+	CVector3 relativeSafePosition;
+	bool killed;
 };
+
+//todo: better documentation
 
 #endif
 

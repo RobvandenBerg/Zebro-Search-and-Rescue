@@ -149,14 +149,18 @@ public:
    void SendMessage_RECRUITNEWBASEKEEPER();
    void SendMessage_PINGALLBASEKEEPERS();
    void SendMessage_PINGREPLY(ZebroIdentifier to, CVector3 position, unsigned char allowAsNewBasekeeper);
-   void SendMessage_APPLYASBASEKEEPER();
-   void SendMessage_HEARTBEAT();
+   void SendMessage_APPLYASBASEKEEPER(ZebroIdentifier toBasekeeper);
+   void SendMessage_HEARTBEAT(ZebroIdentifier toBasekeeper);
    void SendMessage_APPOINTNEWBASEKEEPER(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier newBasekeeperId, unsigned char basekeeperL);
    void SendMessage_APPOINTNEWBASEKEEPER(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier newBasekeeperId, CByteArray compressedPosition, unsigned char basekeeperL);
    void SendMessage_SendMessage_RELOCATESEARCHER(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier searcherId, ZebroIdentifier basekeeperId, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2);
    void SendMessage_SendMessage_RELOCATESEARCHER(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier searcherId, ZebroIdentifier basekeeperId, CVector3 position);
-	
-	
+	void SendMessage_DISBAND(ZebroIdentifier from, unsigned char messageNumber, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2);
+   void SendMessage_DISBAND(ZebroIdentifier from, unsigned char messageNumber, CVector3 safePosition);
+   void SendMessage_DISBAND(ZebroIdentifier from, unsigned char messageNumber, CByteArray compressedPosition);
+   void SendMessage_PATHDATA(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier linkToTarget, unsigned char hopsLeftToTarget, int amountOfSearchersLeft, int sendSearchersNumber);
+   
+	virtual void LostConnectionToChildBasekeeper(ZebroIdentifier lostChildId);
 	
    void AvoidObstaclesAutomatically();
    
@@ -167,12 +171,6 @@ public:
    Real GetFarthestChildBasekeeperDistance();
    
    void AddToCapturedNodes(ZebroIdentifier nodeId);
-   
-   void SendDisbandMessage(ZebroIdentifier from, unsigned char messageNumber, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2);
-   void SendDisbandMessage(ZebroIdentifier from, unsigned char messageNumber, CVector3 safePosition);
-   void SendDisbandMessage(ZebroIdentifier from, unsigned char messageNumber, CByteArray compressedPosition);
-   
-   void SendMessage_PATHDATA(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier linkToTarget, unsigned char hopsLeftToTarget, int amountOfSearchersLeft, int sendSearchersNumber);
    
 	/* to replace*/
    CRay3 GetDrawGreenLine();
@@ -207,117 +205,83 @@ public:
 	CVector3 DecompressPosition(CByteArray compressedPosition);
 	CVector3 DecompressPosition(unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2);
 
-protected:
-
 	
-
-   CCI_DifferentialSteeringActuator* m_pcWheels;
-
-   CCI_FootBotProximitySensor* m_pcProximity;
-  
-CCI_RangeAndBearingSensor* m_pcRABSens;
-
-CCI_RangeAndBearingActuator* m_pcRABAct;
-
-const CCI_RangeAndBearingSensor::SPacket* m_psFBMsg;
-
-CCI_PositioningSensor* m_pcPosSens;
-
-
-UInt64 m_unCounter;
-
-   /*
+	
+private:
+	/*
     * The following variables are used as parameters for the
     * algorithm. You can set their value in the <parameters> section
     * of the XML configuration file, under the
     * <controllers><footbot_diffusion_controller> section.
     */
-
-	bool returningToBasekeeper;
+	CCI_DifferentialSteeringActuator* m_pcWheels;
+	CCI_FootBotProximitySensor* m_pcProximity;
+	CCI_RangeAndBearingSensor* m_pcRABSens;
+	CCI_RangeAndBearingActuator* m_pcRABAct;
+	const CCI_RangeAndBearingSensor::SPacket* m_psFBMsg;
+	CCI_PositioningSensor* m_pcPosSens;
+	CRange<CRadians> m_cGoStraightAngleRange;
 	
-   int turning;
-   int turningFramesLeft;
-   int countscaler;
-   
-   int direction;
-   
-    int actionNum;
-	int actionTicks;
-	int ticksUntilPositionShare;
-	
+	int direction; // todo: investigate the need for this
 	int avoidTurnDirection;
-   
-   int counter;
-   
-   bool sent_location;
-   
-   CByteArray savedReadings;
-   
-   CByteArray messageQueue;
-   int messageQueuePointer;
-   int messageQueueSize;
-   
-   int ticksSinceLastHeartbeat;
-   
-   bool iAmAPathpoint;
-   CVector3 pathpointPositionFromBasekeeper;
-   
-   int searchersToSendDownstream;
-   int searchersToSendUpstream;
-   
-   ZebroIdentifier childThatFoundTarget;
-   
-   int ticksSinceLastBasekeeperAppointment;
-   int ticksSinceStartedLookingForNewBasekeeper;
-   
-   int ticksSinceStartedApplyingAsBasekeeper;
-   Real closestBasekeeperDistance;
-   ZebroIdentifier closestBasekeeper;
-   
-   Real groundCovered;
-   
-   CByteArray childrenBasekeepers;
-   int childrenBasekeepersTotal;
-
-   /* Maximum tolerance for the angle between
+	CByteArray savedReadings;
+	CByteArray messageQueue;
+	int messageQueuePointer;
+	int messageQueueSize;
+	CByteArray childrenBasekeepers;
+	/* Maximum tolerance for the angle between
     * the robot heading direction and
     * the closest obstacle detected. */
-   CDegrees m_cAlpha;
-   /* Maximum tolerance for the proximity reading between
+	CDegrees m_cAlpha;
+	/* Maximum tolerance for the proximity reading between
     * the robot and the closest obstacle.
     * The proximity reading is 0 when nothing is detected
     * and grows exponentially to 1 when the obstacle is
     * touching the robot.
     */
-   Real m_fDelta;
-   /* Wheel speed. */
-   Real m_fWheelVelocity;
-   /* Angle tolerance range to go straight.
+	Real m_fDelta;
+	/* Wheel speed. */
+	Real m_fWheelVelocity;
+	/* Angle tolerance range to go straight.
     * It is set to [-alpha,alpha]. */
 	
-	unsigned char lastMessageId;
-	unsigned char lastMessageSender;
+	CByteArray capturedNodes;
 	
+	CByteArray mySearchers;
+	CByteArray ignoreSearchers;
+	Real leftLegsVelocity;
+	Real rightLegsVelocity;
+	int overwriteSavedReadingsPointer;
+	
+protected:
+
+   
+   int childrenBasekeepersTotal;
 	unsigned char sendMessageId;
-	
 	ZebroIdentifier myId;
-	
-	bool targetFound;
-	bool sentFoundTargetMessage;
-	Real distanceToNextNode;
-	Real distanceLeft;
-	int hopsLeftToTarget;
-	CVector3 relativeFinderPosition;
-	ZebroIdentifier linkToTarget;
-	CVector3 vectorToTarget;
-	
 	int role;
+	bool satisfied;
+	int mySearchersTotal;
+	int level;
+	int avoidingObstacleTicksLeft; // todo: change from ticks to time based system. ..or just implement a tick system on the actual zebro, based on time.
+	CVector3 lastMeasuredParentBasekeeperPosition;
+	CVector3 absoluteParentBasekeeperPosition; // todo: this one COULD be private in SearchAndRescueBehaviour... but that would not be nice because it's an ABSOLUTE position
+	ZebroIdentifier mainBasekeeper; // todo: this var is protected just because of one line of code in CFootBotZebrolike that could probably be done without
+	CVector3 myTrackedPosition; // todo: I don't think so, but maybe this can be private
+	Real myAngleFromNorth; // todo: this one isn't actually being used in SearchAndRescueBehaviour, but probably should be used?
+	CVector3 myLastAbsolutePosition; // todo: get this variable to be a private one.
+	CVector3 myAbsolutePosition; // todo: get this variable to be a private one.
+	Real myRotation;
+	int returnToBasekeeperFirstTurnPreference;
+
+
 	
+	
+	// todo: move these variables to my_defines.h or something
 	static const int ROLE_PASSIVE = 1;
 	static const int ROLE_CANDIDATE = 2;
-	static const int ROLE_LEADER = 3;
-	static const int ROLE_SEARCHER = 4;
-	static const int ROLE_BASEKEEPER = 5; // todo: remove ROLE_LEADER...
+	static const int ROLE_SEARCHER = 3;
+	static const int ROLE_BASEKEEPER = 4;
 	
 	static const char MESSAGETYPE_CAPTUREBROADCAST = 0x01;
 	static const char MESSAGETYPE_CAPTUREACK = 0x02;
@@ -338,95 +302,6 @@ UInt64 m_unCounter;
 	static const char MESSAGETYPE_FOUNDTARGETUPSTREAM = 0x11;
 	static const char MESSAGETYPE_PATHDATA = 0x12;
 	static const char MESSAGETYPE_BECOMEPATHPOINT = 0x13;
-	
-	bool donating;
-	bool satisfied;
-
-	CByteArray capturedNodes;
-	
-	CByteArray mySearchers;
-	int mySearchersTotal;
-	
-	CByteArray ignoreSearchers;
-	
-	int amountOfRemainingSearchersToInstruct;
-	int myTotalPathPoints;
-	
-	ZebroIdentifier owner;
-	unsigned char hopsToOwner;
-	ZebroIdentifier father;
-	ZebroIdentifier potential_father;
-	ZebroIdentifier linkToFather;
-	ZebroIdentifier linkToPotentialFather;
-	unsigned char hopsToFather;
-	unsigned char hopsToPotentialFather;
-	int level;
-	
-	unsigned char basekeeperLevel;
-	
-	int avoidingObstacleTicksLeft;
-	
-	Real bestApplicantDistance;
-	CVector3 bestApplicantPosition;
-	ZebroIdentifier bestApplicant;
-	
-	//CVector3 lastMeasuredFatherPosition; // father is the parent basekeeper?
-	//CVector3 absoluteFatherPosition;
-	//CVector3 relativeFatherPosition;
-	//bool fatherPositionKnown;
-	
-	// my basekeeper vals:
-	CVector3 lastMeasuredBasekeeperPosition;
-	CVector3 absoluteBasekeeperPosition;
-	CVector3 relativeBasekeeperPosition;
-	int bLevel;
-	ZebroIdentifier basekeeper;
-	bool basekeeperPositionKnown;
-	
-	CVector3 lastMeasuredParentBasekeeperPosition;
-	CVector3 absoluteParentBasekeeperPosition;
-	ZebroIdentifier parentBasekeeper;
-	
-	// main basekeeper vals: WILL BE FATHER THOUGH
-	CVector3 lastMeasuredMainBasekeeperPosition;
-	CVector3 absoluteMainBasekeeperPosition;
-	CVector3 relativeMainBasekeeperPosition;
-	ZebroIdentifier mainBasekeeper;
-	
-	
-	CVector3 myTrackedPosition;
-	Real myAngleFromNorth;
-	Real leftLegsVelocity;
-	Real rightLegsVelocity;
-	
-	CVector3 myLastAbsolutePosition;
-	CVector3 myAbsolutePosition;
-	Real myRotation;
-	
-	int returnToBasekeeperFirstTurnPreference;
-	
-	int lastParentUpdate;
-	
-	int failedNewBasekeeperAttempts;
-	
-	int decaTickCounter;
-	
-	CVector3 relativeSafePosition;
-	
-	int overwriteSavedReadingsPointer;
-	
-	ZebroIdentifier myBaseKeeper;
-	unsigned char myBaseKeeperHops;
-	/*
-	 myBaseKeeperPosition;
-	 myBaseKeeperSyncedPosition;
-	 lastBaseKeeperPositionSync;*/
-	
-	bool killed;
-	
-	std::stringstream BOTLOG;
-	
-   CRange<CRadians> m_cGoStraightAngleRange;
 
 };
 
