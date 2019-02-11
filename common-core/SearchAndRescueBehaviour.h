@@ -73,7 +73,9 @@ public:
    
    void Loop();
    
-   
+   void BecomeCandidate();
+	void BecomeBasekeeper();
+	
    bool isBasekeeper();
 	std::string GetId();
 	
@@ -109,6 +111,14 @@ public:
    CVector3 CreateWeightedAverageVector(CVector3 position1, int weight1, CVector3 position2, int weight2);
 
 	int CompareLevelAndId(int level1, ZebroIdentifier id1, int level2, ZebroIdentifier id2);
+	
+	void RelocateSearchersNeededElsewhere();
+	void DonateSearchers(int amount);
+	void RelocateRandomSearcherToChildBasekeeper(ZebroIdentifier childBasekeeperId, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2);
+	void RelocateRandomSearcherToChildBasekeeper(ZebroIdentifier childBasekeeperId, CVector3 position);
+	void RelocateRandomSearcherToChildBasekeeper(ZebroIdentifier childBasekeeperId, CByteArray compressedPosition);
+	
+	void TryToInstructSearchers();
 	
 	/* to replace */
 	CByteArray ConvertFractionTo2Bytes(Real input);

@@ -179,7 +179,7 @@ void SearchAndRescueBehaviour::Loop()
 		sendMessageId++;
 		unsigned char msgNum = (unsigned char) sendMessageId;
 		BOTDEBUG << "[" << myId.ToString() << "]: Sending found target message because I found it myself." << std::endl;
-		SendFoundTargetMessage(myId, msgNum, basekeeper, myAbsolutePosition);
+		SendMessage_FOUNDTARGET(myId, msgNum, basekeeper, myAbsolutePosition);
 	}
 	decaTickCounter++;
 	if(decaTickCounter >= 10)
@@ -232,7 +232,7 @@ void SearchAndRescueBehaviour::Loop()
 					if(ticksSinceStartedLookingForNewBasekeeper > 0 && ticksSinceStartedLookingForNewBasekeeper < 500 && ticksSinceStartedLookingForNewBasekeeper % 100 == 0)
 					{
 						// Let the searchers know I'm looking for new basekeepers again, in case the previous message didn't reach them
-						SendRecruitNewBasekeeperMessage();
+						SendMessage_RECRUITNEWBASEKEEPER();
 					}
 					
 					if(ticksSinceStartedLookingForNewBasekeeper == 1100)
@@ -248,7 +248,7 @@ void SearchAndRescueBehaviour::Loop()
 							
 							sendMessageId++;
 							unsigned char msgNum = (unsigned char) sendMessageId;
-							AppointNewBasekeeper(myId, msgNum, bestApplicant, basekeeperLevel + 1);
+							SendMessage_APPOINTNEWBASEKEEPER(myId, msgNum, bestApplicant, basekeeperLevel + 1);
 							RemoveFromMySearchers(bestApplicant);
 							BOTDEBUG << "LFT2: " << myId.ToString() << " added " << bestApplicant.ToString() << " to its children basekeepers." << endl;
 							AddToChildrenBasekeepers(bestApplicant, bestApplicantPosition);
@@ -306,7 +306,7 @@ void SearchAndRescueBehaviour::Loop()
 				// temporary. Share location
 				sendMessageId++;
 				unsigned char msgNum = (unsigned char) sendMessageId;
-				SharePosition(myId, msgNum, 1, myAbsolutePosition, parentBasekeeper);
+				SendMessage_SHAREPOSITION(myId, msgNum, 1, myAbsolutePosition, parentBasekeeper);
 				ticksUntilPositionShare = 500;
 			}
 			break;
@@ -316,7 +316,7 @@ void SearchAndRescueBehaviour::Loop()
 			ticksSinceLastHeartbeat++;
 			if(ticksSinceLastHeartbeat >= 100) // send heartbeat every 100 ticks
 			{
-				if(!basekeeper.IsEmpty() && !iAmAPathpoint) { SendHeartbeat(); }
+				if(!basekeeper.IsEmpty() && !iAmAPathpoint) { SendMessage_HEARTBEAT(); }
 				ticksSinceLastHeartbeat = 0;
 			}
 			if(!targetFound)
@@ -334,7 +334,7 @@ void SearchAndRescueBehaviour::Loop()
 						if(ticksSinceStartedApplyingAsBasekeeper % 100 == 0)
 						{
 							// send new ping request to all basekeepers in case our last request didn't reach or their reply didn't reach.
-							PingAllBasekeepers();
+							SendMessage_PINGALLBASEKEEPERS();
 							break;
 						}
 					}
@@ -353,7 +353,7 @@ void SearchAndRescueBehaviour::Loop()
 					if(ticksSinceStartedApplyingAsBasekeeper >= 500 && ticksSinceStartedApplyingAsBasekeeper < 600 && ticksSinceStartedApplyingAsBasekeeper % 20 == 0)
 					{
 						// I am in the process of awaiting accept/reject from mainBasekeeper
-						ApplyAsNewBasekeeper();
+						SendMessage_APPLYASBASEKEEPER();
 					}
 					if(ticksSinceStartedApplyingAsBasekeeper > 1200)
 					{
@@ -598,13 +598,13 @@ void SearchAndRescueBehaviour::ReceiveMessage_CAPTUREACK(ZebroIdentifier senderI
 		if(propagateAck)
 		{
 			// propagate this ack.
-			SendCaptureAck(from, msgNum, (unsigned char) ((int) hopsLeft - 1), father, capturedNodeId, capturedNodeId2, capturedNodeId3);
+			SendMessage_CAPTUREACK(from, msgNum, (unsigned char) ((int) hopsLeft - 1), father, capturedNodeId, capturedNodeId2, capturedNodeId3);
 		}
 		if(newCaptureAck)
 		{
 			sendMessageId++;
 			msgNum = (unsigned char) sendMessageId;
-			SendCaptureAck(myId, msgNum, hopsToFather - 0x01, father, myId, 0x00, 0x00);
+			SendMessage_CAPTUREACK(myId, msgNum, hopsToFather - 0x01, father, myId, 0x00, 0x00);
 		}
 	}
 	if(role == ROLE_CANDIDATE || role == ROLE_LEADER || role == ROLE_BASEKEEPER)
@@ -637,7 +637,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_CAPTUREACK(ZebroIdentifier senderI
 			// Send a capture broadcast with the new level. TO DO: Only send this after a while.
 			sendMessageId++;
 			unsigned char msgNum = (unsigned char) sendMessageId;
-			SendCaptureBroadcast(myId, msgNum, 0x00, level, myId);
+			SendMessage_CAPTUREBROADCAST(myId, msgNum, 0x00, level, myId);
 		}
 	}
 }
@@ -683,9 +683,9 @@ void SearchAndRescueBehaviour::ReceiveMessage_CAPTUREBROADCAST(ZebroIdentifier s
 				// Ack father
 				sendMessageId++;
 				unsigned char msgNum = (unsigned char) sendMessageId;
-				SendCaptureAck(myId, msgNum, (unsigned char) ((int) hopsToFather - 1), father, myId, 0x00, 0x00);
+				SendMessage_CAPTUREACK(myId, msgNum, (unsigned char) ((int) hopsToFather - 1), father, myId, 0x00, 0x00);
 			}
-			SendCaptureBroadcast(from, messageNumber, (unsigned char) ((int) hopsMade + 1), level, owner); // propagate the capture broadcast
+			SendMessage_CAPTUREBROADCAST(from, messageNumber, (unsigned char) ((int) hopsMade + 1), level, owner); // propagate the capture broadcast
 		}
 	}
 	
@@ -720,9 +720,9 @@ void SearchAndRescueBehaviour::ReceiveMessage_CAPTUREBROADCAST(ZebroIdentifier s
 				role = ROLE_SEARCHER;
 				sendMessageId++;
 				unsigned char msgNum = (unsigned char) sendMessageId;
-				SendCaptureAck(myId, msgNum, hopsToFather - 0x01, father, myId, 0x00, 0x00); // ack new father
+				SendMessage_CAPTUREACK(myId, msgNum, hopsToFather - 0x01, father, myId, 0x00, 0x00); // ack new father
 
-				SendCaptureBroadcast(from, messageNumber, (unsigned char) ((int) hopsMade + 1), level, owner); // propagate the capture broadcast
+				SendMessage_CAPTUREBROADCAST(from, messageNumber, (unsigned char) ((int) hopsMade + 1), level, owner); // propagate the capture broadcast
 			}
 		}
 	}
@@ -739,7 +739,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_SHAREPOSITION(ZebroIdentifier send
 
 		if(senderId.Equals(basekeeper) || parent.Equals(parentBasekeeper) || senderId.Equals(parentBasekeeper) || hopsMade < 2)
 		{
-			SharePosition(senderId, messageNumber, hopsMade+1, compressedPosition, parent); // propagate it
+			SendMessage_SHAREPOSITION(senderId, messageNumber, hopsMade+1, compressedPosition, parent); // propagate it
 		}
 
 		if(role != ROLE_SEARCHER || !senderId.Equals(basekeeper))
@@ -872,7 +872,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_RECRUITNEWBASEKEEPER(ZebroIdentifi
 		closestBasekeeperDistance = 1000;
 
 		// ping all basekeepers
-		PingAllBasekeepers();
+		SendMessage_PINGALLBASEKEEPERS();
 	}
 }
 
@@ -948,7 +948,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_APPOINTNEWBASEKEEPER(ZebroIdentifi
 				ticksSinceStartedApplyingAsBasekeeper = -1;
 				BOTDEBUG << "Bot " << myId.ToString() << " now knows that " << newBasekeeperId.ToString() << " became the new basekeeper" << std::endl;
 				// propagate the message
-				AppointNewBasekeeper(senderId, messageNumber, newBasekeeperId, compressedPosition, basekeeperL);
+				SendMessage_APPOINTNEWBASEKEEPER(senderId, messageNumber, newBasekeeperId, compressedPosition, basekeeperL);
 			}
 		}
 	}
@@ -980,7 +980,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_RELOCATESEARCHER(ZebroIdentifier s
 			else
 			{
 				// propagate the message
-				RelocateSearcher(senderId, messageNumber, searcherId, basekeeperId, compressedPosition[0], compressedPosition[1], compressedPosition[2], compressedPosition[3]);
+				SendMessage_SendMessage_RELOCATESEARCHER(senderId, messageNumber, searcherId, basekeeperId, compressedPosition[0], compressedPosition[1], compressedPosition[2], compressedPosition[3]);
 			}
 		}
 	}
@@ -995,7 +995,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_FOUNDTARGET(ZebroIdentifier sender
 		if((basekeeper.Equals(parent) || parentBasekeeper.Equals(parent)) && !senderId.Equals(myId) && !parent.Equals(myId))
 		{
 			// propagate the message
-			SendFoundTargetMessage(senderId, messageNumber, parent, compressedPosition[0], compressedPosition[1], compressedPosition[2], compressedPosition[3]);
+			SendMessage_FOUNDTARGET(senderId, messageNumber, parent, compressedPosition[0], compressedPosition[1], compressedPosition[2], compressedPosition[3]);
 		}
 	}
 	
@@ -1033,7 +1033,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_FOUNDTARGET(ZebroIdentifier sender
 				// propagate the message
 				sendMessageId++;
 				unsigned char msgNum = (unsigned char) sendMessageId;
-				SendFoundTargetUpstreamMessage(myId, msgNum, parentBasekeeper, mySearchersTotal - 1, 2, relativeFinderPosition.Length()); // subtract 1 from mysearcherstotal because the node that found the target won't join the line ;)
+				SendMessage_FOUNDTARGETUPSTREAM(myId, msgNum, parentBasekeeper, mySearchersTotal - 1, 2, relativeFinderPosition.Length()); // subtract 1 from mysearcherstotal because the node that found the target won't join the line ;)
 			}
 		}
 	}
@@ -1047,7 +1047,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_FOUNDTARGETUPSTREAM(ZebroIdentifie
 		if((basekeeper.Equals(parent) || parentBasekeeper.Equals(parent)) && !senderId.Equals(myId))
 		{
 			// propagate the message
-			SendFoundTargetUpstreamMessage(senderId, messageNumber, parent, totalSearchers, hopsMade, compressedLength[0], compressedLength[1]);
+			SendMessage_FOUNDTARGETUPSTREAM(senderId, messageNumber, parent, totalSearchers, hopsMade, compressedLength[0], compressedLength[1]);
 		}
 	}
 	
@@ -1099,14 +1099,14 @@ void SearchAndRescueBehaviour::ReceiveMessage_FOUNDTARGETUPSTREAM(ZebroIdentifie
 				BOTDEBUG << "use " << useAmountOfSearchers << " searchers (and 1 node)." << std::endl;
 				sendMessageId++;
 				unsigned char msgNum = (unsigned char) sendMessageId;
-				SendPathData(myId, msgNum, linkToTarget, hopsLeftToTarget - 1, amountOfSearchersLeft, sendSearchersNumber);
+				SendMessage_PATHDATA(myId, msgNum, linkToTarget, hopsLeftToTarget - 1, amountOfSearchersLeft, sendSearchersNumber);
 			}
 			else
 			{
 				// propagate the message
 				sendMessageId++;
 				unsigned char msgNum = (unsigned char) sendMessageId;
-				SendFoundTargetUpstreamMessage(myId, msgNum, parentBasekeeper, totalSearchers, hopsMade+1, distanceLeft);
+				SendMessage_FOUNDTARGETUPSTREAM(myId, msgNum, parentBasekeeper, totalSearchers, hopsMade+1, distanceLeft);
 			}
 		}
 	}
@@ -1125,7 +1125,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_PATHDATA(ZebroIdentifier senderId,
 			if(senderId.Equals(basekeeper) || to.Equals(basekeeper) || to.Equals(parentBasekeeper))
 			{
 				// propagate this message
-				SendPathData(senderId, messageNumber, to, hopsLeftToTarget, amountOfSearchersLeft, sendSearchersNumber);
+				SendMessage_PATHDATA(senderId, messageNumber, to, hopsLeftToTarget, amountOfSearchersLeft, sendSearchersNumber);
 			}
 		}
 	}
@@ -1167,7 +1167,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_PATHDATA(ZebroIdentifier senderId,
 			unsigned char msgNum = (unsigned char) sendMessageId;
 			if(hopsLeftToTarget > 1)
 			{
-				SendPathData(myId, msgNum, linkToTarget, hopsLeftToTarget - 1, amountOfSearchersLeft, newSendSearchersNumber);
+				SendMessage_PATHDATA(myId, msgNum, linkToTarget, hopsLeftToTarget - 1, amountOfSearchersLeft, newSendSearchersNumber);
 			}
 			else
 			{
@@ -1192,7 +1192,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_BECOMEPATHPOINT(ZebroIdentifier se
 		else if(!senderId.Equals(myId))
 		{
 			// propagate it
-			InstructSearcherToBecomePathPoint(senderId, messageNumber, searcherId, compressedPosition[0], compressedPosition[1], compressedPosition[2], compressedPosition[3]);
+			SendMessage_BECOMEPATHPOINT(senderId, messageNumber, searcherId, compressedPosition[0], compressedPosition[1], compressedPosition[2], compressedPosition[3]);
 		}
 	}
 	
@@ -1226,7 +1226,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_PINGALLBASEKEEPERS(ZebroIdentifier
 			// prevent this node from becoming a new basekeeper, because it is closer to me than my farthest child is to me.
 			allowAsNewBasekeeper = 0x00;
 		}
-		SendPingReply(senderId, myAbsolutePosition, allowAsNewBasekeeper);
+		SendMessage_PINGREPLY(senderId, myAbsolutePosition, allowAsNewBasekeeper);
 	}
 }
 
@@ -1275,7 +1275,7 @@ void SearchAndRescueBehaviour::getAdoptedBy(ZebroIdentifier basekeeperId)
 	
 	basekeeper = basekeeperId;
 	ticksSinceStartedApplyingAsBasekeeper = -1;
-	SendHeartbeat();
+	SendMessage_HEARTBEAT();
 	ticksSinceLastHeartbeat = 0;
 }
 
@@ -1314,7 +1314,7 @@ CVector3 SearchAndRescueBehaviour::CreateWeightedAverageVector(CVector3 position
 	return result;
 }
 
-// SendCaptureAck(from, hopsLeft - 1, father, capturedNodeId, capturedNodeId2, capturedNodeId3);
+// SendMessage_CAPTUREACK(from, hopsLeft - 1, father, capturedNodeId, capturedNodeId2, capturedNodeId3);
 
 int SearchAndRescueBehaviour::CompareLevelAndId(int level1, ZebroIdentifier id1, int level2, ZebroIdentifier id2)
 {
@@ -1338,15 +1338,201 @@ int SearchAndRescueBehaviour::CompareLevelAndId(int level1, ZebroIdentifier id1,
 
 
 
+void SearchAndRescueBehaviour::RelocateSearchersNeededElsewhere()
+{
+	while((searchersToSendDownstream != 0 || searchersToSendUpstream != 0) && mySearchersTotal > 0)
+	{
+		int pickedSearcherIndex = 0;
+		ZebroIdentifier pickedSearcherId;
+		unsigned char pickedSearcherLastTick = 255;
+		for(int i = 0; i < 10; i++)
+		{
+			if(mySearchers[i*2] != 0x00 && (mySearchers[i*2+1] < pickedSearcherLastTick || pickedSearcherLastTick == 255))
+			{
+				pickedSearcherId = ZebroIdentifier(mySearchers[i*2]);
+				pickedSearcherLastTick = mySearchers[i*2+1];
+				pickedSearcherIndex = i*2;
+			}
+		}
+		
+		mySearchers[pickedSearcherIndex] = 0x00;
+		mySearchers[pickedSearcherIndex+1] = 0x00;
+		mySearchersTotal--;
+		AddToIgnoreSearchers(pickedSearcherId);
+		
+		sendMessageId++;
+		unsigned char messageNumber = (unsigned char) sendMessageId;
+		
+		ZebroIdentifier to;
+		CVector3 toPosition;
+		if(searchersToSendUpstream > 0)
+		{
+			to = parentBasekeeper;
+			toPosition = lastMeasuredParentBasekeeperPosition;
+			searchersToSendUpstream--;
+			BOTDEBUG << "Basekeeper " << myId.ToString() << " is sending searcher " << pickedSearcherId.ToString() << " upstream to " << to.ToString() <<  std::endl;
+		}
+		else if(searchersToSendDownstream > 0)
+		{
+			to = linkToTarget;
+			CVector3 absoluteToPosition = GetVectorToChild(linkToTarget);
+			CVector3 toPosition = absoluteToPosition - myAbsolutePosition;
+			searchersToSendDownstream--;
+			BOTDEBUG << "Basekeeper " << myId.ToString() << " is sending searcher " << pickedSearcherId.ToString() << " downstream to " << to.ToString() <<  std::endl;
+		}
+		SendMessage_SendMessage_RELOCATESEARCHER(myId, messageNumber, pickedSearcherId, to, toPosition);
+	}
+}
+
+void SearchAndRescueBehaviour::DonateSearchers(int amountOfDonations)
+{
+	
+	// now let's start the donation process
+	
+	bool canCreateNewBasekeeper = false;
+	bool canRelocateSearchers = false;
+	
+	if(!satisfied && ticksSinceLastBasekeeperAppointment > 1000 && mySearchersTotal > 2 && failedNewBasekeeperAttempts < 2)
+	{
+		canCreateNewBasekeeper = true;
+	}
+	if(childrenBasekeepersTotal > 0)
+	{
+		canRelocateSearchers = true;
+		BOTDEBUG << "Can relocate searchers." << std::endl;
+	
+	}
+	
+	if(!canRelocateSearchers && !canCreateNewBasekeeper)
+	{
+		return; // nothing can be done
+	}
+	
+	BOTDEBUG << "Basekeeper " << myId.ToString() << " has covered " << groundCovered << " ground and is going to donate " << amountOfDonations << "  of its " << mySearchersTotal << " searchers. (children basekeepers: " << childrenBasekeepersTotal <<")" << std::endl;
+	// first let's share our location so all searchers will know my current location to make relocation easier
+	sendMessageId++;
+	unsigned char msgNum = (unsigned char) sendMessageId;
+	SendMessage_SHAREPOSITION(myId, msgNum, 1, myAbsolutePosition, parentBasekeeper);
+	ticksUntilPositionShare = 500;
+	
+	while(amountOfDonations > 0)
+	{
+		int chooseAction = rand()%(2-0 + 1) + 0;
+		BOTDEBUG << "Chose random number " << chooseAction << std::endl;
+		if(canCreateNewBasekeeper && (!canRelocateSearchers || chooseAction == 1))
+		{
+			// if both actions are possible, this option has a chance of 33%
+			
+			// start looking for new basekeepers!
+			ticksSinceStartedLookingForNewBasekeeper = 0;
+			bestApplicantDistance = 0;
+			bestApplicantPosition = CVector3();
+			bestApplicant = ZebroIdentifier();
+			BOTDEBUG << "Bot " << myId.ToString() << " is going to start looking for a new basekeeper." << std::endl;
+			SendMessage_RECRUITNEWBASEKEEPER();
+			canCreateNewBasekeeper = false;
+		}
+		else if(canRelocateSearchers)
+		{
+			// if both actions are possible, this option has a chance of 66%
+			
+			ZebroIdentifier pickedChildBasekeeperId = PickRandomChildBasekeeper();
+			CByteArray compressedPosition = GetCompressedVectorToChild(pickedChildBasekeeperId);
+		
+			RelocateRandomSearcherToChildBasekeeper(pickedChildBasekeeperId, compressedPosition);
+			if(mySearchersTotal <= 2)
+			{
+				canCreateNewBasekeeper = false;
+			}
+		}
+		amountOfDonations--;
+	}
+}
 
 
+void SearchAndRescueBehaviour::RelocateRandomSearcherToChildBasekeeper(ZebroIdentifier childBasekeeperId, CVector3 position)
+{
+	RelocateRandomSearcherToChildBasekeeper(childBasekeeperId, CompressPosition(position));
+}
 
+void SearchAndRescueBehaviour::RelocateRandomSearcherToChildBasekeeper(ZebroIdentifier childBasekeeperId, CByteArray compressedPosition)
+{
+	RelocateRandomSearcherToChildBasekeeper(childBasekeeperId, compressedPosition[0], compressedPosition[1], compressedPosition[2], compressedPosition[3]);
+}
 
+void SearchAndRescueBehaviour::RelocateRandomSearcherToChildBasekeeper(ZebroIdentifier childBasekeeperId, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2)
+{
+	// pick a zebro to relocate to a kid, and pick a kid to relocate it to.
+	ZebroIdentifier pickedSearcherId = PopMostRecentlyActiveSearcher(); // also deletes this searcher from my searchers. This should be done because we are sending it away.
 
+	// however, this searcher could be in the process of sending us an update (eg a heartbeat). If that happens, this searcher should not be re-added back to mySearchers.
+	// so, add this searcher to the ignore list for a little while (200 ticks)
+	AddToIgnoreSearchers(pickedSearcherId);
 
+	sendMessageId++;
+	unsigned char messageNumber = (unsigned char) sendMessageId;
+	SendMessage_SendMessage_RELOCATESEARCHER(myId, messageNumber, pickedSearcherId, childBasekeeperId, rotationByte1, rotationByte2, lengthByte1, lengthByte2);
+}
 
+void SearchAndRescueBehaviour::BecomeCandidate()
+{
+	BOTDEBUG << "NEW CAND: " << "I (id " << myId.ToString() << "), am becoming leader candidate!" << std::endl;
+	
+	ResetCapturedNodes(); // to do: implement this in the init
+	
+	ResetMySearchers(); // to do: implement this in the init
+	
+	mainBasekeeper = myId.Copy();
+	
+	sendMessageId++;
+	unsigned char msgNum = (unsigned char) sendMessageId;
+	SendMessage_CAPTUREBROADCAST(myId, msgNum, 0x01, level, myId);
+	
+	role = ROLE_CANDIDATE;
+	
+	SharpRightTurn(); // todo: replace this SharpRightTurn behaviour
+}
 
+void SearchAndRescueBehaviour::BecomeBasekeeper()
+{
+	role = ROLE_BASEKEEPER;
+	groundCovered = 0;
+	lastParentUpdate = 0;
+	failedNewBasekeeperAttempts = 0;
+	satisfied = false;
+	ResetChildrenBasekeepers(); // to do: implement this in the init
+	ResetIgnoreSearchers();
+	ticksSinceStartedLookingForNewBasekeeper = -1;
+	ticksSinceLastBasekeeperAppointment = 0;
+	amountOfRemainingSearchersToInstruct = 0;
+	myTotalPathPoints = 1;
+	BOTDEBUG << "I (id " << myId.ToString() << ") am becoming a basekeeper" << std::endl;
+	SharpRightTurn();
+}
 
+void SearchAndRescueBehaviour::TryToInstructSearchers()
+{
+	// todo: set iAmAPathpoint to true
+	ZebroIdentifier pickedSearcherId;
+	while(mySearchersTotal > 0 && amountOfRemainingSearchersToInstruct > 0)
+	{
+		pickedSearcherId = PopMostRecentlyActiveSearcher();
+		if(pickedSearcherId.IsEmpty())
+		{
+			// none of the current searchers can be picked right now. Maybe at some later point?
+			return;
+		}
+		AddToIgnoreSearchers(pickedSearcherId); // to do: this can be done better... the whole iAmAPathpoint thing
+		
+		Real fractionOfDistance = (Real)amountOfRemainingSearchersToInstruct/(Real) myTotalPathPoints;
+		CVector3 pathpointPosition = CVector3(vectorToTarget.GetX() * fractionOfDistance, vectorToTarget.GetY() * fractionOfDistance, vectorToTarget.GetZ() * fractionOfDistance);
+		
+		sendMessageId++;
+		unsigned char messageNumber = (unsigned char) sendMessageId;
+		SendMessage_BECOMEPATHPOINT(myId, messageNumber, pickedSearcherId, pathpointPosition);
+		amountOfRemainingSearchersToInstruct--;
+	}
+}
 
 
 /****************************************/
