@@ -167,12 +167,6 @@ Real SearchAndRescueBehaviour::Convert2BytesToFraction(CByteArray input)
 bool SearchAndRescueBehaviour::isBasekeeper()
 {
 	// This function gets used by the draw functions to draw a red range circle around basekeepers
-	
-	if(myId.Equals((unsigned char) 205) && role != ROLE_BASEKEEPER)
-	{
-		BOTDEBUG << "205 is NOT A BASEKEEPER... Role is now " << role << endl;	
-	}
-	
 	return role == ROLE_BASEKEEPER;
 }
 
@@ -801,8 +795,11 @@ void SearchAndRescueBehaviour::ReceiveMessage_SHAREPOSITION(ZebroIdentifier send
 			return;
 		}
 
-		BOTDEBUG << "LFT: " << myId.ToString() << " added " << senderId.ToString() << " to its children basekeepers." << endl;
-		AddToChildrenBasekeepers(senderId, DecompressPosition(compressedPosition) - myAbsolutePosition);
+		if(IsChildBasekeeper(senderId))
+		{
+			BOTDEBUG << "LFT: " << myId.ToString() << " updated " << senderId.ToString() << " as children basekeeper." << endl;
+			AddToChildrenBasekeepers(senderId, DecompressPosition(compressedPosition) - myAbsolutePosition);
+		}
 	}
 }
 

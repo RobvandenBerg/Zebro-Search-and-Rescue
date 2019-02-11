@@ -1403,27 +1403,10 @@ void CFootBotZebrolike::TryToInstructSearchers()
 {
 	// todo: set iAmAPathpoint to true
 	ZebroIdentifier pickedSearcherId;
-	if(amountOfRemainingSearchersToInstruct > 0)
-	{
-		BOTDEBUG << "Mysearchers total is "<< mySearchersTotal << " because I own: ";
-		for(int i = 0; i < 10; i++)
-		{
-			if(mySearchers[i*2] != 0x00)
-			{
-				BOTDEBUG << mySearchers[i*2] << ", ";
-			}
-		}
-		BOTDEBUG << endl;
-	}
-	
 	while(mySearchersTotal > 0 && amountOfRemainingSearchersToInstruct > 0)
 	{
 		int pickedSearcherIndex = 0;
 		pickedSearcherId = ZebroIdentifier();
-		if(!pickedSearcherId.IsEmpty())
-		{
-			BOTDEBUG << "ERROR! non-empty picked searcher id (" << pickedSearcherId.ToString() << ") upon init" << endl;
-		}
 		unsigned char pickedSearcherLastTick = 255;
 		for(int i = 0; i < 10; i++)
 		{
@@ -1436,7 +1419,7 @@ void CFootBotZebrolike::TryToInstructSearchers()
 		}
 		if(pickedSearcherId.IsEmpty())
 		{
-			BOTDEBUG << "ERROR! empty picked searcher id" << endl;
+			// none of the current searchers can be picked right now. Maybe at some later point?
 			return;
 		}
 		Real fractionOfDistance = (Real)amountOfRemainingSearchersToInstruct/(Real) myTotalPathPoints;
