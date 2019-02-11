@@ -38,6 +38,8 @@
 
 #include <argos3/plugins/simulator/visualizations/qt-opengl/qtopengl_widget.h>
 
+#include <../../../common-core/ZebroIdentifier.h>
+
 
 /*
  * All the ARGoS stuff in the 'argos' namespace.
@@ -63,7 +65,7 @@ public:
     * The 't_node' variable points to the <parameters> section in the XML
     * file in the <controllers><footbot_diffusion_controller> section.
     */
-   virtual void Init(TConfigurationNode& t_node);
+   	virtual void Init(TConfigurationNode& t_node); // to replace
 
    /*
     * This function is called once every time step.
@@ -89,16 +91,12 @@ public:
     */
    virtual void Destroy() {}
    
-   void Loop();
    void BecomeCandidate();
    
    
-   void TestBehaviour();
+
    void CheckPositioning();
    void TrackOwnPosition();
-   
-   bool isBasekeeper();
-   int GetId();
    
    void GoForwards();
    void GoBackwards();
@@ -111,89 +109,95 @@ public:
    void Stop();
    void UpdateLegVelocities();
    
-   void SendMessage(CByteArray& bytesToSend, unsigned char senderId, unsigned char messageNumber);
-   void SendMessage(CByteArray& bytesToSend, unsigned char senderId, unsigned char messageNumber, unsigned char receiverId);
+
+	void SendMessage(CByteArray& bytesToSend, ZebroIdentifier senderId, unsigned char messageNumber);
+   void SendMessage(CByteArray& bytesToSend, ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier receiverId);
    void BroadcastMessage(CByteArray& bytesToSend);
    void ReceiveMessage(CByteArray message);
    void CheckForReceivedMessages();
    void SendMessageFromQueue();
-   
-   void SearchRandomly();
+	
+	
+	virtual void ReceiveMessage_CAPTUREACK(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, unsigned char hopsLeft, ZebroIdentifier candidateId, ZebroIdentifier capturedNodeId, ZebroIdentifier capturedNodeId2, ZebroIdentifier capturedNodeId3);
+	virtual void ReceiveMessage_CAPTUREBROADCAST(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, unsigned char hopsMade, ZebroIdentifier candidateId, int receivedLevel);
+	virtual void ReceiveMessage_SHAREPOSITION(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, unsigned char hopsMade, CByteArray compressedPosition, ZebroIdentifier parent);
+	virtual void ReceiveMessage_DISBAND(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, CByteArray compressedPosition);
+	virtual void ReceiveMessage_RECRUITNEWBASEKEEPER(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver);
+	virtual void ReceiveMessage_PINGREPLY(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, CByteArray compressedPosition, unsigned char allowAsNewBasekeeper);
+	virtual void ReceiveMessage_APPOINTNEWBASEKEEPER(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, ZebroIdentifier newBasekeeperId, CByteArray compressedPosition, unsigned char basekeeperL);
+	virtual void ReceiveMessage_RELOCATESEARCHER(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, ZebroIdentifier searcherId, ZebroIdentifier basekeeperId, CByteArray compressedPosition);
+	virtual void ReceiveMessage_FOUNDTARGET(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, ZebroIdentifier parent, CByteArray compressedPosition);
+	virtual void ReceiveMessage_FOUNDTARGETUPSTREAM(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, ZebroIdentifier parent, unsigned char totalSearchers, unsigned char hopsMade, CByteArray compressedLength);
+	virtual void ReceiveMessage_PATHDATA(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, ZebroIdentifier to, unsigned char hopsLeftToTarget, int amountOfSearchersLeft, int sendSearchersNumber);
+	virtual void ReceiveMessage_BECOMEPATHPOINT(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, ZebroIdentifier searcherId, CByteArray compressedPosition);
+	virtual void ReceiveMessage_PINGALLBASEKEEPERS(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, CByteArray compressedPosition);
+	virtual void ReceiveMessage_APPLYASBASEKEEPER(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, CByteArray compressedPosition);
+	virtual void ReceiveMessage_HEARTBEAT(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver);
+	
    void AvoidObstaclesAutomatically();
-   bool MoveTowardsPosition(CVector3 destination, Real radius);
-   bool MoveTowardsPosition(CVector3 destination);
    
    CVector3 GetMyPosition();
    
-   bool returningToBasekeeper;
-   
    void BecomeBasekeeper();
    
-   CVector3 GetVectorToChild(unsigned char nodeId);
+   CVector3 GetVectorToChild(ZebroIdentifier nodeId);
    Real GetFarthestChildBasekeeperDistance();
    
-   void SharePosition(unsigned char from, unsigned char messageNumber, unsigned char hopsMade, unsigned char rotatationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2, unsigned char parent);
-   void SharePosition(unsigned char from, unsigned char messageNumber, unsigned char hopsMade, CByteArray compressedPosition, unsigned char parent);
-   void SharePosition(unsigned char from, unsigned char messageNumber, unsigned char hopsMade, CVector3 position, unsigned char parent);
-   void SendCaptureAck(unsigned char from, unsigned char messageNumber, unsigned char hopsLeft, unsigned char candidateId, unsigned char capturedNodeId, unsigned char capturedNodeId2, unsigned char capturedNodeId3);
-   void SendCaptureBroadcast(unsigned char from, unsigned char messageNumber, unsigned char hopsMade, unsigned char level, unsigned char candidateId);
-   void AddToCapturedNodes(unsigned char nodeId);
+   void SharePosition(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsMade, unsigned char rotatationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2, ZebroIdentifier parent);
+   void SharePosition(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsMade, CByteArray compressedPosition, ZebroIdentifier parent);
+   void SharePosition(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsMade, CVector3 position, ZebroIdentifier parent);
+   void SendCaptureAck(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsLeft, ZebroIdentifier candidateId, ZebroIdentifier capturedNodeId, ZebroIdentifier capturedNodeId2, ZebroIdentifier capturedNodeId3);
+   void SendCaptureBroadcast(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsMade, unsigned char level, ZebroIdentifier candidateId);
+   void AddToCapturedNodes(ZebroIdentifier nodeId);
    
-   void SendDisbandMessage(unsigned char from, unsigned char messageNumber, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2);
-   void SendDisbandMessage(unsigned char from, unsigned char messageNumber, CVector3 safePosition);
-   void SendDisbandMessage(unsigned char from, unsigned char messageNumber, CByteArray compressedPosition);
+   void SendDisbandMessage(ZebroIdentifier from, unsigned char messageNumber, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2);
+   void SendDisbandMessage(ZebroIdentifier from, unsigned char messageNumber, CVector3 safePosition);
+   void SendDisbandMessage(ZebroIdentifier from, unsigned char messageNumber, CByteArray compressedPosition);
    
-   void SendPathData(unsigned char from, unsigned char messageNumber, unsigned char linkToTarget, unsigned char hopsLeftToTarget, int amountOfSearchersLeft, int sendSearchersNumber);
-   void SendFoundTargetMessage(unsigned char from, unsigned char messageNumber, unsigned char parent, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2);
-   void SendFoundTargetMessage(unsigned char from, unsigned char messageNumber, unsigned char parent, CVector3 position);
-   void SendFoundTargetUpstreamMessage(unsigned char from, unsigned char messageNumber, unsigned char parent, unsigned char totalSearchers, unsigned char hopsMade, Real totalDistance);
-   void SendFoundTargetUpstreamMessage(unsigned char from, unsigned char messageNumber, unsigned char parent, unsigned char totalSearchers, unsigned char hopsMade, unsigned char distanceByte1, unsigned char distanceByte2);
-   void InstructSearcherToBecomePathPoint(unsigned char from, unsigned char messageNumber, unsigned char searcherId, CVector3 position);
-   void InstructSearcherToBecomePathPoint(unsigned char from, unsigned char messageNumber, unsigned char searcherId, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2);
+   void SendPathData(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier linkToTarget, unsigned char hopsLeftToTarget, int amountOfSearchersLeft, int sendSearchersNumber);
+   void SendFoundTargetMessage(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier parent, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2);
+   void SendFoundTargetMessage(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier parent, CVector3 position);
+   void SendFoundTargetUpstreamMessage(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier parent, unsigned char totalSearchers, unsigned char hopsMade, Real totalDistance);
+   void SendFoundTargetUpstreamMessage(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier parent, unsigned char totalSearchers, unsigned char hopsMade, unsigned char distanceByte1, unsigned char distanceByte2);
+   void InstructSearcherToBecomePathPoint(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier searcherId, CVector3 position);
+   void InstructSearcherToBecomePathPoint(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier searcherId, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2);
    
    void RelocateSearchersNeededElsewhere();
    void TryToInstructSearchers();
    
-   void getAdoptedBy(unsigned char basekeeperId);
-   
+	/* to replace*/
    CRay3 GetDrawGreenLine();
+   
    
    
    void SendRecruitNewBasekeeperMessage();
    void PingAllBasekeepers();
-   void SendPingReply(unsigned char to, CVector3 position, unsigned char allowAsNewBasekeeper);
+   void SendPingReply(ZebroIdentifier to, CVector3 position, unsigned char allowAsNewBasekeeper);
    void ApplyAsNewBasekeeper();
    void SendHeartbeat();
-   void AppointNewBasekeeper(unsigned char from, unsigned char messageNumber, unsigned char newBasekeeperId, unsigned char basekeeperL);
-   void AppointNewBasekeeper(unsigned char from, unsigned char messageNumber, unsigned char newBasekeeperId, CByteArray compressedPosition, unsigned char basekeeperL);
-   void AddToMySearchers(unsigned char nodeId);
-   void RemoveFromMySearchers(unsigned char nodeId);
+   void AppointNewBasekeeper(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier newBasekeeperId, unsigned char basekeeperL);
+   void AppointNewBasekeeper(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier newBasekeeperId, CByteArray compressedPosition, unsigned char basekeeperL);
+   void AddToMySearchers(ZebroIdentifier nodeId);
+   void RemoveFromMySearchers(ZebroIdentifier nodeId);
    void updateMySearchersTicks();
-   void AddToIgnoreSearchers(unsigned char nodeId);
+   void AddToIgnoreSearchers(ZebroIdentifier nodeId);
    void updateIgnoreSearchersTicks();
-   bool IsIgnoringSearcher(unsigned char nodeId);
+   bool IsIgnoringSearcher(ZebroIdentifier nodeId);
    
-   void Disband();
-   void CheckConnectionToParent();
-   
-   void AddToChildrenBasekeepers(unsigned char nodeId, CVector3 position);
+   void AddToChildrenBasekeepers(ZebroIdentifier nodeId, CVector3 position);
    void UpdateChildrenBasekeepersTicks();
-   bool IsChildBasekeeper(unsigned char nodeId);
+   bool IsChildBasekeeper(ZebroIdentifier nodeId);
    
-   void FindTarget(CVector3 targetPosition, Real maxDistance);
-   
-   CVector3 CreateWeightedAverageVector(CVector3 position1, int weight1, CVector3 position2, int weight2);
-   
-   void RelocateSearcher(unsigned char from, unsigned char messageNumber, unsigned char searcherId, unsigned char basekeeperId, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2);
-   void RelocateSearcher(unsigned char from, unsigned char messageNumber, unsigned char searcherId, unsigned char basekeeperId, CVector3 position);
-   void RelocateRandomSearcherToChildBasekeeper(unsigned char childBasekeeperId, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2);
-   void RelocateRandomSearcherToChildBasekeeper(unsigned char childBasekeeperId, CVector3 position);
+   void RelocateSearcher(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier searcherId, ZebroIdentifier basekeeperId, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2);
+   void RelocateSearcher(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier searcherId, ZebroIdentifier basekeeperId, CVector3 position);
+   void RelocateRandomSearcherToChildBasekeeper(ZebroIdentifier childBasekeeperId, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2);
+   void RelocateRandomSearcherToChildBasekeeper(ZebroIdentifier childBasekeeperId, CVector3 position);
    
    void DonateSearchers(int amount);
-   
-   int CompareId(unsigned char id1, unsigned char id2);
-	int CompareLevelAndId(int level1, unsigned char id1, int level2, unsigned char id2);
 	
+	
+	/* to replace*/
+	CVector3 CreateWeightedAverageVector(CVector3 position1, int weight1, CVector3 position2, int weight2);
 	CByteArray ConvertFractionTo2Bytes(Real input);
 	CByteArray ConvertLengthTo2Bytes(Real length);
 	Real Convert2BytesToFraction(CByteArray input);
@@ -202,21 +206,22 @@ public:
 	CVector3 DecompressPosition(CByteArray compressedPosition);
 	CVector3 DecompressPosition(unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2);
 
-private:
+protected:
 
-   /* Pointer to the differential steering actuator */
+	
+
    CCI_DifferentialSteeringActuator* m_pcWheels;
-   /* Pointer to the foot-bot proximity sensor */
+
    CCI_FootBotProximitySensor* m_pcProximity;
-   /* Pointer to the range-and-bearing sensor */
+  
 CCI_RangeAndBearingSensor* m_pcRABSens;
-/* Pointer to the range-and-bearing actuator */
+
 CCI_RangeAndBearingActuator* m_pcRABAct;
-/* Contains the message received from the foot-bot */
+
 const CCI_RangeAndBearingSensor::SPacket* m_psFBMsg;
 
-/* Pointer to the positioning sensor */
 CCI_PositioningSensor* m_pcPosSens;
+
 
 UInt64 m_unCounter;
 
@@ -227,6 +232,8 @@ UInt64 m_unCounter;
     * <controllers><footbot_diffusion_controller> section.
     */
 
+	bool returningToBasekeeper;
+	
    int turning;
    int turningFramesLeft;
    int countscaler;
@@ -257,14 +264,14 @@ UInt64 m_unCounter;
    int searchersToSendDownstream;
    int searchersToSendUpstream;
    
-   unsigned char childThatFoundTarget;
+   ZebroIdentifier childThatFoundTarget;
    
    int ticksSinceLastBasekeeperAppointment;
    int ticksSinceStartedLookingForNewBasekeeper;
    
    int ticksSinceStartedApplyingAsBasekeeper;
    Real closestBasekeeperDistance;
-   unsigned char closestBasekeeper;
+   ZebroIdentifier closestBasekeeper;
    
    Real groundCovered;
    
@@ -292,7 +299,7 @@ UInt64 m_unCounter;
 	
 	unsigned char sendMessageId;
 	
-	unsigned char myId;
+	ZebroIdentifier myId;
 	
 	bool targetFound;
 	bool sentFoundTargetMessage;
@@ -300,7 +307,7 @@ UInt64 m_unCounter;
 	Real distanceLeft;
 	int hopsLeftToTarget;
 	CVector3 relativeFinderPosition;
-	unsigned char linkToTarget;
+	ZebroIdentifier linkToTarget;
 	CVector3 vectorToTarget;
 	
 	int role;
@@ -344,12 +351,12 @@ UInt64 m_unCounter;
 	int amountOfRemainingSearchersToInstruct;
 	int myTotalPathPoints;
 	
-	unsigned char owner;
+	ZebroIdentifier owner;
 	unsigned char hopsToOwner;
-	unsigned char father;
-	unsigned char potential_father;
-	unsigned char linkToFather;
-	unsigned char linkToPotentialFather;
+	ZebroIdentifier father;
+	ZebroIdentifier potential_father;
+	ZebroIdentifier linkToFather;
+	ZebroIdentifier linkToPotentialFather;
 	unsigned char hopsToFather;
 	unsigned char hopsToPotentialFather;
 	int level;
@@ -360,7 +367,7 @@ UInt64 m_unCounter;
 	
 	Real bestApplicantDistance;
 	CVector3 bestApplicantPosition;
-	unsigned char bestApplicant;
+	ZebroIdentifier bestApplicant;
 	
 	//CVector3 lastMeasuredFatherPosition; // father is the parent basekeeper?
 	//CVector3 absoluteFatherPosition;
@@ -372,18 +379,18 @@ UInt64 m_unCounter;
 	CVector3 absoluteBasekeeperPosition;
 	CVector3 relativeBasekeeperPosition;
 	int bLevel;
-	unsigned char basekeeper;
+	ZebroIdentifier basekeeper;
 	bool basekeeperPositionKnown;
 	
 	CVector3 lastMeasuredParentBasekeeperPosition;
 	CVector3 absoluteParentBasekeeperPosition;
-	unsigned char parentBasekeeper;
+	ZebroIdentifier parentBasekeeper;
 	
 	// main basekeeper vals: WILL BE FATHER THOUGH
 	CVector3 lastMeasuredMainBasekeeperPosition;
 	CVector3 absoluteMainBasekeeperPosition;
 	CVector3 relativeMainBasekeeperPosition;
-	unsigned char mainBasekeeper;
+	ZebroIdentifier mainBasekeeper;
 	
 	
 	CVector3 myTrackedPosition;
@@ -407,7 +414,7 @@ UInt64 m_unCounter;
 	
 	int overwriteSavedReadingsPointer;
 	
-	unsigned char myBaseKeeper;
+	ZebroIdentifier myBaseKeeper;
 	unsigned char myBaseKeeperHops;
 	/*
 	 myBaseKeeperPosition;
@@ -416,8 +423,12 @@ UInt64 m_unCounter;
 	
 	bool killed;
 	
+	std::stringstream BOTLOG;
+	
    CRange<CRadians> m_cGoStraightAngleRange;
 
 };
 
 #endif
+
+

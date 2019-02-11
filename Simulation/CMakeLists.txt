@@ -41,6 +41,8 @@ find_package(Lua52 REQUIRED)
 # Set ARGoS include dir
 include_directories(${CMAKE_SOURCE_DIR} ${ARGOS_INCLUDE_DIRS} ${LUA_INCLUDE_DIR})
 
+set(SOURCES my_defines.h)
+
 # Set ARGoS link dir
 link_directories(${ARGOS_LIBRARY_DIRS})
 

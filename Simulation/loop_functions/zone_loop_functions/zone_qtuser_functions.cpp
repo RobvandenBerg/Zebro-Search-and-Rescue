@@ -1,6 +1,6 @@
 #include "zone_qtuser_functions.h"
 #include "estimatedtrajectory_loop_functions.h"
-#include <controllers/footbot_zebrolike/footbot_zebrolike.h>
+#include <../common-core/SearchAndRescueBehaviour.h>
 #include <argos3/core/simulator/entity/controllable_entity.h>
 
 /****************************************/
@@ -23,7 +23,7 @@ void CZONEQTUserFunctions::Draw(CFootBotEntity& c_entity) {
     */
 	
 	
-	CFootBotZebrolike& cController = dynamic_cast<CFootBotZebrolike&>(c_entity.GetControllableEntity().GetController());
+	SearchAndRescueBehaviour& cController = dynamic_cast<SearchAndRescueBehaviour&>(c_entity.GetControllableEntity().GetController());
    bool isBasekeeper = cController.isBasekeeper();
    if(isBasekeeper) {
 	DrawCircle(CVector3(0.0, 0.0, 0.1),
@@ -37,7 +37,7 @@ void CZONEQTUserFunctions::Draw(CFootBotEntity& c_entity) {
 	std::string s = "";
 		   s.append(c_entity.GetId().c_str());
 		   s.append(" - ");
-		   s.append(std::to_string(cController.GetId()));
+		   s.append(cController.GetId());
 	DrawText(CVector3(0.0, 0.0, 0.3),   // position
            //c_entity.GetId().c_str() << " - " << cController.GetId()); // text
 		   
