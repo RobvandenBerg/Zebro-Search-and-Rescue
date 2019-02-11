@@ -1,5 +1,6 @@
 add_library(footbot_zebrolike MODULE footbot_zebrolike.h
 	footbot_zebrolike.cpp
+	../../../common-core/constants.h
 	../../../common-core/SearchAndRescueBehaviour.h
 	../../../common-core/SearchAndRescueBehaviour.cpp
 	../../../common-core/ZebroIdentifier.h

@@ -14,6 +14,7 @@
 	#include <footbot_zebrolike.h>
 #endif
 
+#include <../common-core/constants.h>
 #include <../common-core/ZebroIdentifier.h>
 
 

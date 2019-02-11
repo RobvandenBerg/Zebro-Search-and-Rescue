@@ -274,35 +274,6 @@ protected:
 	Real myRotation;
 	int returnToBasekeeperFirstTurnPreference;
 
-
-	
-	
-	// todo: move these variables to my_defines.h or something
-	static const int ROLE_PASSIVE = 1;
-	static const int ROLE_CANDIDATE = 2;
-	static const int ROLE_SEARCHER = 3;
-	static const int ROLE_BASEKEEPER = 4;
-	
-	static const char MESSAGETYPE_CAPTUREBROADCAST = 0x01;
-	static const char MESSAGETYPE_CAPTUREACK = 0x02;
-	static const char MESSAGETYPE_CANDIDATEKILLED = 0x03;
-	static const char MESSAGETYPE_SHAREPOSITION = 0x04;
-	static const char MESSAGETYPE_RECRUITNEWBASEKEEPER = 0x05;
-	static const char MESSAGETYPE_PINGALLBASEKEEPERS = 0x06;
-	static const char MESSAGETYPE_PINGREPLY = 0x07;
-	static const char MESSAGETYPE_APPLYASBASEKEEPER = 0x08;
-	static const char MESSAGETYPE_APPOINTNEWBASEKEEPER = 0x09;
-	static const char MESSAGETYPE_HEARTBEAT = 0x0a;
-	static const char MESSAGETYPE_BECOMEBASEKEEPER = 0x0b;
-	static const char MESSAGETYPE_RELOCATESEARCHER = 0x0c;
-	static const char MESSATETYPE_BASEKEEPERUPDATE = 0x0d;
-	static const char MESSAGETYPE_DISBAND = 0x0e;
-	static const char MESSAGETYPE_FOUNDTARGET = 0x0f;
-	// static const char MESSAGETYPE_NOTIFYTOTALSEARCHERS = 0x10;
-	static const char MESSAGETYPE_FOUNDTARGETUPSTREAM = 0x11;
-	static const char MESSAGETYPE_PATHDATA = 0x12;
-	static const char MESSAGETYPE_BECOMEPATHPOINT = 0x13;
-
 };
 
 #endif
