@@ -58,7 +58,6 @@ void SearchAndRescueBehaviour::Init() {
 	killed = false;
 	
 	BOTDEBUG << "Inited SearchAndRescueBehaviour" << endl;
-	BOTDEBUG << "test dit";
 }
 
 /****************************************/

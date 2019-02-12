@@ -8,8 +8,8 @@ project (TestProgram CXX)
 set(CMAKE_EXPORT_COMPILE_COMMANDS on)
 
 # Set debug and release flags
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Og -DDEBUG")
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Og -DDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Og -DDEBUG -std=c++11")
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Og -DDEBUG -std=c++11")
 
 include_directories(.)
 include_directories(./inc/)
