@@ -213,9 +213,10 @@ void SearchAndRescueBehaviour::Loop()
 		case ROLE_PASSIVE:
 		{
 			// a passive node may spontaneously try to become leader
-			int max = 250;
+			int max = 6000;
 			int min = 0;
 			int randNum = rand()%(max-min + 1) + min;
+			AvoidObstaclesAutomatically();
 			if(randNum == 2)
 			{
 				BecomeCandidate();

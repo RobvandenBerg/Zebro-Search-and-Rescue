@@ -19,6 +19,7 @@ using namespace std;
 
 
 int main() {
+	srand (2);
 	wiringPiSetupGpio();
 	cout<< "Hello world from main.cpp"<< endl;
 	
@@ -60,6 +61,8 @@ int main() {
 		{
 			usleep(microsecondsUntilNextTick);
 		}
+		
+		//s.AvoidObstaclesAutomatically();
 	}
 	
 	cout << "Done executing!" << endl;

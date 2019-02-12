@@ -100,7 +100,7 @@ void ProximitySensor::Init()
 
 void ProximitySensor::ReadData()
 {
-		
+	
 	//----- TX BYTES -----
 	unsigned char tx_buffer[20];
 	unsigned char *p_tx_buffer;
@@ -118,7 +118,6 @@ void ProximitySensor::ReadData()
 			printf("UART TX error\n");
 		}
 	}
-		
 		
 			//----- CHECK FOR ANY RX BYTES -----
 	if (uart0_filestream != -1)
@@ -143,7 +142,9 @@ void ProximitySensor::ReadData()
 			for( int i = 0; i < 11; i++)
 			{
 				data[10-i] = (int) rx_buffer[i];
+				//cout << (int) rx_buffer[i] << " ";
 			}
+			//cout << endl;
 			//cout << "EYYY:" <<  << endl;
 		}
 	}

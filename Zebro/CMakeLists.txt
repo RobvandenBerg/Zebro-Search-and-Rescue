@@ -77,8 +77,8 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
 #	COMMAND sshpass -p ${RASPI_PASSWORD} scp './${CMAKE_PROJECT_NAME}' pi@${RASPI_IP}:~/
 
 add_custom_target(run
-	COMMAND sshpass -p ${RASPI_PASSWORD} scp -o StrictHostKeyChecking=no ${CMAKE_PROJECT_NAME} pi@${RASPI_IP}:~/
 	COMMAND sshpass -p ${RASPI_PASSWORD} ssh -o StrictHostKeyChecking=no pi@${RASPI_IP} sudo killall './${CMAKE_PROJECT_NAME}' || true
+	COMMAND sshpass -p ${RASPI_PASSWORD} scp -o StrictHostKeyChecking=no ${CMAKE_PROJECT_NAME} pi@${RASPI_IP}:~/
 	COMMAND sshpass -p ${RASPI_PASSWORD} ssh -o StrictHostKeyChecking=no pi@${RASPI_IP} './${CMAKE_PROJECT_NAME}'
 	DEPENDS ${CMAKE_PROJECT_NAME}
 	WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
