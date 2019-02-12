@@ -1,6 +1,6 @@
 
-#ifndef FOOTBOT_ZEBROLIKE_H
-#define FOOTBOT_ZEBROLIKE_H
+#ifndef ZEBROTOPLEVELCONTROLLER_H
+#define ZEBROTOPLEVELCONTROLLER_H
 
 
 #include <includes/utility/datatypes/byte_array.h>
@@ -16,15 +16,15 @@
 using namespace argos;
 
 
-class CFootBotZebrolike {
+class ZebroTopLevelController {
 
 public:
 
    /* Class constructor. */
-   CFootBotZebrolike();
+   ZebroTopLevelController();
 
    /* Class destructor. */
-   virtual ~CFootBotZebrolike() {}
+   virtual ~ZebroTopLevelController() {}
 
    /*
     * This function initializes the controller.
@@ -230,7 +230,7 @@ protected:
 	int avoidingObstacleTicksLeft; // todo: change from ticks to time based system. ..or just implement a tick system on the actual zebro, based on time.
 	CVector3 lastMeasuredParentBasekeeperPosition;
 	CVector3 absoluteParentBasekeeperPosition; // todo: this one COULD be private in SearchAndRescueBehaviour... but that would not be nice because it's an ABSOLUTE position
-	ZebroIdentifier mainBasekeeper; // todo: this var is protected just because of one line of code in CFootBotZebrolike that could probably be done without
+	ZebroIdentifier mainBasekeeper; // todo: this var is protected just because of one line of code in ZebroTopLevelController that could probably be done without
 	CVector3 myTrackedPosition; // todo: I don't think so, but maybe this can be private
 	Real myAngleFromNorth; // todo: this one isn't actually being used in SearchAndRescueBehaviour, but probably should be used?
 	CVector3 myLastAbsolutePosition; // todo: get this variable to be a private one.

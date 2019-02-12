@@ -1,5 +1,5 @@
 /* Include the controller definition */
-#include "footbot_zebrolike.h"
+#include "ZebroTopLevelController.h"
 
 /* Math functions */
 #include <math.h>
@@ -16,7 +16,7 @@ using namespace std;
 /****************************************/
 /****************************************/
 
-CFootBotZebrolike::CFootBotZebrolike() :
+ZebroTopLevelController::ZebroTopLevelController() :
    m_pcWheels(NULL),
    m_pcProximity(NULL),
    m_pcRABSens(NULL),
@@ -30,7 +30,7 @@ CFootBotZebrolike::CFootBotZebrolike() :
 /****************************************/
 /****************************************/
 
-void CFootBotZebrolike::Init(TConfigurationNode& t_node) {
+void ZebroTopLevelController::Init(TConfigurationNode& t_node) {
    /*
     * Get sensor/actuator handles
     *
@@ -136,18 +136,18 @@ void CFootBotZebrolike::Init(TConfigurationNode& t_node) {
    GetNodeAttributeOrDefault(t_node, "velocity", m_fWheelVelocity, m_fWheelVelocity);
 
 	
-	BOTDEBUG << "Inited CFootBotZebrolike" << endl;
+	BOTDEBUG << "Inited ZebroTopLevelController" << endl;
 }
 
 /****************************************/
 /****************************************/
 
-void CFootBotZebrolike::ControlStep() {
+void ZebroTopLevelController::ControlStep() {
 
 }
 
 
-void CFootBotZebrolike::CheckPositioning()
+void ZebroTopLevelController::CheckPositioning()
 {
 	
 	CVector3 position = m_pcPosSens->GetReading().Position;
@@ -180,13 +180,13 @@ void CFootBotZebrolike::CheckPositioning()
 
 
 // to do: move all this stuff to a seperate file
-CVector3 CFootBotZebrolike::CreateWeightedAverageVector(CVector3 position1, int weight1, CVector3 position2, int weight2)
+CVector3 ZebroTopLevelController::CreateWeightedAverageVector(CVector3 position1, int weight1, CVector3 position2, int weight2)
 {
 	CVector3 result = CVector3((position1.GetX() * weight1 + position2.GetX() * weight2)/(weight1 + weight2), (position1.GetY() * weight1 + position2.GetY() * weight2)/(weight1 + weight2), (position1.GetZ() * weight1 + position2.GetZ() * weight2)/(weight1 + weight2));
 	return result;
 }
 
-CByteArray CFootBotZebrolike::CompressPosition(CVector3 position)
+CByteArray ZebroTopLevelController::CompressPosition(CVector3 position)
 {
 	// Compresses a position vector into 4 bytes
 	
@@ -206,7 +206,7 @@ CByteArray CFootBotZebrolike::CompressPosition(CVector3 position)
 	return result;
 }
 
-CByteArray CFootBotZebrolike::ConvertLengthTo2Bytes(Real length)
+CByteArray ZebroTopLevelController::ConvertLengthTo2Bytes(Real length)
 {
 	Real maxLength = 30;
 	if(length > maxLength) { length = maxLength; }
@@ -214,7 +214,7 @@ CByteArray CFootBotZebrolike::ConvertLengthTo2Bytes(Real length)
 	return ConvertFractionTo2Bytes(lengthFraction);
 }
 
-Real CFootBotZebrolike::Convert2BytesToLength(CByteArray compressedLength)
+Real ZebroTopLevelController::Convert2BytesToLength(CByteArray compressedLength)
 {
 	Real maxLength = 30;
 	
@@ -223,7 +223,7 @@ Real CFootBotZebrolike::Convert2BytesToLength(CByteArray compressedLength)
 }
 
 
-CVector3 CFootBotZebrolike::DecompressPosition(CByteArray compressedPosition)
+CVector3 ZebroTopLevelController::DecompressPosition(CByteArray compressedPosition)
 {
 	// Decompresses a 4 byte representation of a position back into a position vector
 	Real maxLength = 30;
@@ -247,7 +247,7 @@ CVector3 CFootBotZebrolike::DecompressPosition(CByteArray compressedPosition)
 	return result;
 }
 
-CVector3 CFootBotZebrolike::DecompressPosition(unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2)
+CVector3 ZebroTopLevelController::DecompressPosition(unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2)
 {
 	CByteArray compressedPosition = CByteArray(4);
 	compressedPosition[0] = rotationByte1;
@@ -257,7 +257,7 @@ CVector3 CFootBotZebrolike::DecompressPosition(unsigned char rotationByte1, unsi
 	return DecompressPosition(compressedPosition);
 }
 
-CByteArray CFootBotZebrolike::ConvertFractionTo2Bytes(Real input)
+CByteArray ZebroTopLevelController::ConvertFractionTo2Bytes(Real input)
 {
 	// Converts a number between 0 and 1 to a representation of 2 bytes
 	
@@ -270,7 +270,7 @@ CByteArray CFootBotZebrolike::ConvertFractionTo2Bytes(Real input)
 	return output;
 }
 
-Real CFootBotZebrolike::Convert2BytesToFraction(CByteArray input)
+Real ZebroTopLevelController::Convert2BytesToFraction(CByteArray input)
 {
 	// Converts a representation of 2 bytes back into a number between 0 and 1
 	
@@ -281,7 +281,7 @@ Real CFootBotZebrolike::Convert2BytesToFraction(CByteArray input)
 }
 
 
-void CFootBotZebrolike::TrackOwnPosition()
+void ZebroTopLevelController::TrackOwnPosition()
 {
 	// things to consider:
 	// "North" might need to be subtracted in the angle in the real Zebro
@@ -305,14 +305,14 @@ void CFootBotZebrolike::TrackOwnPosition()
 	//BOTDEBUG << "my Tracked Position 2: " << myTrackedPosition.GetX() << ", " << myTrackedPosition.GetY() << std::endl;
 }
 
-CVector3 CFootBotZebrolike::GetMyPosition()
+CVector3 ZebroTopLevelController::GetMyPosition()
 {
 	// returns own tracked position. This function is only used for visualisation purposes in the simulator!
 	return myLastAbsolutePosition + myTrackedPosition;
 	//return myTrackedPosition + 
 }
 
-ZebroIdentifier CFootBotZebrolike::PickRandomChildBasekeeper()
+ZebroIdentifier ZebroTopLevelController::PickRandomChildBasekeeper()
 {
 	// returns a random child basekeeper. Returns empty ZebroIdentifier if you have no child basekeepers.
 	
@@ -335,7 +335,7 @@ ZebroIdentifier CFootBotZebrolike::PickRandomChildBasekeeper()
 	return pickedChildBasekeeperId;
 }
 
-ZebroIdentifier CFootBotZebrolike::PopMostRecentlyActiveSearcher()
+ZebroIdentifier ZebroTopLevelController::PopMostRecentlyActiveSearcher()
 {
 	// retrieve the searcher with the lowest latestTick and remove it from mySearchers
 	ZebroIdentifier pickedSearcherId = ZebroIdentifier(0x00);
@@ -357,12 +357,12 @@ ZebroIdentifier CFootBotZebrolike::PopMostRecentlyActiveSearcher()
 	return pickedSearcherId;
 }
 
-void CFootBotZebrolike::SendMessage_APPOINTNEWBASEKEEPER(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier newBasekeeperId, unsigned char basekeeperL)
+void ZebroTopLevelController::SendMessage_APPOINTNEWBASEKEEPER(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier newBasekeeperId, unsigned char basekeeperL)
 {
 	SendMessage_APPOINTNEWBASEKEEPER(from, messageNumber, newBasekeeperId, CompressPosition(myAbsolutePosition), basekeeperL);
 }
 
-void CFootBotZebrolike::SendMessage_APPOINTNEWBASEKEEPER(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier newBasekeeperId, CByteArray compressedPosition, unsigned char basekeeperL)
+void ZebroTopLevelController::SendMessage_APPOINTNEWBASEKEEPER(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier newBasekeeperId, CByteArray compressedPosition, unsigned char basekeeperL)
 {
 	CByteArray cBuf(7);
 	cBuf[0] = MESSAGETYPE_APPOINTNEWBASEKEEPER;
@@ -382,7 +382,7 @@ void CFootBotZebrolike::SendMessage_APPOINTNEWBASEKEEPER(ZebroIdentifier from, u
 	SendMessage(cBuf, from, messageNumber);
 }
 
-void CFootBotZebrolike::SendMessage_APPLYASBASEKEEPER(ZebroIdentifier toBasekeeper)
+void ZebroTopLevelController::SendMessage_APPLYASBASEKEEPER(ZebroIdentifier toBasekeeper)
 {
 	sendMessageId++;
 	unsigned char messageNumber = (unsigned char) sendMessageId;
@@ -400,7 +400,7 @@ void CFootBotZebrolike::SendMessage_APPLYASBASEKEEPER(ZebroIdentifier toBasekeep
 	SendMessage(cBuf, myId, messageNumber, toBasekeeper);
 }
 
-void CFootBotZebrolike::SendMessage_RECRUITNEWBASEKEEPER()
+void ZebroTopLevelController::SendMessage_RECRUITNEWBASEKEEPER()
 {
 	sendMessageId++;
 	unsigned char messageNumber = (unsigned char) sendMessageId;
@@ -412,7 +412,7 @@ void CFootBotZebrolike::SendMessage_RECRUITNEWBASEKEEPER()
 	SendMessage(cBuf, myId, messageNumber);
 }
 
-void CFootBotZebrolike::AvoidObstaclesAutomatically()
+void ZebroTopLevelController::AvoidObstaclesAutomatically()
 {
 	
 	
@@ -469,12 +469,12 @@ void CFootBotZebrolike::AvoidObstaclesAutomatically()
    }
 }
 
-void CFootBotZebrolike::ResetCapturedNodes()
+void ZebroTopLevelController::ResetCapturedNodes()
 {
 	capturedNodes[0] = 0x00; capturedNodes[1] = 0x00; capturedNodes[2] = 0x00; capturedNodes[3] = 0x00; capturedNodes[4] = 0x00; capturedNodes[5] = 0x00; capturedNodes[6] = 0x00; capturedNodes[7] = 0x00; capturedNodes[8] = 0x00; capturedNodes[9] = 0x00;
 }
 
-void CFootBotZebrolike::ResetMySearchers()
+void ZebroTopLevelController::ResetMySearchers()
 {
 	for(size_t i = 0; i < 20; i++)
 	{
@@ -482,83 +482,83 @@ void CFootBotZebrolike::ResetMySearchers()
 	}
 }
 
-void CFootBotZebrolike::ReceiveMessage_CAPTUREACK(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, unsigned char hopsLeft, ZebroIdentifier candidateId, ZebroIdentifier capturedNodeId, ZebroIdentifier capturedNodeId2, ZebroIdentifier capturedNodeId3)
+void ZebroTopLevelController::ReceiveMessage_CAPTUREACK(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, unsigned char hopsLeft, ZebroIdentifier candidateId, ZebroIdentifier capturedNodeId, ZebroIdentifier capturedNodeId2, ZebroIdentifier capturedNodeId3)
 {
 	
 }
 
-void CFootBotZebrolike::ReceiveMessage_CAPTUREBROADCAST(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, unsigned char hopsMade, ZebroIdentifier candidateId, int receivedLevel)
+void ZebroTopLevelController::ReceiveMessage_CAPTUREBROADCAST(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, unsigned char hopsMade, ZebroIdentifier candidateId, int receivedLevel)
 {
 
 }
 
-void CFootBotZebrolike::ReceiveMessage_SHAREPOSITION(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, unsigned char hopsMade, CByteArray compressedPosition, ZebroIdentifier parent)
+void ZebroTopLevelController::ReceiveMessage_SHAREPOSITION(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, unsigned char hopsMade, CByteArray compressedPosition, ZebroIdentifier parent)
 {
 
 }
 
-void CFootBotZebrolike::ReceiveMessage_DISBAND(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, CByteArray compressedPosition)
+void ZebroTopLevelController::ReceiveMessage_DISBAND(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, CByteArray compressedPosition)
 {
 
 }
 
-void CFootBotZebrolike::ReceiveMessage_RECRUITNEWBASEKEEPER(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver)
+void ZebroTopLevelController::ReceiveMessage_RECRUITNEWBASEKEEPER(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver)
 {
 
 }
 
-void CFootBotZebrolike::ReceiveMessage_PINGREPLY(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, CByteArray compressedPosition, unsigned char allowAsNewBasekeeper)
+void ZebroTopLevelController::ReceiveMessage_PINGREPLY(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, CByteArray compressedPosition, unsigned char allowAsNewBasekeeper)
 {
 
 }
 
-void CFootBotZebrolike::ReceiveMessage_APPOINTNEWBASEKEEPER(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, ZebroIdentifier newBasekeeperId, CByteArray compressedPosition, unsigned char basekeeperL)
+void ZebroTopLevelController::ReceiveMessage_APPOINTNEWBASEKEEPER(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, ZebroIdentifier newBasekeeperId, CByteArray compressedPosition, unsigned char basekeeperL)
 {
 
 }
 
-void CFootBotZebrolike::ReceiveMessage_RELOCATESEARCHER(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, ZebroIdentifier searcherId, ZebroIdentifier basekeeperId, CByteArray compressedPosition)
+void ZebroTopLevelController::ReceiveMessage_RELOCATESEARCHER(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, ZebroIdentifier searcherId, ZebroIdentifier basekeeperId, CByteArray compressedPosition)
 {
 
 }
 
 
-void CFootBotZebrolike::ReceiveMessage_FOUNDTARGET(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, ZebroIdentifier parent, CByteArray compressedPosition)
+void ZebroTopLevelController::ReceiveMessage_FOUNDTARGET(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, ZebroIdentifier parent, CByteArray compressedPosition)
 {
 
 }
 
-void CFootBotZebrolike::ReceiveMessage_FOUNDTARGETUPSTREAM(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, ZebroIdentifier parent, unsigned char totalSearchers, unsigned char hopsMade, CByteArray compressedLength)
+void ZebroTopLevelController::ReceiveMessage_FOUNDTARGETUPSTREAM(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, ZebroIdentifier parent, unsigned char totalSearchers, unsigned char hopsMade, CByteArray compressedLength)
 {
 
 }
 
-void CFootBotZebrolike::ReceiveMessage_PATHDATA(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, ZebroIdentifier to, unsigned char hopsLeftToTarget, int amountOfSearchersLeft, int sendSearchersNumber)
+void ZebroTopLevelController::ReceiveMessage_PATHDATA(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, ZebroIdentifier to, unsigned char hopsLeftToTarget, int amountOfSearchersLeft, int sendSearchersNumber)
 {
 
 }
 
-void CFootBotZebrolike::ReceiveMessage_BECOMEPATHPOINT(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, ZebroIdentifier searcherId, CByteArray compressedPosition)
+void ZebroTopLevelController::ReceiveMessage_BECOMEPATHPOINT(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, ZebroIdentifier searcherId, CByteArray compressedPosition)
 {
 
 }
 
-void CFootBotZebrolike::ReceiveMessage_PINGALLBASEKEEPERS(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, CByteArray compressedPosition)
+void ZebroTopLevelController::ReceiveMessage_PINGALLBASEKEEPERS(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, CByteArray compressedPosition)
 {
 	
 }
 
-void CFootBotZebrolike::ReceiveMessage_APPLYASBASEKEEPER(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, CByteArray compressedPosition)
+void ZebroTopLevelController::ReceiveMessage_APPLYASBASEKEEPER(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, CByteArray compressedPosition)
 {
 
 }
 
-void CFootBotZebrolike::ReceiveMessage_HEARTBEAT(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver)
+void ZebroTopLevelController::ReceiveMessage_HEARTBEAT(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver)
 {
 
 }
 
-void CFootBotZebrolike::ReceiveMessage(CByteArray message)
+void ZebroTopLevelController::ReceiveMessage(CByteArray message)
 {
 	ZebroIdentifier senderId = ZebroIdentifier(message[0]);
 	unsigned char messageNumber = message[1];
@@ -745,12 +745,12 @@ void CFootBotZebrolike::ReceiveMessage(CByteArray message)
 	}
 }
 
-CVector3 CFootBotZebrolike::GetVectorToChild(ZebroIdentifier nodeId)
+CVector3 ZebroTopLevelController::GetVectorToChild(ZebroIdentifier nodeId)
 {
 	return DecompressPosition(GetCompressedVectorToChild(nodeId));
 }
 
-CByteArray CFootBotZebrolike::GetCompressedVectorToChild(ZebroIdentifier nodeId)
+CByteArray ZebroTopLevelController::GetCompressedVectorToChild(ZebroIdentifier nodeId)
 {
 	for(int i = 0; i < 4; i++)
 	{
@@ -771,7 +771,7 @@ CByteArray CFootBotZebrolike::GetCompressedVectorToChild(ZebroIdentifier nodeId)
 }
 
 /* to replace*/
-CRay3 CFootBotZebrolike::GetDrawGreenLine()
+CRay3 ZebroTopLevelController::GetDrawGreenLine()
 {
 	// draw a green line from a basekeeper to its parent
 	if(role != ROLE_BASEKEEPER || mainBasekeeper.Equals(myId))
@@ -787,7 +787,7 @@ CRay3 CFootBotZebrolike::GetDrawGreenLine()
 	return CRay3(v1, v2);
 }
 
-void CFootBotZebrolike::SendMessage_DISBAND(ZebroIdentifier from, unsigned char messageNumber, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2)
+void ZebroTopLevelController::SendMessage_DISBAND(ZebroIdentifier from, unsigned char messageNumber, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2)
 {
 	CByteArray cBuf(7);
 	cBuf[0] = MESSAGETYPE_DISBAND;
@@ -801,17 +801,17 @@ void CFootBotZebrolike::SendMessage_DISBAND(ZebroIdentifier from, unsigned char 
 	SendMessage(cBuf, from, messageNumber);
 }
 
-void CFootBotZebrolike::SendMessage_DISBAND(ZebroIdentifier from, unsigned char messageNumber, CByteArray compressedPosition)
+void ZebroTopLevelController::SendMessage_DISBAND(ZebroIdentifier from, unsigned char messageNumber, CByteArray compressedPosition)
 {
 	SendMessage_DISBAND(from, messageNumber, compressedPosition[0], compressedPosition[1], compressedPosition[2], compressedPosition[3]);
 }
 
-void CFootBotZebrolike::SendMessage_DISBAND(ZebroIdentifier from, unsigned char messageNumber, CVector3 safePosition)
+void ZebroTopLevelController::SendMessage_DISBAND(ZebroIdentifier from, unsigned char messageNumber, CVector3 safePosition)
 {
 	SendMessage_DISBAND(from, messageNumber, CompressPosition(safePosition));
 }
 
-void CFootBotZebrolike::ResetChildrenBasekeepers()
+void ZebroTopLevelController::ResetChildrenBasekeepers()
 {
 	childrenBasekeepers = CByteArray(4*6);
 	for(int i = 0; i < 4*6; i++) // to do: is this necessary?
@@ -820,7 +820,7 @@ void CFootBotZebrolike::ResetChildrenBasekeepers()
 	}
 }
 
-void CFootBotZebrolike::ResetIgnoreSearchers()
+void ZebroTopLevelController::ResetIgnoreSearchers()
 {
 	ignoreSearchers = CByteArray(20);
 	for(int i = 0; i < 20; i++) // to do: is this necessary?
@@ -829,7 +829,7 @@ void CFootBotZebrolike::ResetIgnoreSearchers()
 	}
 }
 
-void CFootBotZebrolike::SendMessage_PINGALLBASEKEEPERS()
+void ZebroTopLevelController::SendMessage_PINGALLBASEKEEPERS()
 {
 	sendMessageId++;
 	unsigned char messageNumber = (unsigned char) sendMessageId;
@@ -848,7 +848,7 @@ void CFootBotZebrolike::SendMessage_PINGALLBASEKEEPERS()
 	SendMessage(cBuf, myId, messageNumber);
 }
 
-void CFootBotZebrolike::SendMessage_PINGREPLY(ZebroIdentifier to, CVector3 position, unsigned char allowAsNewBasekeeper)
+void ZebroTopLevelController::SendMessage_PINGREPLY(ZebroIdentifier to, CVector3 position, unsigned char allowAsNewBasekeeper)
 {
 	sendMessageId++;
 	unsigned char messageNumber = (unsigned char) sendMessageId;
@@ -868,7 +868,7 @@ void CFootBotZebrolike::SendMessage_PINGREPLY(ZebroIdentifier to, CVector3 posit
 	SendMessage(cBuf, myId, messageNumber, to);
 }
 
-void CFootBotZebrolike::AddToCapturedNodes(ZebroIdentifier nodeId)
+void ZebroTopLevelController::AddToCapturedNodes(ZebroIdentifier nodeId)
 {
 	for(int i = 0; i < 10; i++)
 	{
@@ -885,7 +885,7 @@ void CFootBotZebrolike::AddToCapturedNodes(ZebroIdentifier nodeId)
 	}
 }
 
-void CFootBotZebrolike::AddToMySearchers(ZebroIdentifier nodeId)
+void ZebroTopLevelController::AddToMySearchers(ZebroIdentifier nodeId)
 {
 	int latestTickEntry = -1;
 	unsigned char latestTick = 0x00;
@@ -929,7 +929,7 @@ void CFootBotZebrolike::AddToMySearchers(ZebroIdentifier nodeId)
 	mySearchers[pointer+1] = 0x00;
 }
 
-void CFootBotZebrolike::RemoveFromMySearchers(ZebroIdentifier nodeId)
+void ZebroTopLevelController::RemoveFromMySearchers(ZebroIdentifier nodeId)
 {
 	bool deleted = false;
 	for(int i = 0; i < 10; i++)
@@ -953,7 +953,7 @@ void CFootBotZebrolike::RemoveFromMySearchers(ZebroIdentifier nodeId)
 	}
 }
 
-void CFootBotZebrolike::updateMySearchersTicks()
+void ZebroTopLevelController::updateMySearchersTicks()
 {
 	int newMySearchersTotal = 0;
 	for(int i = 0; i < 10; i++)
@@ -975,7 +975,7 @@ void CFootBotZebrolike::updateMySearchersTicks()
 	mySearchersTotal = newMySearchersTotal;
 }
 
-Real CFootBotZebrolike::GetFarthestChildBasekeeperDistance()
+Real ZebroTopLevelController::GetFarthestChildBasekeeperDistance()
 {
 	Real farthestDistance = 0;
 	for(int i = 0; i < 4; i++)
@@ -995,7 +995,7 @@ Real CFootBotZebrolike::GetFarthestChildBasekeeperDistance()
 	return farthestDistance;
 }
 
-void CFootBotZebrolike::AddToChildrenBasekeepers(ZebroIdentifier nodeId, CVector3 position)
+void ZebroTopLevelController::AddToChildrenBasekeepers(ZebroIdentifier nodeId, CVector3 position)
 {
 	int latestTickEntry = -1;
 	unsigned char latestTick = 0x00;
@@ -1061,12 +1061,12 @@ void CFootBotZebrolike::AddToChildrenBasekeepers(ZebroIdentifier nodeId, CVector
 	}
 }
 
-void CFootBotZebrolike::LostConnectionToChildBasekeeper(ZebroIdentifier lostChildId)
+void ZebroTopLevelController::LostConnectionToChildBasekeeper(ZebroIdentifier lostChildId)
 {
 	// this function is overwritten in SearchAndRescueBehaviour
 }
 
-void CFootBotZebrolike::UpdateChildrenBasekeepersTicks()
+void ZebroTopLevelController::UpdateChildrenBasekeepersTicks()
 {
 	int newchildrenBasekeepersTotal = 0;
 	for(int i = 0; i < 4; i++)
@@ -1099,7 +1099,7 @@ void CFootBotZebrolike::UpdateChildrenBasekeepersTicks()
 	}
 }
 
-bool CFootBotZebrolike::IsChildBasekeeper(ZebroIdentifier nodeId)
+bool ZebroTopLevelController::IsChildBasekeeper(ZebroIdentifier nodeId)
 {
 	for(int i = 0; i < 4; i++)
 	{
@@ -1111,7 +1111,7 @@ bool CFootBotZebrolike::IsChildBasekeeper(ZebroIdentifier nodeId)
 	return false;
 }
 
-void CFootBotZebrolike::AddToIgnoreSearchers(ZebroIdentifier nodeId)
+void ZebroTopLevelController::AddToIgnoreSearchers(ZebroIdentifier nodeId)
 {
 	int leastTicksLeftEntry = -1;
 	unsigned char leastTicksLeft = 0xff;
@@ -1151,7 +1151,7 @@ void CFootBotZebrolike::AddToIgnoreSearchers(ZebroIdentifier nodeId)
 	ignoreSearchers[pointer+1] = (unsigned char) 20;
 }
 
-void CFootBotZebrolike::updateIgnoreSearchersTicks()
+void ZebroTopLevelController::updateIgnoreSearchersTicks()
 {
 	for(int i = 0; i < 10; i++)
 	{
@@ -1167,7 +1167,7 @@ void CFootBotZebrolike::updateIgnoreSearchersTicks()
 	}
 }
 
-bool CFootBotZebrolike::IsIgnoringSearcher(ZebroIdentifier nodeId)
+bool ZebroTopLevelController::IsIgnoringSearcher(ZebroIdentifier nodeId)
 {
 	for(int i = 0; i < 10; i++)
 	{
@@ -1179,7 +1179,7 @@ bool CFootBotZebrolike::IsIgnoringSearcher(ZebroIdentifier nodeId)
 	return false;
 }
 
-void CFootBotZebrolike::SendMessage_HEARTBEAT(ZebroIdentifier toBasekeeper)
+void ZebroTopLevelController::SendMessage_HEARTBEAT(ZebroIdentifier toBasekeeper)
 {
 	sendMessageId++;
 	unsigned char messageNumber = (unsigned char) sendMessageId;
@@ -1192,7 +1192,7 @@ void CFootBotZebrolike::SendMessage_HEARTBEAT(ZebroIdentifier toBasekeeper)
 	SendMessage(cBuf, myId, messageNumber, toBasekeeper);
 }
 
-void CFootBotZebrolike::SendMessage_FOUNDTARGET(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier parent, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2)
+void ZebroTopLevelController::SendMessage_FOUNDTARGET(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier parent, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2)
 {
 	CByteArray cBuf(7);
 	cBuf[0] = MESSAGETYPE_FOUNDTARGET;
@@ -1210,19 +1210,19 @@ void CFootBotZebrolike::SendMessage_FOUNDTARGET(ZebroIdentifier from, unsigned c
 	SendMessage(cBuf, from, messageNumber);
 }
 
-void CFootBotZebrolike::SendMessage_FOUNDTARGET(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier parent, CVector3 position)
+void ZebroTopLevelController::SendMessage_FOUNDTARGET(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier parent, CVector3 position)
 {
 	CByteArray compressedPosition = CompressPosition(position);
 	SendMessage_FOUNDTARGET(from, messageNumber, parent, compressedPosition[0], compressedPosition[1], compressedPosition[2], compressedPosition[3]);
 }
 
-void CFootBotZebrolike::SendMessage_FOUNDTARGETUPSTREAM(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier parent, unsigned char totalSearchers, unsigned char hopsMade, Real totalDistance)
+void ZebroTopLevelController::SendMessage_FOUNDTARGETUPSTREAM(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier parent, unsigned char totalSearchers, unsigned char hopsMade, Real totalDistance)
 {
 	CByteArray compressedLength = ConvertLengthTo2Bytes(totalDistance);
 	SendMessage_FOUNDTARGETUPSTREAM(from, messageNumber, parent, totalSearchers, hopsMade, compressedLength[0], compressedLength[1]);
 }
 
-void CFootBotZebrolike::SendMessage_FOUNDTARGETUPSTREAM(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier parent, unsigned char totalSearchers, unsigned char hopsMade, unsigned char distanceByte1, unsigned char distanceByte2)
+void ZebroTopLevelController::SendMessage_FOUNDTARGETUPSTREAM(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier parent, unsigned char totalSearchers, unsigned char hopsMade, unsigned char distanceByte1, unsigned char distanceByte2)
 {
 	CByteArray cBuf(7);
 	cBuf[0] = MESSAGETYPE_FOUNDTARGETUPSTREAM;
@@ -1240,7 +1240,7 @@ void CFootBotZebrolike::SendMessage_FOUNDTARGETUPSTREAM(ZebroIdentifier from, un
 	SendMessage(cBuf, from, messageNumber);
 }
 
-void CFootBotZebrolike::SendMessage_PATHDATA(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier linkToTarget, unsigned char hopsLeftToTarget, int amountOfSearchersLeft, int sendSearchersNumber)
+void ZebroTopLevelController::SendMessage_PATHDATA(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier linkToTarget, unsigned char hopsLeftToTarget, int amountOfSearchersLeft, int sendSearchersNumber)
 {
 	CByteArray cBuf(7);
 	cBuf[0] = MESSAGETYPE_PATHDATA;
@@ -1257,7 +1257,7 @@ void CFootBotZebrolike::SendMessage_PATHDATA(ZebroIdentifier from, unsigned char
 	SendMessage(cBuf, from, messageNumber);
 }
 
-void CFootBotZebrolike::SendMessage_BECOMEPATHPOINT(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier searcherId, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2)
+void ZebroTopLevelController::SendMessage_BECOMEPATHPOINT(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier searcherId, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2)
 {
 	CByteArray cBuf(7);
 	cBuf[0] = MESSAGETYPE_BECOMEPATHPOINT;
@@ -1275,13 +1275,13 @@ void CFootBotZebrolike::SendMessage_BECOMEPATHPOINT(ZebroIdentifier from, unsign
 	SendMessage(cBuf, from, messageNumber);
 }
 
-void CFootBotZebrolike::SendMessage_BECOMEPATHPOINT(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier searcherId, CVector3 position)
+void ZebroTopLevelController::SendMessage_BECOMEPATHPOINT(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier searcherId, CVector3 position)
 {
 	CByteArray compressedPosition = CompressPosition(position);
 	SendMessage_BECOMEPATHPOINT(from, messageNumber, searcherId, compressedPosition[0], compressedPosition[1], compressedPosition[2], compressedPosition[3]);
 }
 
-void CFootBotZebrolike::SendMessage_SHAREPOSITION(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsMade, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2, ZebroIdentifier parent)
+void ZebroTopLevelController::SendMessage_SHAREPOSITION(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsMade, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2, ZebroIdentifier parent)
 {
 	CByteArray cBuf(7);
 	cBuf[0] = MESSAGETYPE_SHAREPOSITION;
@@ -1297,17 +1297,17 @@ void CFootBotZebrolike::SendMessage_SHAREPOSITION(ZebroIdentifier from, unsigned
 	SendMessage(cBuf, from, messageNumber);
 }
 
-void CFootBotZebrolike::SendMessage_SHAREPOSITION(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsMade, CByteArray compressedPosition, ZebroIdentifier parent)
+void ZebroTopLevelController::SendMessage_SHAREPOSITION(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsMade, CByteArray compressedPosition, ZebroIdentifier parent)
 {
 	SendMessage_SHAREPOSITION(from, messageNumber, hopsMade, compressedPosition[0], compressedPosition[1], compressedPosition[2], compressedPosition[3], parent);
 }
 
-void CFootBotZebrolike::SendMessage_SHAREPOSITION(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsMade, CVector3 position, ZebroIdentifier parent)
+void ZebroTopLevelController::SendMessage_SHAREPOSITION(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsMade, CVector3 position, ZebroIdentifier parent)
 {
 	SendMessage_SHAREPOSITION(from, messageNumber, hopsMade, CompressPosition(position), parent);
 }
 
-void CFootBotZebrolike::SendMessage_SendMessage_RELOCATESEARCHER(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier searcherId, ZebroIdentifier basekeeperId, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2)
+void ZebroTopLevelController::SendMessage_SendMessage_RELOCATESEARCHER(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier searcherId, ZebroIdentifier basekeeperId, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2)
 {
 	CByteArray cBuf(7);
 	cBuf[0] = MESSAGETYPE_RELOCATESEARCHER;
@@ -1326,7 +1326,7 @@ void CFootBotZebrolike::SendMessage_SendMessage_RELOCATESEARCHER(ZebroIdentifier
 	SendMessage(cBuf, from, messageNumber);
 }
 
-void CFootBotZebrolike::SendMessage_SendMessage_RELOCATESEARCHER(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier searcherId, ZebroIdentifier basekeeperId, CVector3 basekeeperPosition)
+void ZebroTopLevelController::SendMessage_SendMessage_RELOCATESEARCHER(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier searcherId, ZebroIdentifier basekeeperId, CVector3 basekeeperPosition)
 {
 	CByteArray compressedPosition = CompressPosition(basekeeperPosition);
 	SendMessage_SendMessage_RELOCATESEARCHER(from, messageNumber, searcherId, basekeeperId, compressedPosition[0], compressedPosition[1], compressedPosition[2], compressedPosition[3]);
@@ -1334,7 +1334,7 @@ void CFootBotZebrolike::SendMessage_SendMessage_RELOCATESEARCHER(ZebroIdentifier
 
 // SendMessage_CAPTUREACK(from, hopsLeft - 1, father, capturedNodeId, capturedNodeId2, capturedNodeId3);
 
-void CFootBotZebrolike::SendMessage_CAPTUREACK(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsLeft, ZebroIdentifier candidateId, ZebroIdentifier capturedNodeId, ZebroIdentifier capturedNodeId2, ZebroIdentifier capturedNodeId3)
+void ZebroTopLevelController::SendMessage_CAPTUREACK(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsLeft, ZebroIdentifier candidateId, ZebroIdentifier capturedNodeId, ZebroIdentifier capturedNodeId2, ZebroIdentifier capturedNodeId3)
 {
 	CByteArray cBuf(7);
 	cBuf[0] = MESSAGETYPE_CAPTUREACK; // type of message
@@ -1347,7 +1347,7 @@ void CFootBotZebrolike::SendMessage_CAPTUREACK(ZebroIdentifier from, unsigned ch
 }
 
 
-void CFootBotZebrolike::SendMessage_CAPTUREBROADCAST(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsMade, unsigned char level, ZebroIdentifier candidateId)
+void ZebroTopLevelController::SendMessage_CAPTUREBROADCAST(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsMade, unsigned char level, ZebroIdentifier candidateId)
 {
 	CByteArray cBuf(7);
 	cBuf[0] = MESSAGETYPE_CAPTUREBROADCAST; // type of message
@@ -1358,7 +1358,7 @@ void CFootBotZebrolike::SendMessage_CAPTUREBROADCAST(ZebroIdentifier from, unsig
 }
 
 
-void CFootBotZebrolike::CheckForReceivedMessages()
+void ZebroTopLevelController::CheckForReceivedMessages()
 {
 	
  const CCI_RangeAndBearingSensor::TReadings& tPackets = m_pcRABSens->GetReadings();
@@ -1416,13 +1416,13 @@ void CFootBotZebrolike::CheckForReceivedMessages()
 	  }
 }
 
-void CFootBotZebrolike::BroadcastMessage(CByteArray& bytesToSend)
+void ZebroTopLevelController::BroadcastMessage(CByteArray& bytesToSend)
 {
 	sendMessageId++;
 	SendMessage(bytesToSend, 0x00, (unsigned char) sendMessageId, 0x00); // 0x00 is broadcast
 }
 
-void CFootBotZebrolike::SendMessageFromQueue()
+void ZebroTopLevelController::SendMessageFromQueue()
 {
 	messageQueuePointer = messageQueuePointer;
 	
@@ -1447,12 +1447,12 @@ void CFootBotZebrolike::SendMessageFromQueue()
 	// BOTDEBUG << "Node " << myId.ToString() << " sent a message: "<<cBuf[0]<<","<<cBuf[1]<<","<<cBuf[2]<<","<<cBuf[3]<<","<<cBuf[4]<<","<<cBuf[5]<<","<<cBuf[6]<<","<<cBuf[7]<<","<<cBuf[8]<<","<<cBuf[9]<< std::endl;
 }
 						   
-void CFootBotZebrolike::SendMessage(CByteArray& bytesToSend, ZebroIdentifier senderId, unsigned char messageNumber)
+void ZebroTopLevelController::SendMessage(CByteArray& bytesToSend, ZebroIdentifier senderId, unsigned char messageNumber)
 {
 	SendMessage(bytesToSend, senderId, messageNumber, 0x00);
 }
 
-void CFootBotZebrolike::SendMessage(CByteArray& bytesToSend, ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier receiverId)
+void ZebroTopLevelController::SendMessage(CByteArray& bytesToSend, ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier receiverId)
 {
 	/* Send counter value */
 	
@@ -1494,70 +1494,70 @@ void CFootBotZebrolike::SendMessage(CByteArray& bytesToSend, ZebroIdentifier sen
    
 }
 
-void CFootBotZebrolike::GoForwards() {
+void ZebroTopLevelController::GoForwards() {
 	direction = 3;
 	leftLegsVelocity = m_fWheelVelocity;
 	rightLegsVelocity = m_fWheelVelocity;
 	UpdateLegVelocities();
 }
 
-void CFootBotZebrolike::GoBackwards() {
+void ZebroTopLevelController::GoBackwards() {
 	direction = -3;
 	leftLegsVelocity = -m_fWheelVelocity;
 	rightLegsVelocity = -m_fWheelVelocity;
 	UpdateLegVelocities();
 }
 
-void CFootBotZebrolike::MildLeftTurn() {
+void ZebroTopLevelController::MildLeftTurn() {
 	direction = 2;
 	leftLegsVelocity = 0.0f;
 	rightLegsVelocity = m_fWheelVelocity;
 	UpdateLegVelocities();
 }
 
-void CFootBotZebrolike::MildRightTurn() {
+void ZebroTopLevelController::MildRightTurn() {
 	direction = 4;
 	leftLegsVelocity = m_fWheelVelocity;
 	rightLegsVelocity = 0.0f;
 	UpdateLegVelocities();
 }
 
-void CFootBotZebrolike::SharpLeftTurn() {
+void ZebroTopLevelController::SharpLeftTurn() {
 	direction = 1;
 	leftLegsVelocity = -m_fWheelVelocity;
 	rightLegsVelocity = m_fWheelVelocity;
 	UpdateLegVelocities();
 }
 
-void CFootBotZebrolike::SharpRightTurn() {
+void ZebroTopLevelController::SharpRightTurn() {
 	direction = 5;
 	leftLegsVelocity = m_fWheelVelocity;
 	rightLegsVelocity = -m_fWheelVelocity;
 	UpdateLegVelocities();
 }
 
-void CFootBotZebrolike::MildBackwardsLeftTurn() {
+void ZebroTopLevelController::MildBackwardsLeftTurn() {
 	direction = -2;
 	leftLegsVelocity = 0.0f;
 	rightLegsVelocity = -m_fWheelVelocity;
 	UpdateLegVelocities();
 }
 
-void CFootBotZebrolike::MildBackwardsRightTurn() {
+void ZebroTopLevelController::MildBackwardsRightTurn() {
 	direction = -4;
 	leftLegsVelocity = -m_fWheelVelocity;
 	rightLegsVelocity = 0.0f;
 	UpdateLegVelocities();
 }
 
-void CFootBotZebrolike::Stop(){
+void ZebroTopLevelController::Stop(){
 	direction = 0;
 	leftLegsVelocity = 0.0f;
 	rightLegsVelocity = 0.0f;
 	UpdateLegVelocities();
 }
 
-void CFootBotZebrolike::UpdateLegVelocities()
+void ZebroTopLevelController::UpdateLegVelocities()
 {
 	m_pcWheels->SetLinearVelocity(leftLegsVelocity, rightLegsVelocity);
 }
@@ -1586,6 +1586,6 @@ void CFootBotZebrolike::UpdateLegVelocities()
  */
 
 /* to replace
-REGISTER_CONTROLLER(CFootBotZebrolike, "footbot_zebrolike_controller")
+REGISTER_CONTROLLER(ZebroTopLevelController, "footbot_zebrolike_controller")
 */
 

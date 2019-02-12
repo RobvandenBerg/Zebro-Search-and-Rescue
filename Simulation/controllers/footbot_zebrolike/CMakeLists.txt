@@ -1,5 +1,5 @@
-add_library(footbot_zebrolike MODULE footbot_zebrolike.h
-	footbot_zebrolike.cpp
+add_library(footbot_zebrolike MODULE ZebroTopLevelController.h
+	ZebroTopLevelController.cpp
 	../../../common-core/constants.h
 	../../../common-core/SearchAndRescueBehaviour.h
 	../../../common-core/SearchAndRescueBehaviour.cpp

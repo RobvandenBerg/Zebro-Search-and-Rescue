@@ -7,11 +7,11 @@
 #ifdef IS_SIMULATION
 	#include <argos3/core/utility/datatypes/byte_array.h>
 	#include <argos3/core/utility/math/vector3.h>
-	#include <controllers/footbot_zebrolike/footbot_zebrolike.h>
+	#include <controllers/footbot_zebrolike/ZebroTopLevelController.h>
 #else
 	#include <includes/utility/datatypes/byte_array.h>
 	#include <includes/utility/math/vector3.h>
-	#include <footbot_zebrolike.h>
+	#include <ZebroTopLevelController.h>
 #endif
 
 #include <../common-core/constants.h>
@@ -27,7 +27,7 @@ using namespace argos;
 /*
  * A controller is simply an implementation of the CCI_Controller class.
  */
-class SearchAndRescueBehaviour : public CFootBotZebrolike {
+class SearchAndRescueBehaviour : public ZebroTopLevelController {
 
 public:
 
@@ -153,7 +153,7 @@ private:
 	bool sentFoundTargetMessage;
 	Real distanceToNextNode;
 	Real distanceLeft;
-	int hopsLeftToTarget; // todo: rename this var in some of the function parameters in CFootBotZebrolike?
+	int hopsLeftToTarget; // todo: rename this var in some of the function parameters in ZebroTopLevelController?
 	ZebroIdentifier linkToTarget; // todo: rename this in that other file, too?
 	CVector3 vectorToTarget;
 	int amountOfRemainingSearchersToInstruct;

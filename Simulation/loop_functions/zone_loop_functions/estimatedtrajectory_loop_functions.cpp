@@ -1,6 +1,6 @@
 #include "estimatedtrajectory_loop_functions.h"
-#include <controllers/footbot_zebrolike/footbot_zebrolike.h>
 #include <argos3/core/simulator/entity/controllable_entity.h>
+#include <../common-core/SearchAndRescueBehaviour.h>
 
 /****************************************/
 /****************************************/
@@ -32,7 +32,6 @@ void CEstimatedTrajectoryLoopFunctions::Init(TConfigurationNode& t_tree) {
       /* Create a pointer to the current foot-bot */
       CFootBotEntity* pcFB = any_cast<CFootBotEntity*>(it->second);
 	  
-	  //CFootBotZebrolike& cController = dynamic_cast<CFootBotZebrolike&>(pcFB->GetControllableEntity().GetController());
       /* Create a waypoint vector */
       m_tWaypoints[pcFB] = std::vector<CVector3>();
       /* Add the initial position of the foot-bot */
@@ -75,7 +74,7 @@ void CEstimatedTrajectoryLoopFunctions::PostStep() {
        ++it) {
       /* Create a pointer to the current foot-bot */
       CFootBotEntity* pcFB = any_cast<CFootBotEntity*>(it->second);
-	  CFootBotZebrolike& cController = dynamic_cast<CFootBotZebrolike&>(pcFB->GetControllableEntity().GetController());
+	  SearchAndRescueBehaviour& cController = dynamic_cast<SearchAndRescueBehaviour&>(pcFB->GetControllableEntity().GetController());
 	  CVector3 pos = cController.GetMyPosition();
       /* Add the current position of the foot-bot if it's sufficiently far from the last */
       if(SquareDistance(pos,

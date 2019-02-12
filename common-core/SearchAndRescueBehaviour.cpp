@@ -16,14 +16,14 @@ using namespace std;
 /****************************************/
 
 SearchAndRescueBehaviour::SearchAndRescueBehaviour() :
-CFootBotZebrolike() {}
+ZebroTopLevelController() {}
 
 /****************************************/
 /****************************************/
 
 #ifdef IS_SIMULATION
 void SearchAndRescueBehaviour::Init(TConfigurationNode& t_node) {
-	CFootBotZebrolike::Init(t_node);
+	ZebroTopLevelController::Init(t_node);
 	Init();
 }
 #endif
@@ -32,7 +32,7 @@ void SearchAndRescueBehaviour::Init(TConfigurationNode& t_node) {
 void SearchAndRescueBehaviour::Init() {
 	// to replace
 	#ifndef IS_SIMULATION
-	CFootBotZebrolike::Init();
+	ZebroTopLevelController::Init();
 	#endif
 	
 	returningToBasekeeper = false;
@@ -1568,7 +1568,7 @@ void SearchAndRescueBehaviour::LostConnectionToChildBasekeeper(ZebroIdentifier l
  */
 
 /* to replace
-REGISTER_CONTROLLER(CFootBotZebrolike, "footbot_zebrolike_controller")
+REGISTER_CONTROLLER(ZebroTopLevelController, "footbot_zebrolike_controller")
 */
 #ifdef IS_SIMULATION
 	REGISTER_CONTROLLER(SearchAndRescueBehaviour, "footbot_zebrolike_controller")
