@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.0)
 
 # Name our project
-project (TestProgram CXX)
+project (SearchAndRescueBehaviour CXX)
 
 # Set the file that enables finding the toolchain.
 set(CMAKE_EXPORT_COMPILE_COMMANDS on)
@@ -21,6 +21,8 @@ link_directories(./wiringPi/lib/)
 set(SOURCES 
 	./my_defines.h
 	./main.cpp
+	./ProximitySensor/ProximitySensor.h
+	./ProximitySensor/ProximitySensor.cpp
 	./ZebroTopLevelController.cpp
 	./ZebroTopLevelController.h
 	../common-core/constants.h
@@ -76,6 +78,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
 
 add_custom_target(run
 	COMMAND sshpass -p ${RASPI_PASSWORD} scp -o StrictHostKeyChecking=no ${CMAKE_PROJECT_NAME} pi@${RASPI_IP}:~/
+	COMMAND sshpass -p ${RASPI_PASSWORD} ssh -o StrictHostKeyChecking=no pi@${RASPI_IP} sudo killall './${CMAKE_PROJECT_NAME}' || true
 	COMMAND sshpass -p ${RASPI_PASSWORD} ssh -o StrictHostKeyChecking=no pi@${RASPI_IP} './${CMAKE_PROJECT_NAME}'
 	DEPENDS ${CMAKE_PROJECT_NAME}
 	WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
