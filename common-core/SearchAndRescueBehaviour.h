@@ -73,12 +73,15 @@ public:
    virtual void Destroy() {}
    
    void Loop();
+	void PostLoop();
    
    void BecomeCandidate();
 	void BecomeBasekeeper();
 	
    bool isBasekeeper();
 	std::string GetId();
+	
+	void AvoidObstaclesAutomatically();
 	
 	virtual void ReceiveMessage_CAPTUREACK(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, unsigned char hopsLeft, ZebroIdentifier candidateId, ZebroIdentifier capturedNodeId, ZebroIdentifier capturedNodeId2, ZebroIdentifier capturedNodeId3) override;
 	virtual void ReceiveMessage_CAPTUREBROADCAST(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, unsigned char hopsMade, ZebroIdentifier candidateId, int receivedLevel) override;
@@ -179,6 +182,9 @@ private:
 	int decaTickCounter;
 	CVector3 relativeSafePosition;
 	bool killed;
+	
+	int avoidTurnDirection;
+	int avoidingObstacleTicksLeft; // todo: change from ticks to time based system. ..or just implement a tick system on the actual zebro, based on time.
 };
 
 //todo: better documentation

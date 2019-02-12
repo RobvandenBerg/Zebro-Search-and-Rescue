@@ -88,8 +88,6 @@ void ZebroTopLevelController::Init(TConfigurationNode& t_node) {
    messageQueue = CByteArray(10*messageQueueSize);
    messageQueuePointer = 0;
    
-   avoidingObstacleTicksLeft = 0;
-   
    overwriteSavedReadingsPointer = 0;
    
    lastMeasuredParentBasekeeperPosition = CVector3();
@@ -412,10 +410,9 @@ void ZebroTopLevelController::SendMessage_RECRUITNEWBASEKEEPER()
 	SendMessage(cBuf, myId, messageNumber);
 }
 
-void ZebroTopLevelController::AvoidObstaclesAutomatically()
+
+unsigned char ZebroTopLevelController::GetObstacleAvoidanceData()
 {
-	
-	
 	/* Get readings from proximity sensor */
    const CCI_FootBotProximitySensor::TReadings& tProxReads = m_pcProximity->GetReadings();
    /* Sum them together */
@@ -436,37 +433,22 @@ void ZebroTopLevelController::AvoidObstaclesAutomatically()
     * is far enough, continue going straight, otherwise curve a little
     */
    CRadians cAngle = cAccumulator.Angle();
-   if(m_cGoStraightAngleRange.WithinMinBoundIncludedMaxBoundIncluded(cAngle) &&
-      cAccumulator.Length() < m_fDelta/100 ) {
-		  avoidingObstacleTicksLeft--;
-		  if(avoidingObstacleTicksLeft <= 0)
-		  {
-			  avoidingObstacleTicksLeft = 0;
-		  }
-      /* Go straight */
+		
+	bool canGoForwards = (m_cGoStraightAngleRange.WithinMinBoundIncludedMaxBoundIncluded(cAngle) && cAccumulator.Length() < m_fDelta/100);
 	
-      //m_pcWheels->SetLinearVelocity(m_fWheelVelocity, m_fWheelVelocity);
-	  GoForwards();
-	  avoidTurnDirection = 0;
-   }
-   else {
-	   avoidingObstacleTicksLeft = 40;
-      /* Turn, depending on the sign of the angle */
-      if((cAngle.GetValue() > 0.0f || avoidTurnDirection == 2 || returnToBasekeeperFirstTurnPreference == 2) && returnToBasekeeperFirstTurnPreference != 1) {
-         //m_pcWheels->SetLinearVelocity(m_fWheelVelocity, 0.0f);
-		 //MildRightTurn();
-		 SharpRightTurn();
-		 avoidTurnDirection = 2;
-		 returnToBasekeeperFirstTurnPreference = 0;
-      }
-      else {
-         //m_pcWheels->SetLinearVelocity(0.0f, m_fWheelVelocity);
-		 //MildLeftTurn();
-		 SharpLeftTurn();
-		 avoidTurnDirection = 1;
-		 returnToBasekeeperFirstTurnPreference = 0;
-      }
-   }
+	int suggestedTurnDirection = 1;
+	if(cAngle.GetValue() > 0.0f)
+	{
+		suggestedTurnDirection = 2;	
+	}
+	
+	unsigned char obstacleAvoidanceFlags = 0x00;
+	if(canGoForwards) { obstacleAvoidanceFlags += 0x01; }
+	if(suggestedTurnDirection == 2)
+	{
+		obstacleAvoidanceFlags += 0x02;
+	}
+	return obstacleAvoidanceFlags;
 }
 
 void ZebroTopLevelController::ResetCapturedNodes()
@@ -1498,71 +1480,60 @@ void ZebroTopLevelController::GoForwards() {
 	direction = 3;
 	leftLegsVelocity = m_fWheelVelocity;
 	rightLegsVelocity = m_fWheelVelocity;
-	UpdateLegVelocities();
 }
 
 void ZebroTopLevelController::GoBackwards() {
 	direction = -3;
 	leftLegsVelocity = -m_fWheelVelocity;
 	rightLegsVelocity = -m_fWheelVelocity;
-	UpdateLegVelocities();
 }
 
 void ZebroTopLevelController::MildLeftTurn() {
 	direction = 2;
 	leftLegsVelocity = 0.0f;
 	rightLegsVelocity = m_fWheelVelocity;
-	UpdateLegVelocities();
 }
 
 void ZebroTopLevelController::MildRightTurn() {
 	direction = 4;
 	leftLegsVelocity = m_fWheelVelocity;
 	rightLegsVelocity = 0.0f;
-	UpdateLegVelocities();
 }
 
 void ZebroTopLevelController::SharpLeftTurn() {
 	direction = 1;
 	leftLegsVelocity = -m_fWheelVelocity;
 	rightLegsVelocity = m_fWheelVelocity;
-	UpdateLegVelocities();
 }
 
 void ZebroTopLevelController::SharpRightTurn() {
 	direction = 5;
 	leftLegsVelocity = m_fWheelVelocity;
 	rightLegsVelocity = -m_fWheelVelocity;
-	UpdateLegVelocities();
 }
 
 void ZebroTopLevelController::MildBackwardsLeftTurn() {
 	direction = -2;
 	leftLegsVelocity = 0.0f;
 	rightLegsVelocity = -m_fWheelVelocity;
-	UpdateLegVelocities();
 }
 
 void ZebroTopLevelController::MildBackwardsRightTurn() {
 	direction = -4;
 	leftLegsVelocity = -m_fWheelVelocity;
 	rightLegsVelocity = 0.0f;
-	UpdateLegVelocities();
 }
 
 void ZebroTopLevelController::Stop(){
 	direction = 0;
 	leftLegsVelocity = 0.0f;
 	rightLegsVelocity = 0.0f;
-	UpdateLegVelocities();
 }
 
 void ZebroTopLevelController::UpdateLegVelocities()
 {
 	m_pcWheels->SetLinearVelocity(leftLegsVelocity, rightLegsVelocity);
 }
-
-
 
 
 

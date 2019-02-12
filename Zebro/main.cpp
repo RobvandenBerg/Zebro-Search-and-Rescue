@@ -60,43 +60,6 @@ int main() {
 		{
 			usleep(microsecondsUntilNextTick);
 		}
-		//proximitySensor.ReadData();
-		
-		int* eyesData = proximitySensor.Get2EyesData();
-		
-		//cout << "Left eye: " << eyesData[0] << "." << endl << "Right eye: " << eyesData[1] << "." << endl;
-		
-		int leftEyeData = eyesData[0];
-		int rightEyeData = eyesData[1];
-		if(leftEyeData >= minDist && rightEyeData >= minDist && direction != 5)
-		{
-			changedWalking = true;
-				direction = 5;
-			speed = 5;
-			cout << "Go straight!" << endl;
-		}
-		if(leftEyeData < minDist && direction == 5)
-		{
-			changedWalking = true;
-				direction = 6;
-			speed = 0;
-			cout << "Go right!" << endl;
-		}
-		if(rightEyeData < minDist && direction == 5)
-		{
-			changedWalking = true;
-				direction = 4;
-			speed = 0;
-			cout << "Go left!" << endl;
-		}
-		
-		if(changedWalking)
-		{
-			myfile.open ("WalkStyle.txt");
-		  myfile << speed << " " << direction;
-		  myfile.close();
-			cout << "Wrote to WalkStyle.txt: " << speed << " " << direction << endl;
-		}
 	}
 	
 	cout << "Done executing!" << endl;

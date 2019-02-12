@@ -162,7 +162,7 @@ public:
    
 	virtual void LostConnectionToChildBasekeeper(ZebroIdentifier lostChildId);
 	
-   void AvoidObstaclesAutomatically();
+	unsigned char GetObstacleAvoidanceData();
    
    CVector3 GetMyPosition();
    
@@ -223,7 +223,6 @@ private:
 	CRange<CRadians> m_cGoStraightAngleRange;
 	
 	int direction; // todo: investigate the need for this
-	int avoidTurnDirection;
 	CByteArray savedReadings;
 	CByteArray messageQueue;
 	int messageQueuePointer;
@@ -263,7 +262,6 @@ protected:
 	bool satisfied;
 	int mySearchersTotal;
 	int level;
-	int avoidingObstacleTicksLeft; // todo: change from ticks to time based system. ..or just implement a tick system on the actual zebro, based on time.
 	CVector3 lastMeasuredParentBasekeeperPosition;
 	CVector3 absoluteParentBasekeeperPosition; // todo: this one COULD be private in SearchAndRescueBehaviour... but that would not be nice because it's an ABSOLUTE position
 	ZebroIdentifier mainBasekeeper; // todo: this var is protected just because of one line of code in ZebroTopLevelController that could probably be done without

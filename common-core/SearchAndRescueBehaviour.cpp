@@ -56,6 +56,7 @@ void SearchAndRescueBehaviour::Init() {
 	lastParentUpdate = 0;
 	decaTickCounter = 0;
 	killed = false;
+	avoidingObstacleTicksLeft = 0;
 	
 	BOTDEBUG << "Inited SearchAndRescueBehaviour" << endl;
 }
@@ -468,10 +469,61 @@ void SearchAndRescueBehaviour::Loop()
 			}
 		}
 	}
+	
+	PostLoop();
+}
+
+void SearchAndRescueBehaviour::PostLoop()
+{
+	UpdateLegVelocities();	
 }
 
 
 
+void SearchAndRescueBehaviour::AvoidObstaclesAutomatically()
+{
+
+	unsigned char obstacleAvoidanceFlags = GetObstacleAvoidanceData();
+	
+	bool canGoForwards = false;
+	int suggestedTurnDirection = 1;
+	unsigned char flagCheck = obstacleAvoidanceFlags & 0x01;
+	if(flagCheck != 0x00)
+	{
+		canGoForwards = true;
+	}
+	
+	flagCheck = obstacleAvoidanceFlags & 0x02;
+	if(flagCheck != 0x00)
+	{
+		suggestedTurnDirection = 2;
+	}
+		
+   
+   if(canGoForwards) {
+		  avoidingObstacleTicksLeft--;
+		  if(avoidingObstacleTicksLeft <= 0)
+		  {
+			  avoidingObstacleTicksLeft = 0;
+		  }
+	  GoForwards();
+	  avoidTurnDirection = 0;
+   }
+   else {
+	   avoidingObstacleTicksLeft = 40;
+ 
+      if((suggestedTurnDirection == 2 || avoidTurnDirection == 2 || returnToBasekeeperFirstTurnPreference == 2) && returnToBasekeeperFirstTurnPreference != 1) {
+		 SharpRightTurn();
+		 avoidTurnDirection = 2;
+		 returnToBasekeeperFirstTurnPreference = 0;
+      }
+      else {
+		 SharpLeftTurn();
+		 avoidTurnDirection = 1;
+		 returnToBasekeeperFirstTurnPreference = 0;
+      }
+   }
+}
 
 
 void SearchAndRescueBehaviour::SearchRandomly()

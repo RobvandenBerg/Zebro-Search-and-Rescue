@@ -57,8 +57,6 @@ void ZebroTopLevelController::Init() {
    messageQueue = CByteArray(10*messageQueueSize);
    messageQueuePointer = 0;
    
-   avoidingObstacleTicksLeft = 0;
-   
    overwriteSavedReadingsPointer = 0;
    
    lastMeasuredParentBasekeeperPosition = CVector3();
@@ -106,6 +104,8 @@ void ZebroTopLevelController::Init() {
    GetNodeAttributeOrDefault(t_node, "velocity", m_fWheelVelocity, m_fWheelVelocity);
    */
 
+	minDistance = 55;
+	proximitySensor.Init();
 	
 	BOTDEBUG << "Inited ZebroTopLevelController" << endl;
 }
@@ -380,59 +380,28 @@ void ZebroTopLevelController::SendMessage_RECRUITNEWBASEKEEPER()
 	SendMessage(cBuf, myId, messageNumber);
 }
 
-void ZebroTopLevelController::AvoidObstaclesAutomatically()
+unsigned char ZebroTopLevelController::GetObstacleAvoidanceData()
 {
-	/* to replace 2
-	
-	
-   const CCI_FootBotProximitySensor::TReadings& tProxReads = m_pcProximity->GetReadings();
-  
-   CVector2 cAccumulator;
-   for(size_t i = 0; i < tProxReads.size(); ++i) {
-	   if(i > 2 && i < 21)
-	   {
-		   cAccumulator += CVector2(0, tProxReads[i].Angle);
-	   }
-	   	   else
-	   {
-		cAccumulator += CVector2(tProxReads[i].Value, tProxReads[i].Angle);
-	   }
-   }
-   
-   cAccumulator /= tProxReads.size();
+	int* eyesData = proximitySensor.Get2EyesData();
 
-   CRadians cAngle = cAccumulator.Angle();
-   if(m_cGoStraightAngleRange.WithinMinBoundIncludedMaxBoundIncluded(cAngle) &&
-      cAccumulator.Length() < m_fDelta/100 ) {
-		  avoidingObstacleTicksLeft--;
-		  if(avoidingObstacleTicksLeft <= 0)
-		  {
-			  avoidingObstacleTicksLeft = 0;
-		  }
-     
+	int leftEyeData = eyesData[0];
+	int rightEyeData = eyesData[1];
+		
+	bool canGoForwards = (leftEyeData >= minDistance && rightEyeData >= minDistance);
 	
-      //m_pcWheels->SetLinearVelocity(m_fWheelVelocity, m_fWheelVelocity);
-	  GoForwards();
-	  avoidTurnDirection = 0;
-   }
-   else {
-	   avoidingObstacleTicksLeft = 40;
- 
-      if((cAngle.GetValue() > 0.0f || avoidTurnDirection == 2 || returnToBasekeeperFirstTurnPreference == 2) && returnToBasekeeperFirstTurnPreference != 1) {
-         //m_pcWheels->SetLinearVelocity(m_fWheelVelocity, 0.0f);
-		 //MildRightTurn();
-		 SharpRightTurn();
-		 avoidTurnDirection = 2;
-		 returnToBasekeeperFirstTurnPreference = 0;
-      }
-      else {
-         //m_pcWheels->SetLinearVelocity(0.0f, m_fWheelVelocity);
-		 //MildLeftTurn();
-		 SharpLeftTurn();
-		 avoidTurnDirection = 1;
-		 returnToBasekeeperFirstTurnPreference = 0;
-      }
-   }*/
+	int suggestedTurnDirection = 2;
+	if(rightEyeData < leftEyeData)
+	{
+		suggestedTurnDirection = 1;	
+	}
+	
+	unsigned char obstacleAvoidanceFlags = 0x00;
+	if(canGoForwards) { obstacleAvoidanceFlags += 0x01; }
+	if(suggestedTurnDirection == 2)
+	{
+		obstacleAvoidanceFlags += 0x02;	
+	}
+	return obstacleAvoidanceFlags;
 }
 
 void ZebroTopLevelController::ResetCapturedNodes()
@@ -1448,83 +1417,70 @@ void ZebroTopLevelController::SendMessage(CByteArray& bytesToSend, ZebroIdentifi
 
 void ZebroTopLevelController::GoForwards() {
 	direction = 3;
-	/* to replace 2
-	leftLegsVelocity = m_fWheelVelocity;
-	rightLegsVelocity = m_fWheelVelocity;
-	UpdateLegVelocities();
-	*/
+	walkfileDirection = 5;
+	walkfileSpeed = 5;
 }
 
 void ZebroTopLevelController::GoBackwards() {
 	direction = -3;
-	/* to replace 2
-	leftLegsVelocity = -m_fWheelVelocity;
-	rightLegsVelocity = -m_fWheelVelocity;
-	UpdateLegVelocities();*/
+	walkfileDirection = 5;
+	walkfileSpeed = -5;
 }
 
 void ZebroTopLevelController::MildLeftTurn() {
 	direction = 2;
-	/* to replace 2
-	leftLegsVelocity = 0.0f;
-	rightLegsVelocity = m_fWheelVelocity;
-	UpdateLegVelocities();*/
+	walkfileDirection = 5;
+	walkfileSpeed = 0;
 }
 
 void ZebroTopLevelController::MildRightTurn() {
 	direction = 4;
-	/* to replace 2
-	leftLegsVelocity = m_fWheelVelocity;
-	rightLegsVelocity = 0.0f;
-	UpdateLegVelocities();*/
+	walkfileDirection = 5;
+	walkfileSpeed = 0;
 }
 
 void ZebroTopLevelController::SharpLeftTurn() {
 	direction = 1;
-	/* to replace 2
-	leftLegsVelocity = -m_fWheelVelocity;
-	rightLegsVelocity = m_fWheelVelocity;
-	UpdateLegVelocities();*/
+	walkfileDirection = 4;
+	walkfileSpeed = 0;
 }
 
 void ZebroTopLevelController::SharpRightTurn() {
 	direction = 5;
-	/* to replace 2
-	leftLegsVelocity = m_fWheelVelocity;
-	rightLegsVelocity = -m_fWheelVelocity;
-	UpdateLegVelocities();*/
+	walkfileDirection = 6;
+	walkfileSpeed = 0;
 }
 
 void ZebroTopLevelController::MildBackwardsLeftTurn() {
 	direction = -2;
-	/* to replace 2
-	leftLegsVelocity = 0.0f;
-	rightLegsVelocity = -m_fWheelVelocity;
-	UpdateLegVelocities();*/
+	walkfileDirection = 5;
+	walkfileSpeed = 0;
 }
 
 void ZebroTopLevelController::MildBackwardsRightTurn() {
 	direction = -4;
-	/* to replace 2
-	leftLegsVelocity = -m_fWheelVelocity;
-	rightLegsVelocity = 0.0f;
-	UpdateLegVelocities();*/
+	walkfileDirection = 5;
+	walkfileSpeed = 0;
 }
 
 void ZebroTopLevelController::Stop(){
 	direction = 0;
-	/* to replace 2
-	leftLegsVelocity = 0.0f;
-	rightLegsVelocity = 0.0f;
-	UpdateLegVelocities();
-	*/
+	walkfileDirection = 5;
+	walkfileSpeed = 0;
 }
 
 void ZebroTopLevelController::UpdateLegVelocities()
 {
-	/* to replace 2
-	m_pcWheels->SetLinearVelocity(leftLegsVelocity, rightLegsVelocity);
-	*/
+	if(walkfileSpeed == previousWalkfileSpeed || walkfileDirection == previousWalkfileDirection)
+	{
+		return; // don't have to update the walkfile
+	}
+	previousWalkfileSpeed = walkfileSpeed;
+	previousWalkfileDirection = walkfileDirection;
+	walkfile.open("WalkStyle.txt");
+	walkfile << walkfileSpeed << " " << walkfileDirection;
+	walkfile.close();
+	cout << "Wrote to WalkStyle.txt: " << walkfileSpeed << " " << walkfileDirection << endl;
 }
 
 

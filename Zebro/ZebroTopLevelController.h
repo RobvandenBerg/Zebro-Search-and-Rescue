@@ -6,7 +6,10 @@
 #include <includes/utility/datatypes/byte_array.h>
 #include <includes/utility/math/vector3.h>
 
+#include <fstream>
+
 #include <../common-core/ZebroIdentifier.h>
+#include <ProximitySensor/ProximitySensor.h>
 
 
 /*
@@ -128,7 +131,7 @@ public:
    
 	virtual void LostConnectionToChildBasekeeper(ZebroIdentifier lostChildId);
 	
-   void AvoidObstaclesAutomatically();
+	unsigned char GetObstacleAvoidanceData();
    
    CVector3 GetVectorToChild(ZebroIdentifier nodeId);
 	CByteArray GetCompressedVectorToChild(ZebroIdentifier nodeId);
@@ -187,7 +190,6 @@ private:
 	*/
 	
 	int direction; // todo: investigate the need for this
-	int avoidTurnDirection;
 	CByteArray savedReadings;
 	CByteArray messageQueue;
 	int messageQueuePointer;
@@ -217,6 +219,15 @@ private:
 	Real rightLegsVelocity;
 	int overwriteSavedReadingsPointer;
 	
+	
+	
+	ProximitySensor proximitySensor;
+	int previousWalkfileSpeed;
+	int previousWalkfileDirection;
+	int walkfileSpeed;
+	int walkfileDirection;
+	ofstream walkfile;
+	
 protected:
 
    
@@ -227,7 +238,6 @@ protected:
 	bool satisfied;
 	int mySearchersTotal;
 	int level;
-	int avoidingObstacleTicksLeft; // todo: change from ticks to time based system. ..or just implement a tick system on the actual zebro, based on time.
 	CVector3 lastMeasuredParentBasekeeperPosition;
 	CVector3 absoluteParentBasekeeperPosition; // todo: this one COULD be private in SearchAndRescueBehaviour... but that would not be nice because it's an ABSOLUTE position
 	ZebroIdentifier mainBasekeeper; // todo: this var is protected just because of one line of code in ZebroTopLevelController that could probably be done without
@@ -238,6 +248,7 @@ protected:
 	Real myRotation;
 	int returnToBasekeeperFirstTurnPreference;
 
+	int minDistance;
 };
 
 #endif
