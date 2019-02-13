@@ -46,6 +46,7 @@ public:
    		virtual void Init(TConfigurationNode& t_node); // to replace
 	#endif
 	
+	void Init(ZebroIdentifier id);
 	void Init();
 
    /*

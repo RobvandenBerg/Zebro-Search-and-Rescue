@@ -134,6 +134,12 @@ std::string ZebroIdentifier::ToString()
 		stream << charId;
 		text = stream.str();
 	}
+	if(type == 2)
+	{
+		std::stringstream stream;
+		stream << macId[0] << ":" << macId[1] << ":" << macId[2] << ":" << macId[3] << ":" << macId[4] << ":" << macId[5];	
+		text = stream.str();
+	}
 	/*int i = 4;
 	std::string text = "Player ";
 	text += std::to_string(i);*/

@@ -28,6 +28,13 @@ void SearchAndRescueBehaviour::Init(TConfigurationNode& t_node) {
 }
 #endif
 
+void SearchAndRescueBehaviour::Init(ZebroIdentifier id)
+{
+	myId = id.Copy();
+	
+	BOTDEBUG << "init with id " << myId.ToString() << endl;
+	Init();
+}
 
 void SearchAndRescueBehaviour::Init() {
 	// to replace
