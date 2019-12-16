@@ -6,6 +6,8 @@ Then, enter the Simulation folder and run the following commands:
 
 mkdir build
 
+cd build
+
 cmake ..
 
 make
