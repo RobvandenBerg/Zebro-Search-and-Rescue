@@ -30,13 +30,16 @@ public:
 	bool Equals(unsigned char id);
 	bool Equals(CByteArray id);
 	
+	bool CheckEmpty(CByteArray id);
 	bool IsEmpty();
 	
 	bool Equals(ZebroIdentifier id);
 	
-	int GetType();
-	
 	unsigned char GetUnsignedCharValue();
+	CByteArray GetCByteArrayValue();
+	
+	CByteArray GetBytes();
+	CByteArray GetBytes(int size);
 	
 	ZebroIdentifier Copy();
 	
@@ -46,9 +49,7 @@ public:
 private:
 
    /* Pointer to the differential steering actuator */
-	unsigned char charId;
-	CByteArray macId;
-	int type;
+	CByteArray bytes;
 };
 
 

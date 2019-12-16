@@ -5,70 +5,70 @@
 
 ZebroIdentifier::ZebroIdentifier()
 {
-	charId = 0x00;
-	type = 0;
+	bytes = CByteArray(1);
+	bytes[0] = 0x00;
 }
 
 ZebroIdentifier::ZebroIdentifier(unsigned char id)
 {
-	charId = id;
-	type = 1;
+	bytes = CByteArray(1);
+	bytes[0] = id;
 }
 
 
 ZebroIdentifier::ZebroIdentifier(CByteArray id)
 {
-	macId = id;
-	type = 2;
+	bytes = id;
 }
 
 int ZebroIdentifier::CompareTo(unsigned char id)
 {
-	if(type != 1)
-	{
-		return 1;	
-	}
-	int compare1 = (int) charId;
-	int compare2 = (int) id;
-	if(compare1 > compare2)
-	{
-		return 1;	
-	}
-	if(compare1 < compare2)
-	{
-		return -1;	
-	}
-	return 0;
+	return CompareTo(ZebroIdentifier(id));
 }
 
 int ZebroIdentifier::CompareTo(CByteArray id)
 {
-	if(type != 2)
-	{
-		return -1;	
-	}
-	// todo
+	return CompareTo(ZebroIdentifier(id));
 }
 
 int ZebroIdentifier::CompareTo(ZebroIdentifier other)
 {
-	int otherType = other.GetType();
-	if(otherType > type)
+	CByteArray otherbytes = other.GetBytes();
+	int mySize = bytes.Size();
+	int otherSize = otherbytes.Size();
+	
+	bool iAmEmpty = IsEmpty();
+	bool otherIsEmpty = other.IsEmpty();
+	
+	if(iAmEmpty)
 	{
-		return -1;	
+		if(otherIsEmpty) { return 0;}
+		return -1;
 	}
-	if(type > otherType)
+	if(otherIsEmpty)
 	{
-		return 1;	
+		return 1;
 	}
 	
-	if(type == 1)
+	if(mySize > otherSize)
 	{
-		return CompareTo(other.GetUnsignedCharValue());
+		return 1;
 	}
-	if(type == 2)
+	if(mySize < otherSize)
 	{
-		return 0; // todo
+		return -1;
+	}
+	
+	for(int i = 0; i < mySize; i++)
+	{
+		if(bytes[i] > otherbytes[i])
+		{
+			return 1;	
+		}
+		if(bytes[i] < otherbytes[i])
+		{
+			return -1;
+		}
 	}
 	return 0;
 }
@@ -88,61 +88,85 @@ bool ZebroIdentifier::Equals(ZebroIdentifier other)
 	return CompareTo(other) == 0;
 }
 
-bool ZebroIdentifier::IsEmpty()
+bool ZebroIdentifier::CheckEmpty(CByteArray id)
 {
-	if(type == 1)
+	int idsize = id.Size();
+	if(idsize == 0)
 	{
-		return charId == 0x00;
+		return true;
 	}
-	if(type == 2)
+	for(int i = 0; i < idsize; i++)
 	{
-		return true; // todo	
+		if(id[i] != 0x00)
+		{
+			return false;
+		}
 	}
 	return true;
 }
 
-int ZebroIdentifier::GetType()
+bool ZebroIdentifier::IsEmpty()
 {
-	return type;
+	return CheckEmpty(bytes);
 }
 
 unsigned char ZebroIdentifier::GetUnsignedCharValue()
 {
-	return charId;
+	if(bytes.Size() < 1)
+	{
+		return 0x00;	
+	}
+	return bytes[0];
+}
+
+CByteArray ZebroIdentifier::GetCByteArrayValue()
+{
+	return bytes;
+}
+
+CByteArray ZebroIdentifier::GetBytes()
+{
+	return bytes;	
+}
+
+CByteArray ZebroIdentifier::GetBytes(int size)
+{
+	CByteArray returner(size);
+	int mySize = bytes.Size();
+	for(int i = 0; i < size; i++)
+	{
+		if(i < mySize)
+		{
+			returner[i] = bytes[i];
+		}
+		else
+		{
+			returner[i] = 0x00;
+		}
+	}
+	return returner;
 }
 
 ZebroIdentifier ZebroIdentifier::Copy()
 {
-	if(type == 1)
-	{
-		return ZebroIdentifier(charId);
-	}
-	if(type == 2)
-	{
-		return ZebroIdentifier(macId);	
-	}
+	return ZebroIdentifier(CByteArray(bytes));
 }
 
 std::string ZebroIdentifier::ToString()
 {
 	std::string text;
+	std::stringstream stream;
+	int mySize = bytes.Size();
 	
-	if(type == 1)
+	for(int i = 0; i < mySize; i++)
 	{
-		//text = std::to_string((int) charId);
-		std::stringstream stream;
-		stream << charId;
-		text = stream.str();
+		if(i != 0)
+		{
+			stream << ":";	
+		}
+		stream << bytes[i];	
 	}
-	if(type == 2)
-	{
-		std::stringstream stream;
-		stream << macId[0] << ":" << macId[1] << ":" << macId[2] << ":" << macId[3] << ":" << macId[4] << ":" << macId[5];	
-		text = stream.str();
-	}
-	/*int i = 4;
-	std::string text = "Player ";
-	text += std::to_string(i);*/
+	text = stream.str();
 	
 	return text;
 }

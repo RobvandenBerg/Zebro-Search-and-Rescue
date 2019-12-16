@@ -206,6 +206,10 @@ public:
 	CVector3 DecompressPosition(unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2);
 
 	
+	ZebroIdentifier GetIdFromArray(CByteArray arr, int startIndex);
+	void WriteIdToArray(CByteArray arr, int startIndex, ZebroIdentifier id);
+	void UnsetIdInArray(CByteArray arr, int startIndex);
+	
 	
 private:
 	/*
@@ -251,6 +255,8 @@ private:
 	Real leftLegsVelocity;
 	Real rightLegsVelocity;
 	int overwriteSavedReadingsPointer;
+	
+	int idsize; // in bytes
 	
 protected:
 

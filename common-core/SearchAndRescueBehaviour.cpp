@@ -87,7 +87,7 @@ void SearchAndRescueBehaviour::FindTarget(CVector3 targetPosition, Real maxDista
 	{
 		return;
 	}
-	if(myAbsolutePosition.GetX() == 0)
+	if(myAbsolutePosition.GetX() == 0 || role == ROLE_PASSIVE)
 	{
 		return;
 	}

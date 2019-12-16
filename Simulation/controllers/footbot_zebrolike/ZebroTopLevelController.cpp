@@ -79,11 +79,13 @@ void ZebroTopLevelController::Init(TConfigurationNode& t_node) {
    
    mainBasekeeper = ZebroIdentifier();
    
+	 idsize = 1; // 1 byte
+	
    level = 0;
-   capturedNodes = CByteArray(10);
-   mySearchers = CByteArray(20); // [0] = id, [1] = lastUpdateTick
-   ignoreSearchers = CByteArray(20);
-   savedReadings = CByteArray(160);
+   capturedNodes = CByteArray(10 * idsize);
+   mySearchers = CByteArray(10 * (idsize + 1)); // [0] = id, [1] = lastUpdateTick
+   ignoreSearchers = CByteArray(10 * (idsize + 1));
+   savedReadings = CByteArray(80 * (idsize + 1));
    messageQueueSize = 10;
    messageQueue = CByteArray(10*messageQueueSize);
    messageQueuePointer = 0;
@@ -97,12 +99,17 @@ void ZebroTopLevelController::Init(TConfigurationNode& t_node) {
    
    
    myId = ZebroIdentifier((unsigned char)(rand()%(255-0 + 1) + 0)); // Random byte
+	
+	CByteArray id(6);
+	for(int i = 0; i < 6; i++)
+	{
+		id[i] = (unsigned char)(rand()%(255-0 + 1) + 0);
+	}
+	// myId = ZebroIdentifier(id);
    
    direction = 3;
    leftLegsVelocity = 0.0f;
    rightLegsVelocity = 0.0f;
-   
-   
    
    
    
@@ -850,21 +857,47 @@ void ZebroTopLevelController::SendMessage_PINGREPLY(ZebroIdentifier to, CVector3
 	SendMessage(cBuf, myId, messageNumber, to);
 }
 
+
 void ZebroTopLevelController::AddToCapturedNodes(ZebroIdentifier nodeId)
 {
 	for(int i = 0; i < 10; i++)
 	{
-		if(nodeId.Equals(capturedNodes[i]))
+		ZebroIdentifier checkId = GetIdFromArray(capturedNodes, i);
+		if(nodeId.Equals(checkId))
 		{
 				return;
 		}
-		if(capturedNodes[i] == 0x00)
+		if(checkId.IsEmpty())
 		{
-			capturedNodes[i] = nodeId.GetUnsignedCharValue();
+			WriteIdToArray(capturedNodes, i, nodeId);
 			level = i + 1;
 			return;
 		}
 	}
+}
+
+ZebroIdentifier ZebroTopLevelController::GetIdFromArray(CByteArray arr, int startIndex)
+{
+	CByteArray idbuilder(idsize);
+	for(int i = 0; i < idsize; i++)
+	{
+		idbuilder[i] = arr[i+startIndex];
+	}
+	return ZebroIdentifier(idbuilder);
+}
+
+void ZebroTopLevelController::WriteIdToArray(CByteArray arr, int startIndex, ZebroIdentifier id)
+{
+	CByteArray idbytes = id.GetBytes(idsize);
+	for(int i = 0; i < idsize; i++)
+	{
+		arr[i+startIndex] = idbytes[i];
+	}
+}
+
+void ZebroTopLevelController::UnsetIdInArray(CByteArray arr, int startIndex)
+{
+	WriteIdToArray(arr, startIndex, ZebroIdentifier());	
 }
 
 void ZebroTopLevelController::AddToMySearchers(ZebroIdentifier nodeId)
@@ -875,19 +908,20 @@ void ZebroTopLevelController::AddToMySearchers(ZebroIdentifier nodeId)
 	int emptySpotPointer = -1;
 	for(int i = 0; i < 10; i++)
 	{
-		if(nodeId.Equals(mySearchers[i*2]))
+		ZebroIdentifier checkId = GetIdFromArray(mySearchers, i*2);
+		if(nodeId.Equals(checkId))
 		{
-				mySearchers[i*2+1] = 0x00;
-				return;
+			mySearchers[i*2+idsize] = 0x00;
+			return;
 		}
-		if(mySearchers[i*2] == 0x00)
+		if(checkId.IsEmpty())
 		{
 			emptySpotPointer = i*2;
 			continue;
 		}
-		if(mySearchers[i*2+1] > latestTick)
+		if(mySearchers[i*2+idsize] > latestTick)
 		{
-			latestTick = mySearchers[i*2+1];
+			latestTick = mySearchers[i*2+idsize];
 			latestTickEntry = i*2;
 		}
 	}
@@ -907,8 +941,8 @@ void ZebroTopLevelController::AddToMySearchers(ZebroIdentifier nodeId)
 	}
 	
 	BOTDEBUG << "Added " << nodeId.ToString() << " to my searchers." << std::endl;
-	mySearchers[pointer] = nodeId.GetUnsignedCharValue();
-	mySearchers[pointer+1] = 0x00;
+	WriteIdToArray(mySearchers, pointer, nodeId);
+	mySearchers[pointer+idsize] = 0x00;
 }
 
 void ZebroTopLevelController::RemoveFromMySearchers(ZebroIdentifier nodeId)
@@ -916,11 +950,12 @@ void ZebroTopLevelController::RemoveFromMySearchers(ZebroIdentifier nodeId)
 	bool deleted = false;
 	for(int i = 0; i < 10; i++)
 	{
-		if(nodeId.Equals(mySearchers[i*2]))
+		ZebroIdentifier checkId = GetIdFromArray(mySearchers, i*2);
+		if(nodeId.Equals(checkId))
 		{
 			BOTDEBUG << "Removed " << nodeId.ToString() << " from my searchers." << endl;
-			mySearchers[i*2] = 0x00;
-			mySearchers[i*2+1] = 0x00;
+			UnsetIdInArray(mySearchers, i*2);
+			mySearchers[i*2+idsize] = 0x00;
 			if(!nodeId.IsEmpty())
 			{
 				if(deleted)
@@ -942,11 +977,12 @@ void ZebroTopLevelController::updateMySearchersTicks()
 	{
 		if(mySearchers[i*2] != 0x00)
 		{
-			mySearchers[i*2+1]++;
-			if(mySearchers[i*2+1] > 160) // 1600 ticks
+			mySearchers[i*2+idsize]++;
+			if(mySearchers[i*2+idsize] > 160) // 1600 ticks
 			{
 				mySearchers[i*2] = 0x00;
-				mySearchers[i*2+1] = 0x00;
+				UnsetIdInArray(mySearchers, i*2);
+				mySearchers[i*2+idsize] = 0x00;
 			}
 			else
 			{
@@ -963,10 +999,10 @@ Real ZebroTopLevelController::GetFarthestChildBasekeeperDistance()
 	for(int i = 0; i < 4; i++)
 	{
 		CByteArray compressedPosition(4);
-		compressedPosition[0] = childrenBasekeepers[i*6+1];
-		compressedPosition[1] = childrenBasekeepers[i*6+2];
-		compressedPosition[2] = childrenBasekeepers[i*6+3];
-		compressedPosition[3] = childrenBasekeepers[i*6+4];
+		compressedPosition[0] = childrenBasekeepers[i*6+idsize];
+		compressedPosition[1] = childrenBasekeepers[i*6+idsize+1];
+		compressedPosition[2] = childrenBasekeepers[i*6+idsize+2];
+		compressedPosition[3] = childrenBasekeepers[i*6+idsize+3];
 		
 		CVector3 decompressedPosition = DecompressPosition(compressedPosition);
 		if(decompressedPosition.Length() > farthestDistance)
@@ -984,17 +1020,18 @@ void ZebroTopLevelController::AddToChildrenBasekeepers(ZebroIdentifier nodeId, C
 	int emptySpotPointer = -1;
 	for(int i = 0; i < 4; i++)
 	{
-		if(nodeId.Equals(childrenBasekeepers[i*6]))
+		ZebroIdentifier checkId = GetIdFromArray(childrenBasekeepers, i*6);
+		if(nodeId.Equals(checkId))
 		{
-			childrenBasekeepers[i*6] = nodeId.GetUnsignedCharValue();
-			CVector3 oldPosition = DecompressPosition(childrenBasekeepers[i*6+1], childrenBasekeepers[i*6+2], childrenBasekeepers[i*6+3], childrenBasekeepers[i*6+4]);
+			WriteIdToArray(childrenBasekeepers, i*6, nodeId);
+			CVector3 oldPosition = DecompressPosition(childrenBasekeepers[i*6+idsize], childrenBasekeepers[i*6+idsize+1], childrenBasekeepers[i*6+idsize+2], childrenBasekeepers[i*6+idsize+3]);
 			CByteArray newCompressedPosition = CompressPosition(CreateWeightedAverageVector(position, 1, oldPosition, 5));
 			// todo: fix this.
-			childrenBasekeepers[i*6+1] = newCompressedPosition[0];
-			childrenBasekeepers[i*6+2] = newCompressedPosition[1];
-			childrenBasekeepers[i*6+3] = newCompressedPosition[2];
-			childrenBasekeepers[i*6+4] = newCompressedPosition[3];
-			childrenBasekeepers[i*6+5] = 0x00;
+			childrenBasekeepers[i*6+idsize] = newCompressedPosition[0];
+			childrenBasekeepers[i*6+idsize+1] = newCompressedPosition[1];
+			childrenBasekeepers[i*6+idsize+2] = newCompressedPosition[2];
+			childrenBasekeepers[i*6+idsize+3] = newCompressedPosition[3];
+			childrenBasekeepers[i*6+idsize+4] = 0x00;
 			
 			if(myId.Equals((unsigned char) 81))
 			{
@@ -1003,14 +1040,14 @@ void ZebroTopLevelController::AddToChildrenBasekeepers(ZebroIdentifier nodeId, C
 			}
 			return;
 		}
-		if(childrenBasekeepers[i*6] == 0x00)
+		if(checkId.IsEmpty())
 		{
 			emptySpotPointer = i*6;
 			continue;
 		}
-		if(childrenBasekeepers[i*6+5] > latestTick)
+		if(childrenBasekeepers[i*6+idsize+4] > latestTick)
 		{
-			latestTick = childrenBasekeepers[i*6+5];
+			latestTick = childrenBasekeepers[i*6+idsize+4];
 			latestTickEntry = i*6;
 		}
 	}
@@ -1028,13 +1065,13 @@ void ZebroTopLevelController::AddToChildrenBasekeepers(ZebroIdentifier nodeId, C
 	{
 		return;
 	}
-	childrenBasekeepers[pointer] = nodeId.GetUnsignedCharValue();
+	WriteIdToArray(childrenBasekeepers, pointer, nodeId);
 	CByteArray newCompressedPosition = CompressPosition(position);
-	childrenBasekeepers[pointer+1] = newCompressedPosition[0];
-	childrenBasekeepers[pointer+2] = newCompressedPosition[1];
-	childrenBasekeepers[pointer+3] = newCompressedPosition[2];
-	childrenBasekeepers[pointer+4] = newCompressedPosition[3];
-	childrenBasekeepers[pointer+5] = 0x00;
+	childrenBasekeepers[pointer+idsize] = newCompressedPosition[0];
+	childrenBasekeepers[pointer+idsize+1] = newCompressedPosition[1];
+	childrenBasekeepers[pointer+idsize+2] = newCompressedPosition[2];
+	childrenBasekeepers[pointer+idsize+3] = newCompressedPosition[3];
+	childrenBasekeepers[pointer+idsize+4] = 0x00;
 	
 	if(myId.Equals(ZebroIdentifier((unsigned char) 81)))
 	{
@@ -1053,19 +1090,20 @@ void ZebroTopLevelController::UpdateChildrenBasekeepersTicks()
 	int newchildrenBasekeepersTotal = 0;
 	for(int i = 0; i < 4; i++)
 	{
-		if(childrenBasekeepers[i*6] != 0x00)
+		ZebroIdentifier checkId = GetIdFromArray(childrenBasekeepers, i*6);
+		if(!checkId.IsEmpty())
 		{
-			childrenBasekeepers[i*6+5]++;
-			if(childrenBasekeepers[i*6+5] > 50) // 500 ticks
+			childrenBasekeepers[i*6+idsize+4]++;
+			if(childrenBasekeepers[i*6+idsize+4] > 50) // 500 ticks
 			{
 				
-				ZebroIdentifier lostChildId = ZebroIdentifier(childrenBasekeepers[i*6]);
-				childrenBasekeepers[i*6] = 0x00;
-				childrenBasekeepers[i*6+1] = 0x00;
-				childrenBasekeepers[i*6+2] = 0x00;
-				childrenBasekeepers[i*6+3] = 0x00;
-				childrenBasekeepers[i*6+4] = 0x00;
-				childrenBasekeepers[i*6+5] = 0x00;
+				ZebroIdentifier lostChildId = checkId.Copy();
+				UnsetIdInArray(childrenBasekeepers, i*6);
+				childrenBasekeepers[i*6+idsize] = 0x00;
+				childrenBasekeepers[i*6+idsize+1] = 0x00;
+				childrenBasekeepers[i*6+idsize+2] = 0x00;
+				childrenBasekeepers[i*6+idsize+3] = 0x00;
+				childrenBasekeepers[i*6+idsize+4] = 0x00;
 				LostConnectionToChildBasekeeper(lostChildId);
 			}
 			else
@@ -1085,7 +1123,8 @@ bool ZebroTopLevelController::IsChildBasekeeper(ZebroIdentifier nodeId)
 {
 	for(int i = 0; i < 4; i++)
 	{
-		if(nodeId.Equals(childrenBasekeepers[i*6]))
+		ZebroIdentifier checkId = GetIdFromArray(childrenBasekeepers, i*6);
+		if(nodeId.Equals(checkId))
 		{
 			return true;
 		}
@@ -1100,19 +1139,20 @@ void ZebroTopLevelController::AddToIgnoreSearchers(ZebroIdentifier nodeId)
 	int emptySpotPointer = -1;
 	for(int i = 0; i < 10; i++)
 	{
-		if(nodeId.Equals(ignoreSearchers[i*2]))
+		ZebroIdentifier checkId = GetIdFromArray(ignoreSearchers, i*2);
+		if(nodeId.Equals(checkId))
 		{
-				ignoreSearchers[i*2+1] = (unsigned char) 20; // ignore for 200 ticks (20 decaticks)
+				ignoreSearchers[i*2+idsize] = (unsigned char) 20; // ignore for 200 ticks (20 decaticks)
 				return;
 		}
-		if(ignoreSearchers[i*2] == 0x00)
+		if(checkId.IsEmpty())
 		{
 			emptySpotPointer = i*2;
 			continue;
 		}
-		if(ignoreSearchers[i*2+1] < leastTicksLeft)
+		if(ignoreSearchers[i*2+idsize] < leastTicksLeft)
 		{
-			leastTicksLeft = ignoreSearchers[i*2+1];
+			leastTicksLeft = ignoreSearchers[i*2+idsize];
 			leastTicksLeftEntry = i*2;
 		}
 	}
@@ -1129,21 +1169,22 @@ void ZebroTopLevelController::AddToIgnoreSearchers(ZebroIdentifier nodeId)
 	{
 		return;
 	}
-	ignoreSearchers[pointer] = nodeId.GetUnsignedCharValue();
-	ignoreSearchers[pointer+1] = (unsigned char) 20;
+	WriteIdToArray(ignoreSearchers, pointer, nodeId);
+	ignoreSearchers[pointer+idsize] = (unsigned char) 20;
 }
 
 void ZebroTopLevelController::updateIgnoreSearchersTicks()
 {
 	for(int i = 0; i < 10; i++)
 	{
-		if(ignoreSearchers[i*2] != 0x00)
+		ZebroIdentifier checkId = GetIdFromArray(ignoreSearchers, i*2);
+		if(!checkId.IsEmpty())
 		{
-			ignoreSearchers[i*2+1]--;
-			if(ignoreSearchers[i*2+1] <= 0) // 500 ticks
+			ignoreSearchers[i*2+idsize]--;
+			if(ignoreSearchers[i*2+idsize] <= 0) // 500 ticks
 			{
-				ignoreSearchers[i*2] = 0x00;
-				ignoreSearchers[i*2+1] = 0x00;
+				UnsetIdInArray(ignoreSearchers, i*2);
+				ignoreSearchers[i*2+idsize] = 0x00;
 			}
 		}
 	}
@@ -1153,7 +1194,8 @@ bool ZebroTopLevelController::IsIgnoringSearcher(ZebroIdentifier nodeId)
 {
 	for(int i = 0; i < 10; i++)
 	{
-		if(nodeId.Equals(ignoreSearchers[i*2]))
+		ZebroIdentifier checkId = GetIdFromArray(ignoreSearchers, i*2);
+		if(nodeId.Equals(checkId))
 		{
 			return true;
 		}
@@ -1354,27 +1396,31 @@ void ZebroTopLevelController::CheckForReceivedMessages()
 		ZebroIdentifier newMessageSender = ZebroIdentifier(tPackets[i].Data[0]);
 		  unsigned char newMessageId = (unsigned char)(tPackets[i].Data[1]);
 		  bool skip = false;
-		  for(size_t j = 0; j < 80; j++)
+		  
+		  int lastj = savedReadings.Size()/(idsize+1) - 1;
+		  lastj = 80 - 1;
+		  for(size_t j = 0; j <= lastj; j++)
 		  {
-			if(newMessageSender.Equals(savedReadings[j*2]) && savedReadings[j*2+1] == newMessageId)
+			ZebroIdentifier checkId = GetIdFromArray(savedReadings, j*2);
+			if(newMessageSender.Equals(checkId) && savedReadings[j*2+idsize] == newMessageId)
 			{
 				// Already processed this message
 				skip = true;
 				break;
 			}
-			if(savedReadings[j*2] == 0x00 && savedReadings[j*2+1] == 0x00)
+			if(checkId.IsEmpty() && savedReadings[j*2+idsize] == 0x00)
 			{
-				savedReadings[j*2] = newMessageSender.GetUnsignedCharValue();
-				savedReadings[j*2+1] = newMessageId;
+				WriteIdToArray(savedReadings, j*2, newMessageSender);
+				savedReadings[j*2+idsize] = newMessageId;
 				break;
 			}
 			
-			if(j == 80 - 1)
+			if(j == lastj)
 			{
-				savedReadings[overwriteSavedReadingsPointer] = newMessageSender.GetUnsignedCharValue();
-				savedReadings[overwriteSavedReadingsPointer+1] = newMessageId;
-				overwriteSavedReadingsPointer += 2;
-				if(overwriteSavedReadingsPointer >= 80)
+				WriteIdToArray(savedReadings, overwriteSavedReadingsPointer, newMessageSender);
+				savedReadings[overwriteSavedReadingsPointer+idsize] = newMessageId;
+				overwriteSavedReadingsPointer += idsize+1;
+				if(overwriteSavedReadingsPointer >= savedReadings.Size())
 				{
 					overwriteSavedReadingsPointer = 0;
 				}
