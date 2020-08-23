@@ -8,15 +8,18 @@
 	#include <argos3/core/utility/datatypes/byte_array.h>
 	#include <argos3/core/utility/math/vector3.h>
 	#include <controllers/footbot_zebrolike/ZebroTopLevelController.h>
+	#include <string>
+	using namespace std;
 #else
 	#include <includes/utility/datatypes/byte_array.h>
 	#include <includes/utility/math/vector3.h>
 	#include <ZebroTopLevelController.h>
+	#include <ros/ros.h>
+	#include "std_msgs/String.h"
 #endif
 
 #include <../common-core/constants.h>
 #include <../common-core/ZebroIdentifier.h>
-
 
 /*
  * All the ARGoS stuff in the 'argos' namespace.
@@ -44,8 +47,9 @@ public:
     */
 	#ifdef IS_SIMULATION
    		virtual void Init(TConfigurationNode& t_node); // to replace
+	#else
+		void Init(ZebroIdentifier id, ros::NodeHandle* nodehandle);
 	#endif
-	
 	void Init(ZebroIdentifier id);
 	void Init();
 
@@ -76,7 +80,7 @@ public:
    void Loop();
 	void PostLoop();
    
-   void BecomeCandidate();
+   virtual void BecomeCandidate() override;
 	void BecomeBasekeeper();
 	
    bool isBasekeeper();
@@ -84,6 +88,7 @@ public:
 	
 	void AvoidObstaclesAutomatically();
 	
+	virtual void ReceiveMessage(CByteArray message) override;
 	virtual void ReceiveMessage_CAPTUREACK(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, unsigned char hopsLeft, ZebroIdentifier candidateId, ZebroIdentifier capturedNodeId, ZebroIdentifier capturedNodeId2, ZebroIdentifier capturedNodeId3) override;
 	virtual void ReceiveMessage_CAPTUREBROADCAST(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, unsigned char hopsMade, ZebroIdentifier candidateId, int receivedLevel) override;
 	virtual void ReceiveMessage_SHAREPOSITION(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, unsigned char hopsMade, CByteArray compressedPosition, ZebroIdentifier parent) override;
@@ -101,6 +106,35 @@ public:
 	virtual void ReceiveMessage_HEARTBEAT(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver) override;
    
 	virtual void LostConnectionToChildBasekeeper(ZebroIdentifier lostChildId) override;
+	
+	
+	void SendMessage_SHAREPOSITION(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsMade, unsigned char rotatationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2, ZebroIdentifier parent);
+   void SendMessage_SHAREPOSITION(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsMade, CByteArray compressedPosition, ZebroIdentifier parent);
+   void SendMessage_SHAREPOSITION(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsMade, CVector3 position, ZebroIdentifier parent);
+   void SendMessage_CAPTUREACK(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsLeft, ZebroIdentifier candidateId, ZebroIdentifier capturedNodeId, ZebroIdentifier capturedNodeId2, ZebroIdentifier capturedNodeId3);
+   void SendMessage_CAPTUREBROADCAST(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsMade, unsigned char level, ZebroIdentifier candidateId);
+   void SendMessage_FOUNDTARGET(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier parent, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2);
+   void SendMessage_FOUNDTARGET(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier parent, CVector3 position);
+   void SendMessage_FOUNDTARGETUPSTREAM(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier parent, unsigned char totalSearchers, unsigned char hopsMade, Real totalDistance);
+   void SendMessage_FOUNDTARGETUPSTREAM(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier parent, unsigned char totalSearchers, unsigned char hopsMade, unsigned char distanceByte1, unsigned char distanceByte2);
+   void SendMessage_BECOMEPATHPOINT(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier searcherId, CVector3 position);
+   void SendMessage_BECOMEPATHPOINT(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier searcherId, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2);
+   void SendMessage_RECRUITNEWBASEKEEPER();
+   void SendMessage_PINGALLBASEKEEPERS();
+   void SendMessage_PINGREPLY(ZebroIdentifier to, CVector3 position, unsigned char allowAsNewBasekeeper);
+   void SendMessage_APPLYASBASEKEEPER(ZebroIdentifier toBasekeeper);
+   void SendMessage_HEARTBEAT(ZebroIdentifier toBasekeeper);
+   void SendMessage_APPOINTNEWBASEKEEPER(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier newBasekeeperId, unsigned char basekeeperL);
+   void SendMessage_APPOINTNEWBASEKEEPER(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier newBasekeeperId, CByteArray compressedPosition, unsigned char basekeeperL);
+   void SendMessage_RELOCATESEARCHER(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier searcherId, ZebroIdentifier basekeeperId, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2);
+   void SendMessage_RELOCATESEARCHER(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier searcherId, ZebroIdentifier basekeeperId, CVector3 position);
+	void SendMessage_DISBAND(ZebroIdentifier from, unsigned char messageNumber, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2);
+   void SendMessage_DISBAND(ZebroIdentifier from, unsigned char messageNumber, CVector3 safePosition);
+   void SendMessage_DISBAND(ZebroIdentifier from, unsigned char messageNumber, CByteArray compressedPosition);
+   void SendMessage_PATHDATA(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier linkToTarget, unsigned char hopsLeftToTarget, int amountOfSearchersLeft, int sendSearchersNumber);
+   
+	
+	
    
    void SearchRandomly();
    bool MoveTowardsPosition(CVector3 destination, Real radius);
@@ -135,7 +169,43 @@ public:
 	CVector3 DecompressPosition(CByteArray compressedPosition);
 	CVector3 DecompressPosition(unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2);
 
+	ZebroIdentifier GetIdFromArray(CByteArray& arr, int startIndex);
+	void WriteIdToArray(CByteArray& arr, int startIndex, ZebroIdentifier id);
+	void UnsetIdInArray(CByteArray& arr, int startIndex);
+	
+	
+	void AddToMySearchers(ZebroIdentifier nodeId);
+	void RemoveFromMySearchers(ZebroIdentifier nodeId);
+	void updateMySearchersTicks();
+	Real GetFarthestChildBasekeeperDistance();
+	void AddToChildrenBasekeepers(ZebroIdentifier nodeId, CVector3 position);
+	void UpdateChildrenBasekeepersTicks();
+	bool IsChildBasekeeper(ZebroIdentifier nodeId);
+	void AddToIgnoreSearchers(ZebroIdentifier nodeId);
+	void updateIgnoreSearchersTicks();
+	bool IsIgnoringSearcher(ZebroIdentifier nodeId);
+	void AddToCapturedNodes(ZebroIdentifier nodeId);
+	
+	
+	void ResetChildrenBasekeepers();
+	void ResetIgnoreSearchers();
+	void ResetCapturedNodes();
+	void ResetMySearchers();
+	
+	
+	CVector3 GetVectorToChild(ZebroIdentifier nodeId);
+	CByteArray GetCompressedVectorToChild(ZebroIdentifier nodeId);
+	
+	ZebroIdentifier PopMostRecentlyActiveSearcher();
+	ZebroIdentifier PickRandomChildBasekeeper();
+	
+	
+	virtual string MessageTypeToString(unsigned int messageType) override;
+	
+
 private:
+	
+
 	// to replace
 	bool returningToBasekeeper;
 	int actionNum;
@@ -153,8 +223,6 @@ private:
 	Real closestBasekeeperDistance;
    ZebroIdentifier closestBasekeeper;
 	Real groundCovered;
-	bool targetFound;
-	bool sentFoundTargetMessage;
 	Real distanceToNextNode;
 	Real distanceLeft;
 	int hopsLeftToTarget; // todo: rename this var in some of the function parameters in ZebroTopLevelController?
@@ -178,10 +246,12 @@ private:
 	bool basekeeperPositionKnown;
 	ZebroIdentifier parentBasekeeper;
 	
+	int requiredGoStraightTicks;
+	
 	int lastParentUpdate;
 	int failedNewBasekeeperAttempts;
 	int decaTickCounter;
-	CVector3 relativeSafePosition;
+	
 	bool killed;
 	
 	int avoidTurnDirection;

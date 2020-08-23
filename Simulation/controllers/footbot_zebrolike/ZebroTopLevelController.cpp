@@ -317,106 +317,6 @@ CVector3 ZebroTopLevelController::GetMyPosition()
 	//return myTrackedPosition + 
 }
 
-ZebroIdentifier ZebroTopLevelController::PickRandomChildBasekeeper()
-{
-	// returns a random child basekeeper. Returns empty ZebroIdentifier if you have no child basekeepers.
-	
-	int chooseChildBasekeeper = rand()%(childrenBasekeepersTotal - 0 + 1 - 1) + 0;
-	
-	ZebroIdentifier pickedChildBasekeeperId;
-	int childrenHad = 0;
-	for(int i = 0; i < 4; i++)
-	{
-		if(childrenBasekeepers[i*6] != 0x00)
-		{
-			pickedChildBasekeeperId = ZebroIdentifier(childrenBasekeepers[i*6]);
-			if(chooseChildBasekeeper == childrenHad)
-			{
-				break;
-			}
-			childrenHad++;
-		}
-	}
-	return pickedChildBasekeeperId;
-}
-
-ZebroIdentifier ZebroTopLevelController::PopMostRecentlyActiveSearcher()
-{
-	// retrieve the searcher with the lowest latestTick and remove it from mySearchers
-	ZebroIdentifier pickedSearcherId = ZebroIdentifier(0x00);
-	unsigned char pickedSearcherLastTick = 255;
-	int pickedSearcherIndex = 0;
-	for(int i = 0; i < 10; i++)
-	{
-		if(mySearchers[i*2] != 0x00 && (mySearchers[i*2+1] < pickedSearcherLastTick || pickedSearcherLastTick == 255))
-		{
-			pickedSearcherId = ZebroIdentifier(mySearchers[i*2]);
-			pickedSearcherLastTick = mySearchers[i*2+1];
-			pickedSearcherIndex = i*2;
-		}
-	}
-	mySearchers[pickedSearcherIndex] = 0x00;
-	mySearchers[pickedSearcherIndex+1] = 0x00;
-	mySearchersTotal--;
-	
-	return pickedSearcherId;
-}
-
-void ZebroTopLevelController::SendMessage_APPOINTNEWBASEKEEPER(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier newBasekeeperId, unsigned char basekeeperL)
-{
-	SendMessage_APPOINTNEWBASEKEEPER(from, messageNumber, newBasekeeperId, CompressPosition(myAbsolutePosition), basekeeperL);
-}
-
-void ZebroTopLevelController::SendMessage_APPOINTNEWBASEKEEPER(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier newBasekeeperId, CByteArray compressedPosition, unsigned char basekeeperL)
-{
-	CByteArray cBuf(7);
-	cBuf[0] = MESSAGETYPE_APPOINTNEWBASEKEEPER;
-
-	cBuf[1] = newBasekeeperId.GetUnsignedCharValue();
-	cBuf[2] = compressedPosition[0];
-	cBuf[3] = compressedPosition[1];
-	cBuf[4] = compressedPosition[2];
-	cBuf[5] = compressedPosition[3];
-	cBuf[6] = basekeeperL;
-	
-	if(from.Equals(myId))
-	{
-		BOTDEBUG << " bot " << myId.ToString() << " is appointing bot " << newBasekeeperId.ToString() << " as new basekeeper" << std::endl;
-	}
-	
-	SendMessage(cBuf, from, messageNumber);
-}
-
-void ZebroTopLevelController::SendMessage_APPLYASBASEKEEPER(ZebroIdentifier toBasekeeper)
-{
-	sendMessageId++;
-	unsigned char messageNumber = (unsigned char) sendMessageId;
-	CByteArray cBuf(7);
-	cBuf[0] = MESSAGETYPE_APPLYASBASEKEEPER;
-	
-	CByteArray compressedPosition = CompressPosition(myAbsolutePosition);
-	cBuf[1] = compressedPosition[0];
-	cBuf[2] = compressedPosition[1];
-	cBuf[3] = compressedPosition[2];
-	cBuf[4] = compressedPosition[3];
-	
-	// BOTDEBUG << " bot " << myId.ToString() << " is applying as basekeeper!" << std::endl;
-	
-	SendMessage(cBuf, myId, messageNumber, toBasekeeper);
-}
-
-void ZebroTopLevelController::SendMessage_RECRUITNEWBASEKEEPER()
-{
-	sendMessageId++;
-	unsigned char messageNumber = (unsigned char) sendMessageId;
-	CByteArray cBuf(7);
-	cBuf[0] = MESSAGETYPE_RECRUITNEWBASEKEEPER;
-	
-	BOTDEBUG << " bot " << myId.ToString() << " is recruiting a new basekeeper." << std::endl;
-	
-	SendMessage(cBuf, myId, messageNumber);
-}
-
 
 unsigned char ZebroTopLevelController::GetObstacleAvoidanceData()
 {
@@ -456,19 +356,6 @@ unsigned char ZebroTopLevelController::GetObstacleAvoidanceData()
 		obstacleAvoidanceFlags += 0x02;
 	}
 	return obstacleAvoidanceFlags;
-}
-
-void ZebroTopLevelController::ResetCapturedNodes()
-{
-	capturedNodes[0] = 0x00; capturedNodes[1] = 0x00; capturedNodes[2] = 0x00; capturedNodes[3] = 0x00; capturedNodes[4] = 0x00; capturedNodes[5] = 0x00; capturedNodes[6] = 0x00; capturedNodes[7] = 0x00; capturedNodes[8] = 0x00; capturedNodes[9] = 0x00;
-}
-
-void ZebroTopLevelController::ResetMySearchers()
-{
-	for(size_t i = 0; i < 20; i++)
-	{
-		mySearchers[i] = 0x00;
-	}
 }
 
 void ZebroTopLevelController::ReceiveMessage_CAPTUREACK(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, unsigned char hopsLeft, ZebroIdentifier candidateId, ZebroIdentifier capturedNodeId, ZebroIdentifier capturedNodeId2, ZebroIdentifier capturedNodeId3)
@@ -549,214 +436,7 @@ void ZebroTopLevelController::ReceiveMessage_HEARTBEAT(ZebroIdentifier senderId,
 
 void ZebroTopLevelController::ReceiveMessage(CByteArray message)
 {
-	ZebroIdentifier senderId = ZebroIdentifier(message[0]);
-	unsigned char messageNumber = message[1];
-	ZebroIdentifier intendedReceiver = ZebroIdentifier(message[2]);
-
-	switch(message[3])
-	{
-		case MESSAGETYPE_CAPTUREACK:
-		{
-			unsigned char hopsLeft = message[4];
-			ZebroIdentifier candidateId = message[5];
-			// int receivedLevel = (int) message[6]; there's no level
-			ZebroIdentifier capturedNodeId = ZebroIdentifier(message[6]);
-			ZebroIdentifier capturedNodeId2 = ZebroIdentifier(message[7]);
-			ZebroIdentifier capturedNodeId3 = ZebroIdentifier(message[8]);
-
-			ReceiveMessage_CAPTUREACK(senderId, messageNumber, intendedReceiver, hopsLeft, candidateId, capturedNodeId, capturedNodeId2, capturedNodeId3);
-			break;
-		}
-
-		case MESSAGETYPE_CAPTUREBROADCAST:
-		{
-			unsigned char hopsMade = message[4];
-			ZebroIdentifier candidateId = ZebroIdentifier(message[5]);
-			int receivedLevel = (int) message[6];
-
-			ReceiveMessage_CAPTUREBROADCAST(senderId, messageNumber, intendedReceiver, hopsMade, candidateId, receivedLevel);
-			break;
-		}
-
-		case MESSAGETYPE_SHAREPOSITION:
-		{
-
-			unsigned char hopsMade = message[4];
-			CByteArray compressedPosition(4);
-			compressedPosition[0] = message[5];
-			compressedPosition[1] = message[6];
-			compressedPosition[2] = message[7];
-			compressedPosition[3] = message[8];
-			ZebroIdentifier parent = ZebroIdentifier(message[9]);
-
-			ReceiveMessage_SHAREPOSITION(senderId, messageNumber, intendedReceiver, hopsMade, compressedPosition, parent);
-			break;
-		}
-
-		case MESSAGETYPE_DISBAND:
-		{
-			CByteArray compressedPosition(4);
-			compressedPosition[0] = message[4];
-			compressedPosition[1] = message[5];
-			compressedPosition[2] = message[6];
-			compressedPosition[3] = message[7];
-
-			ReceiveMessage_DISBAND(senderId, messageNumber, intendedReceiver, compressedPosition);
-			break;
-		}
-
-		case MESSAGETYPE_RECRUITNEWBASEKEEPER:
-		{
-			ReceiveMessage_RECRUITNEWBASEKEEPER(senderId, messageNumber, intendedReceiver);
-			break;
-		}
-
-		case MESSAGETYPE_PINGREPLY:
-		{
-			CByteArray compressedPosition(4);
-			compressedPosition[0] = message[4];
-			compressedPosition[1] = message[5];
-			compressedPosition[2] = message[6];
-			compressedPosition[3] = message[7];
-			unsigned char allowAsNewBasekeeper = message[8];
-
-			ReceiveMessage_PINGREPLY(senderId, messageNumber, intendedReceiver, compressedPosition, allowAsNewBasekeeper);
-			break;
-		}
-
-		case MESSAGETYPE_APPOINTNEWBASEKEEPER:
-		{
-			ZebroIdentifier newBasekeeperId = ZebroIdentifier(message[4]);
-			CByteArray compressedPosition(4);
-			compressedPosition[0] = message[5];
-			compressedPosition[1] = message[6];
-			compressedPosition[2] = message[7];
-			compressedPosition[3] = message[8];
-			unsigned char basekeeperL = message[9];
-
-			ReceiveMessage_APPOINTNEWBASEKEEPER(senderId, messageNumber, intendedReceiver, newBasekeeperId, compressedPosition, basekeeperL);
-			break;
-		}
-
-		case MESSAGETYPE_RELOCATESEARCHER:
-		{
-			ZebroIdentifier searcherId = ZebroIdentifier(message[4]);
-			ZebroIdentifier basekeeperId = ZebroIdentifier(message[5]);
-			CByteArray compressedPosition(4);
-			compressedPosition[0] = message[6];
-			compressedPosition[1] = message[7];
-			compressedPosition[2] = message[8];
-			compressedPosition[3] = message[9];
-
-			ReceiveMessage_RELOCATESEARCHER(senderId, messageNumber, intendedReceiver, searcherId, basekeeperId, compressedPosition);
-			break;
-		}
-
-		case MESSAGETYPE_FOUNDTARGET:
-		{
-			ZebroIdentifier parent = ZebroIdentifier(message[4]);
-			CByteArray compressedPosition(4);
-			compressedPosition[0] = message[5];
-			compressedPosition[1] = message[6];
-			compressedPosition[2] = message[7];
-			compressedPosition[3] = message[8];
-
-			ReceiveMessage_FOUNDTARGET(senderId, messageNumber, intendedReceiver, parent, compressedPosition);
-			break;
-		}
-
-		case MESSAGETYPE_FOUNDTARGETUPSTREAM:
-		{
-			ZebroIdentifier parent = ZebroIdentifier(message[4]);
-			unsigned char totalSearchers = message[5];
-			unsigned char hopsMade = message[6];
-			CByteArray compressedLength(2);
-			compressedLength[0] = message[7];
-			compressedLength[1] = message[8];
-
-			ReceiveMessage_FOUNDTARGETUPSTREAM(senderId, messageNumber, intendedReceiver, parent, totalSearchers, hopsMade, compressedLength);
-			break;
-		}
-
-		case MESSAGETYPE_PATHDATA:
-		{
-			ZebroIdentifier to = ZebroIdentifier(message[4]);
-			unsigned char hopsLeftToTarget = message[5];
-			int amountOfSearchersLeft = (int) message[6];
-			int sendSearchersNumber = (int) message[7];
-
-			ReceiveMessage_PATHDATA(senderId, messageNumber, intendedReceiver, to, hopsLeftToTarget, amountOfSearchersLeft, sendSearchersNumber);
-			break;
-		}
-
-		case MESSAGETYPE_BECOMEPATHPOINT:
-		{
-			ZebroIdentifier searcherId = ZebroIdentifier(message[4]);
-			CByteArray compressedPosition(4);
-			compressedPosition[0] = message[5];
-			compressedPosition[1] = message[6];
-			compressedPosition[2] = message[7];
-			compressedPosition[3] = message[8];
-
-			ReceiveMessage_BECOMEPATHPOINT(senderId, messageNumber, intendedReceiver, searcherId, compressedPosition);
-			break;
-		}
-
-		case MESSAGETYPE_PINGALLBASEKEEPERS:
-		{
-			CByteArray compressedPosition(4);
-			compressedPosition[0] = message[4];
-			compressedPosition[1] = message[5];
-			compressedPosition[2] = message[6];
-			compressedPosition[3] = message[7];
-
-			ReceiveMessage_PINGALLBASEKEEPERS(senderId, messageNumber, intendedReceiver, compressedPosition);
-			break;
-		}
-
-		case MESSAGETYPE_APPLYASBASEKEEPER:
-		{
-			CByteArray compressedPosition(4);
-			compressedPosition[0] = message[4];
-			compressedPosition[1] = message[5];
-			compressedPosition[2] = message[6];
-			compressedPosition[3] = message[7];
-
-			ReceiveMessage_APPLYASBASEKEEPER(senderId, messageNumber, intendedReceiver, compressedPosition);
-			break;
-		}
-
-		case MESSAGETYPE_HEARTBEAT:
-		{
-			ReceiveMessage_HEARTBEAT(senderId, messageNumber, intendedReceiver);
-			break;
-		}
-	}
-}
-
-CVector3 ZebroTopLevelController::GetVectorToChild(ZebroIdentifier nodeId)
-{
-	return DecompressPosition(GetCompressedVectorToChild(nodeId));
-}
-
-CByteArray ZebroTopLevelController::GetCompressedVectorToChild(ZebroIdentifier nodeId)
-{
-	for(int i = 0; i < 4; i++)
-	{
-		if(!nodeId.Equals(childrenBasekeepers[i*6]))
-		{
-			continue;
-		}
-		CByteArray compressedPosition(4);
-		compressedPosition[0] = childrenBasekeepers[i*6+1];
-		compressedPosition[1] = childrenBasekeepers[i*6+2];
-		compressedPosition[2] = childrenBasekeepers[i*6+3];
-		compressedPosition[3] = childrenBasekeepers[i*6+4];
-		
-		return compressedPosition;
-	}
-	CByteArray compressedPosition(4);
-	return compressedPosition; // return empty position
+		BOTDEBUG << "Receiving message in ZebroTopLevelController"  << endl;
 }
 
 /* to replace*/
@@ -776,615 +456,94 @@ CRay3 ZebroTopLevelController::GetDrawGreenLine()
 	return CRay3(v1, v2);
 }
 
-void ZebroTopLevelController::SendMessage_DISBAND(ZebroIdentifier from, unsigned char messageNumber, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2)
-{
-	CByteArray cBuf(7);
-	cBuf[0] = MESSAGETYPE_DISBAND;
-	cBuf[1] = rotationByte1;
-	cBuf[2] = rotationByte2;
-	cBuf[3] = lengthByte1;
-	cBuf[4] = lengthByte2;
-	
-	// BOTDEBUG << " bot " << myId.ToString() << " is sharing position of bot " << from << "." << std::endl;
-	
-	SendMessage(cBuf, from, messageNumber);
-}
-
-void ZebroTopLevelController::SendMessage_DISBAND(ZebroIdentifier from, unsigned char messageNumber, CByteArray compressedPosition)
-{
-	SendMessage_DISBAND(from, messageNumber, compressedPosition[0], compressedPosition[1], compressedPosition[2], compressedPosition[3]);
-}
-
-void ZebroTopLevelController::SendMessage_DISBAND(ZebroIdentifier from, unsigned char messageNumber, CVector3 safePosition)
-{
-	SendMessage_DISBAND(from, messageNumber, CompressPosition(safePosition));
-}
-
-void ZebroTopLevelController::ResetChildrenBasekeepers()
-{
-	childrenBasekeepers = CByteArray(4*6);
-	for(int i = 0; i < 4*6; i++) // to do: is this necessary?
-	{
-		childrenBasekeepers[i] = 0x00;
-	}
-}
-
-void ZebroTopLevelController::ResetIgnoreSearchers()
-{
-	ignoreSearchers = CByteArray(20);
-	for(int i = 0; i < 20; i++) // to do: is this necessary?
-	{
-		ignoreSearchers[i] = 0x00;
-	}
-}
-
-void ZebroTopLevelController::SendMessage_PINGALLBASEKEEPERS()
-{
-	sendMessageId++;
-	unsigned char messageNumber = (unsigned char) sendMessageId;
-	
-	CByteArray cBuf(7);
-	cBuf[0] = MESSAGETYPE_PINGALLBASEKEEPERS;
-	
-	CByteArray compressedPosition = CompressPosition(myAbsolutePosition); // todo: rewrite this to be over 2 pings
-	cBuf[1] = compressedPosition[0];
-	cBuf[2] = compressedPosition[1];
-	cBuf[3] = compressedPosition[2];
-	cBuf[4] = compressedPosition[3];
-	
-	// BOTDEBUG << " bot " << myId.ToString() << " is pinging all basekeepers." << std::endl;
-	
-	SendMessage(cBuf, myId, messageNumber);
-}
-
-void ZebroTopLevelController::SendMessage_PINGREPLY(ZebroIdentifier to, CVector3 position, unsigned char allowAsNewBasekeeper)
-{
-	sendMessageId++;
-	unsigned char messageNumber = (unsigned char) sendMessageId;
-	
-	CByteArray compressedPosition = CompressPosition(position);
-	
-	CByteArray cBuf(7);
-	cBuf[0] = MESSAGETYPE_PINGREPLY;
-	cBuf[1] = compressedPosition[0];
-	cBuf[2] = compressedPosition[1];
-	cBuf[3] = compressedPosition[2];
-	cBuf[4] = compressedPosition[3];
-	cBuf[5] = allowAsNewBasekeeper;
-	
-	// BOTDEBUG << " bot " << myId.ToString() << " is replying to the ping of " << to.ToString() <<  "." << std::endl;
-	
-	SendMessage(cBuf, myId, messageNumber, to);
-}
-
-
-void ZebroTopLevelController::AddToCapturedNodes(ZebroIdentifier nodeId)
-{
-	for(int i = 0; i < 10; i++)
-	{
-		ZebroIdentifier checkId = GetIdFromArray(capturedNodes, i);
-		if(nodeId.Equals(checkId))
-		{
-				return;
-		}
-		if(checkId.IsEmpty())
-		{
-			WriteIdToArray(capturedNodes, i, nodeId);
-			level = i + 1;
-			return;
-		}
-	}
-}
-
-ZebroIdentifier ZebroTopLevelController::GetIdFromArray(CByteArray arr, int startIndex)
-{
-	CByteArray idbuilder(idsize);
-	for(int i = 0; i < idsize; i++)
-	{
-		idbuilder[i] = arr[i+startIndex];
-	}
-	return ZebroIdentifier(idbuilder);
-}
-
-void ZebroTopLevelController::WriteIdToArray(CByteArray arr, int startIndex, ZebroIdentifier id)
-{
-	CByteArray idbytes = id.GetBytes(idsize);
-	for(int i = 0; i < idsize; i++)
-	{
-		arr[i+startIndex] = idbytes[i];
-	}
-}
-
-void ZebroTopLevelController::UnsetIdInArray(CByteArray arr, int startIndex)
-{
-	WriteIdToArray(arr, startIndex, ZebroIdentifier());	
-}
-
-void ZebroTopLevelController::AddToMySearchers(ZebroIdentifier nodeId)
-{
-	int latestTickEntry = -1;
-	unsigned char latestTick = 0x00;
-	
-	int emptySpotPointer = -1;
-	for(int i = 0; i < 10; i++)
-	{
-		ZebroIdentifier checkId = GetIdFromArray(mySearchers, i*2);
-		if(nodeId.Equals(checkId))
-		{
-			mySearchers[i*2+idsize] = 0x00;
-			return;
-		}
-		if(checkId.IsEmpty())
-		{
-			emptySpotPointer = i*2;
-			continue;
-		}
-		if(mySearchers[i*2+idsize] > latestTick)
-		{
-			latestTick = mySearchers[i*2+idsize];
-			latestTickEntry = i*2;
-		}
-	}
-	int pointer = -1;
-	if(emptySpotPointer != -1)
-	{
-		pointer = emptySpotPointer;
-		mySearchersTotal++;
-	}
-	else if(latestTickEntry > 0)
-	{
-		pointer = latestTickEntry;
-	}
-	else
-	{
-		return;
-	}
-	
-	BOTDEBUG << "Added " << nodeId.ToString() << " to my searchers." << std::endl;
-	WriteIdToArray(mySearchers, pointer, nodeId);
-	mySearchers[pointer+idsize] = 0x00;
-}
-
-void ZebroTopLevelController::RemoveFromMySearchers(ZebroIdentifier nodeId)
-{
-	bool deleted = false;
-	for(int i = 0; i < 10; i++)
-	{
-		ZebroIdentifier checkId = GetIdFromArray(mySearchers, i*2);
-		if(nodeId.Equals(checkId))
-		{
-			BOTDEBUG << "Removed " << nodeId.ToString() << " from my searchers." << endl;
-			UnsetIdInArray(mySearchers, i*2);
-			mySearchers[i*2+idsize] = 0x00;
-			if(!nodeId.IsEmpty())
-			{
-				if(deleted)
-				{
-					BOTDEBUG << "ERROR! deleted same node from mySearchers multiple times!" << endl;
-				}
-				AddToIgnoreSearchers(nodeId);
-				mySearchersTotal--;
-			}
-			deleted = true;
-		}
-	}
-}
-
-void ZebroTopLevelController::updateMySearchersTicks()
-{
-	int newMySearchersTotal = 0;
-	for(int i = 0; i < 10; i++)
-	{
-		if(mySearchers[i*2] != 0x00)
-		{
-			mySearchers[i*2+idsize]++;
-			if(mySearchers[i*2+idsize] > 160) // 1600 ticks
-			{
-				mySearchers[i*2] = 0x00;
-				UnsetIdInArray(mySearchers, i*2);
-				mySearchers[i*2+idsize] = 0x00;
-			}
-			else
-			{
-				newMySearchersTotal++;
-			}
-		}
-	}
-	mySearchersTotal = newMySearchersTotal;
-}
-
-Real ZebroTopLevelController::GetFarthestChildBasekeeperDistance()
-{
-	Real farthestDistance = 0;
-	for(int i = 0; i < 4; i++)
-	{
-		CByteArray compressedPosition(4);
-		compressedPosition[0] = childrenBasekeepers[i*6+idsize];
-		compressedPosition[1] = childrenBasekeepers[i*6+idsize+1];
-		compressedPosition[2] = childrenBasekeepers[i*6+idsize+2];
-		compressedPosition[3] = childrenBasekeepers[i*6+idsize+3];
-		
-		CVector3 decompressedPosition = DecompressPosition(compressedPosition);
-		if(decompressedPosition.Length() > farthestDistance)
-		{
-			farthestDistance = decompressedPosition.Length();
-		}
-	}
-	return farthestDistance;
-}
-
-void ZebroTopLevelController::AddToChildrenBasekeepers(ZebroIdentifier nodeId, CVector3 position)
-{
-	int latestTickEntry = -1;
-	unsigned char latestTick = 0x00;
-	int emptySpotPointer = -1;
-	for(int i = 0; i < 4; i++)
-	{
-		ZebroIdentifier checkId = GetIdFromArray(childrenBasekeepers, i*6);
-		if(nodeId.Equals(checkId))
-		{
-			WriteIdToArray(childrenBasekeepers, i*6, nodeId);
-			CVector3 oldPosition = DecompressPosition(childrenBasekeepers[i*6+idsize], childrenBasekeepers[i*6+idsize+1], childrenBasekeepers[i*6+idsize+2], childrenBasekeepers[i*6+idsize+3]);
-			CByteArray newCompressedPosition = CompressPosition(CreateWeightedAverageVector(position, 1, oldPosition, 5));
-			// todo: fix this.
-			childrenBasekeepers[i*6+idsize] = newCompressedPosition[0];
-			childrenBasekeepers[i*6+idsize+1] = newCompressedPosition[1];
-			childrenBasekeepers[i*6+idsize+2] = newCompressedPosition[2];
-			childrenBasekeepers[i*6+idsize+3] = newCompressedPosition[3];
-			childrenBasekeepers[i*6+idsize+4] = 0x00;
-			
-			if(myId.Equals((unsigned char) 81))
-			{
-				CVector3 nvtt = DecompressPosition(newCompressedPosition);
-				BOTDEBUG << "nvtt2 " << nodeId.ToString() << ": ("<<nvtt.GetX()<<","<<nvtt.GetY()<<")"<<std::endl;
-			}
-			return;
-		}
-		if(checkId.IsEmpty())
-		{
-			emptySpotPointer = i*6;
-			continue;
-		}
-		if(childrenBasekeepers[i*6+idsize+4] > latestTick)
-		{
-			latestTick = childrenBasekeepers[i*6+idsize+4];
-			latestTickEntry = i*6;
-		}
-	}
-	int pointer = -1;
-	if(emptySpotPointer != -1)
-	{
-		childrenBasekeepersTotal++;
-		pointer = emptySpotPointer;
-	}
-	else if(latestTickEntry > 0)
-	{
-		pointer = latestTickEntry;
-	}
-	else
-	{
-		return;
-	}
-	WriteIdToArray(childrenBasekeepers, pointer, nodeId);
-	CByteArray newCompressedPosition = CompressPosition(position);
-	childrenBasekeepers[pointer+idsize] = newCompressedPosition[0];
-	childrenBasekeepers[pointer+idsize+1] = newCompressedPosition[1];
-	childrenBasekeepers[pointer+idsize+2] = newCompressedPosition[2];
-	childrenBasekeepers[pointer+idsize+3] = newCompressedPosition[3];
-	childrenBasekeepers[pointer+idsize+4] = 0x00;
-	
-	if(myId.Equals(ZebroIdentifier((unsigned char) 81)))
-	{
-		CVector3 nvtt = DecompressPosition(newCompressedPosition);
-		BOTDEBUG << "nvtt1 " << nodeId.ToString() << ": ("<<nvtt.GetX()<<","<<nvtt.GetY()<<")"<<std::endl;
-	}
-}
 
 void ZebroTopLevelController::LostConnectionToChildBasekeeper(ZebroIdentifier lostChildId)
 {
 	// this function is overwritten in SearchAndRescueBehaviour
 }
 
-void ZebroTopLevelController::UpdateChildrenBasekeepersTicks()
+void ZebroTopLevelController::TryToDeliverMessage(CByteArray message)
 {
-	int newchildrenBasekeepersTotal = 0;
-	for(int i = 0; i < 4; i++)
+	BOTDEBUG << "Deliver check starting." << endl;
+	CByteArray senderIdArray(idsize);
+	for(int i = 0; i < idsize; i++)
 	{
-		ZebroIdentifier checkId = GetIdFromArray(childrenBasekeepers, i*6);
-		if(!checkId.IsEmpty())
+		senderIdArray[i] = message[i];
+	}
+	ZebroIdentifier newMessageSender = ZebroIdentifier(senderIdArray);
+	
+	unsigned char newMessageId = (unsigned char)message[idsize];
+	
+	CByteArray receiverIdArray(idsize);
+	for(int i = 0; i < idsize; i++)
+	{
+		receiverIdArray[i] = message[i+idsize+1];
+	}
+	ZebroIdentifier receiverId = ZebroIdentifier(receiverIdArray);
+	
+	bool skip = false;
+	for(size_t j = 0; j < 80; j++)
+	{
+		CByteArray checkIdArray = CByteArray(idsize);
+		for(int i = 0; i < idsize; i++)
 		{
-			childrenBasekeepers[i*6+idsize+4]++;
-			if(childrenBasekeepers[i*6+idsize+4] > 50) // 500 ticks
+			checkIdArray[i] = savedReadings[j*(idsize+1)+i];	
+		}
+		ZebroIdentifier checkId = ZebroIdentifier(checkIdArray);
+		if(newMessageSender.Equals(checkId) && savedReadings[j*(idsize+1)+1] == newMessageId)
+		{
+			// Already processed this message
+			skip = true;
+			break;
+		}
+		if(checkId.IsEmpty() && savedReadings[j*(idsize+1)+1] == 0x00)
+		{
+			CByteArray newMessageSenderArray = newMessageSender.GetBytes(idsize);
+			for(int i = 0; i < idsize; i++)
 			{
-				
-				ZebroIdentifier lostChildId = checkId.Copy();
-				UnsetIdInArray(childrenBasekeepers, i*6);
-				childrenBasekeepers[i*6+idsize] = 0x00;
-				childrenBasekeepers[i*6+idsize+1] = 0x00;
-				childrenBasekeepers[i*6+idsize+2] = 0x00;
-				childrenBasekeepers[i*6+idsize+3] = 0x00;
-				childrenBasekeepers[i*6+idsize+4] = 0x00;
-				LostConnectionToChildBasekeeper(lostChildId);
+				savedReadings[j*(idsize+1)+i] = newMessageSenderArray[i];
 			}
-			else
+			savedReadings[j*(idsize+1)+1] = newMessageId;
+			break;
+		}
+
+		if(j == 80 - 1)
+		{
+			CByteArray newMessageSenderArray = newMessageSender.GetBytes(idsize);
+			for(int i = 0; i < idsize; i++)
 			{
-				newchildrenBasekeepersTotal++;
+				savedReadings[overwriteSavedReadingsPointer+i] = newMessageSenderArray[i];
+			}
+			savedReadings[overwriteSavedReadingsPointer+idsize] = newMessageId;
+			overwriteSavedReadingsPointer += (idsize+1);
+			if(overwriteSavedReadingsPointer >= 40*(idsize+1))
+			{
+				overwriteSavedReadingsPointer = 0;
 			}
 		}
 	}
-	childrenBasekeepersTotal = newchildrenBasekeepersTotal;
-	if(childrenBasekeepersTotal >= 4)
-	{
-		satisfied = true;
-	}
-}
+	if(skip) { return; }
 
-bool ZebroTopLevelController::IsChildBasekeeper(ZebroIdentifier nodeId)
-{
-	for(int i = 0; i < 4; i++)
-	{
-		ZebroIdentifier checkId = GetIdFromArray(childrenBasekeepers, i*6);
-		if(nodeId.Equals(checkId))
-		{
-			return true;
-		}
-	}
-	return false;
-}
 
-void ZebroTopLevelController::AddToIgnoreSearchers(ZebroIdentifier nodeId)
-{
-	int leastTicksLeftEntry = -1;
-	unsigned char leastTicksLeft = 0xff;
-	int emptySpotPointer = -1;
-	for(int i = 0; i < 10; i++)
+
+	if(newMessageSender.Equals(myId))
 	{
-		ZebroIdentifier checkId = GetIdFromArray(ignoreSearchers, i*2);
-		if(nodeId.Equals(checkId))
-		{
-				ignoreSearchers[i*2+idsize] = (unsigned char) 20; // ignore for 200 ticks (20 decaticks)
-				return;
-		}
-		if(checkId.IsEmpty())
-		{
-			emptySpotPointer = i*2;
-			continue;
-		}
-		if(ignoreSearchers[i*2+idsize] < leastTicksLeft)
-		{
-			leastTicksLeft = ignoreSearchers[i*2+idsize];
-			leastTicksLeftEntry = i*2;
-		}
-	}
-	int pointer = -1;
-	if(emptySpotPointer != -1)
-	{
-		pointer = emptySpotPointer;
-	}
-	else if(leastTicksLeftEntry > 0)
-	{
-		pointer = leastTicksLeftEntry;
-	}
-	else
-	{
+	  // The other bot has an overlapping id with you... Choose a new random id
+	  // myId = (unsigned char)(rand()%(255-0 + 1) + 0); // Random byte
+		BOTDEBUG << "Ignoring message from myself..." << endl;
 		return;
 	}
-	WriteIdToArray(ignoreSearchers, pointer, nodeId);
-	ignoreSearchers[pointer+idsize] = (unsigned char) 20;
-}
-
-void ZebroTopLevelController::updateIgnoreSearchersTicks()
-{
-	for(int i = 0; i < 10; i++)
+	if((receiverId.Equals(myId) || receiverId.IsEmpty()) && (newMessageId != 0 || !newMessageSender.IsEmpty()))
 	{
-		ZebroIdentifier checkId = GetIdFromArray(ignoreSearchers, i*2);
-		if(!checkId.IsEmpty())
-		{
-			ignoreSearchers[i*2+idsize]--;
-			if(ignoreSearchers[i*2+idsize] <= 0) // 500 ticks
-			{
-				UnsetIdInArray(ignoreSearchers, i*2);
-				ignoreSearchers[i*2+idsize] = 0x00;
-			}
-		}
+		BOTDEBUG << "Delivering message" << endl;
+	  ReceiveMessage(message);
 	}
-}
-
-bool ZebroTopLevelController::IsIgnoringSearcher(ZebroIdentifier nodeId)
-{
-	for(int i = 0; i < 10; i++)
-	{
-		ZebroIdentifier checkId = GetIdFromArray(ignoreSearchers, i*2);
-		if(nodeId.Equals(checkId))
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-void ZebroTopLevelController::SendMessage_HEARTBEAT(ZebroIdentifier toBasekeeper)
-{
-	sendMessageId++;
-	unsigned char messageNumber = (unsigned char) sendMessageId;
-	
-	CByteArray cBuf(7);
-	cBuf[0] = MESSAGETYPE_HEARTBEAT;
-	
-	// BOTDEBUG << " bot " << myId.ToString() << " is sending a heartbeat to " << basekeeper.ToString() << "." << std::endl;
-	
-	SendMessage(cBuf, myId, messageNumber, toBasekeeper);
-}
-
-void ZebroTopLevelController::SendMessage_FOUNDTARGET(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier parent, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2)
-{
-	CByteArray cBuf(7);
-	cBuf[0] = MESSAGETYPE_FOUNDTARGET;
-	cBuf[1] = parent.GetUnsignedCharValue();
-	cBuf[2] = rotationByte1;
-	cBuf[3] = rotationByte2;
-	cBuf[4] = lengthByte1;
-	cBuf[5] = lengthByte2;
-	
-	if(from.Equals(myId))
-	{
-		BOTDEBUG << " bot " << myId.ToString() << " is sending found target message to " << parent.ToString() <<"." << std::endl;
-	}
-	
-	SendMessage(cBuf, from, messageNumber);
-}
-
-void ZebroTopLevelController::SendMessage_FOUNDTARGET(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier parent, CVector3 position)
-{
-	CByteArray compressedPosition = CompressPosition(position);
-	SendMessage_FOUNDTARGET(from, messageNumber, parent, compressedPosition[0], compressedPosition[1], compressedPosition[2], compressedPosition[3]);
-}
-
-void ZebroTopLevelController::SendMessage_FOUNDTARGETUPSTREAM(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier parent, unsigned char totalSearchers, unsigned char hopsMade, Real totalDistance)
-{
-	CByteArray compressedLength = ConvertLengthTo2Bytes(totalDistance);
-	SendMessage_FOUNDTARGETUPSTREAM(from, messageNumber, parent, totalSearchers, hopsMade, compressedLength[0], compressedLength[1]);
-}
-
-void ZebroTopLevelController::SendMessage_FOUNDTARGETUPSTREAM(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier parent, unsigned char totalSearchers, unsigned char hopsMade, unsigned char distanceByte1, unsigned char distanceByte2)
-{
-	CByteArray cBuf(7);
-	cBuf[0] = MESSAGETYPE_FOUNDTARGETUPSTREAM;
-	cBuf[1] = parent.GetUnsignedCharValue();
-	cBuf[2] = totalSearchers;
-	cBuf[3] = hopsMade;
-	cBuf[4] = distanceByte1;
-	cBuf[5] = distanceByte2;
-	
-	if(from.Equals(myId))
-	{
-		BOTDEBUG << " bot " << myId.ToString() << " is sending found target upstream message to " << parent.ToString() << ". (totalSearchers is now " << totalSearchers << ")" << std::endl;
-	}
-	
-	SendMessage(cBuf, from, messageNumber);
-}
-
-void ZebroTopLevelController::SendMessage_PATHDATA(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier linkToTarget, unsigned char hopsLeftToTarget, int amountOfSearchersLeft, int sendSearchersNumber)
-{
-	CByteArray cBuf(7);
-	cBuf[0] = MESSAGETYPE_PATHDATA;
-	cBuf[1] = linkToTarget.GetUnsignedCharValue();
-	cBuf[2] = hopsLeftToTarget;
-	cBuf[3] = (unsigned char) amountOfSearchersLeft;
-	cBuf[4] = (char) sendSearchersNumber;
-	
-	if(from.Equals(myId))
-	{
-		BOTDEBUG << "Basekeeper " << myId.ToString() << " is sending pathdata message to " << linkToTarget.ToString() << "." << std::endl;
-	}
-	
-	SendMessage(cBuf, from, messageNumber);
-}
-
-void ZebroTopLevelController::SendMessage_BECOMEPATHPOINT(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier searcherId, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2)
-{
-	CByteArray cBuf(7);
-	cBuf[0] = MESSAGETYPE_BECOMEPATHPOINT;
-	cBuf[1] = searcherId.GetUnsignedCharValue();
-	cBuf[2] = rotationByte1;
-	cBuf[3] = rotationByte2;
-	cBuf[4] = lengthByte1;
-	cBuf[5] = lengthByte2;
-	
-	if(from.Equals(myId))
-	{
-		BOTDEBUG << "Basekeeper " << myId.ToString() << " is instructing " << searcherId.ToString() << " to become a path point." << std::endl;
-	}
-	
-	SendMessage(cBuf, from, messageNumber);
-}
-
-void ZebroTopLevelController::SendMessage_BECOMEPATHPOINT(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier searcherId, CVector3 position)
-{
-	CByteArray compressedPosition = CompressPosition(position);
-	SendMessage_BECOMEPATHPOINT(from, messageNumber, searcherId, compressedPosition[0], compressedPosition[1], compressedPosition[2], compressedPosition[3]);
-}
-
-void ZebroTopLevelController::SendMessage_SHAREPOSITION(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsMade, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2, ZebroIdentifier parent)
-{
-	CByteArray cBuf(7);
-	cBuf[0] = MESSAGETYPE_SHAREPOSITION;
-	cBuf[1] = hopsMade;
-	cBuf[2] = rotationByte1;
-	cBuf[3] = rotationByte2;
-	cBuf[4] = lengthByte1;
-	cBuf[5] = lengthByte2;
-	cBuf[6] = parent.GetUnsignedCharValue();
-	
-	// BOTDEBUG << " bot " << myId.ToString() << " is sharing position of bot " << from << "." << std::endl;
-	
-	SendMessage(cBuf, from, messageNumber);
-}
-
-void ZebroTopLevelController::SendMessage_SHAREPOSITION(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsMade, CByteArray compressedPosition, ZebroIdentifier parent)
-{
-	SendMessage_SHAREPOSITION(from, messageNumber, hopsMade, compressedPosition[0], compressedPosition[1], compressedPosition[2], compressedPosition[3], parent);
-}
-
-void ZebroTopLevelController::SendMessage_SHAREPOSITION(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsMade, CVector3 position, ZebroIdentifier parent)
-{
-	SendMessage_SHAREPOSITION(from, messageNumber, hopsMade, CompressPosition(position), parent);
-}
-
-void ZebroTopLevelController::SendMessage_SendMessage_RELOCATESEARCHER(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier searcherId, ZebroIdentifier basekeeperId, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2)
-{
-	CByteArray cBuf(7);
-	cBuf[0] = MESSAGETYPE_RELOCATESEARCHER;
-	cBuf[1] = searcherId.GetUnsignedCharValue();
-	cBuf[2] = basekeeperId.GetUnsignedCharValue();
-	cBuf[3] = rotationByte1;
-	cBuf[4] = rotationByte2;
-	cBuf[5] = lengthByte1;
-	cBuf[6] = lengthByte2;
-	
-	if(from.Equals(myId))
-	{
-		BOTDEBUG << "Bot " << myId.ToString() << " is sending a message to relocate searcher " << searcherId.ToString() << " to basekeeper " << basekeeperId.ToString() << "." << std::endl;
-	}
-	
-	SendMessage(cBuf, from, messageNumber);
-}
-
-void ZebroTopLevelController::SendMessage_SendMessage_RELOCATESEARCHER(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier searcherId, ZebroIdentifier basekeeperId, CVector3 basekeeperPosition)
-{
-	CByteArray compressedPosition = CompressPosition(basekeeperPosition);
-	SendMessage_SendMessage_RELOCATESEARCHER(from, messageNumber, searcherId, basekeeperId, compressedPosition[0], compressedPosition[1], compressedPosition[2], compressedPosition[3]);
-}
-
-// SendMessage_CAPTUREACK(from, hopsLeft - 1, father, capturedNodeId, capturedNodeId2, capturedNodeId3);
-
-void ZebroTopLevelController::SendMessage_CAPTUREACK(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsLeft, ZebroIdentifier candidateId, ZebroIdentifier capturedNodeId, ZebroIdentifier capturedNodeId2, ZebroIdentifier capturedNodeId3)
-{
-	CByteArray cBuf(7);
-	cBuf[0] = MESSAGETYPE_CAPTUREACK; // type of message
-	cBuf[1] = hopsLeft; // hops left
-	cBuf[2] = candidateId.GetUnsignedCharValue(); // candidate id
-	cBuf[3] = capturedNodeId.GetUnsignedCharValue(); // father
-	cBuf[4] = capturedNodeId2.GetUnsignedCharValue(); // the id of the node that got captured
-	cBuf[5] = capturedNodeId3.GetUnsignedCharValue();
-	SendMessage(cBuf, from, messageNumber);
-}
-
-
-void ZebroTopLevelController::SendMessage_CAPTUREBROADCAST(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsMade, unsigned char level, ZebroIdentifier candidateId)
-{
-	CByteArray cBuf(7);
-	cBuf[0] = MESSAGETYPE_CAPTUREBROADCAST; // type of message
-	cBuf[1] = hopsMade; // hops made
-	cBuf[2] = candidateId.GetUnsignedCharValue(); // candidate id
-	cBuf[3] = level; // father
-	SendMessage(cBuf, from, messageNumber);
 }
 
 
 void ZebroTopLevelController::CheckForReceivedMessages()
 {
-	
+	/*
  const CCI_RangeAndBearingSensor::TReadings& tPackets = m_pcRABSens->GetReadings();
       for(size_t i = 0; i < tPackets.size(); ++i) {
 		   ZebroIdentifier receiverId = ZebroIdentifier(tPackets[i].Data[2]);
@@ -1441,7 +600,7 @@ void ZebroTopLevelController::CheckForReceivedMessages()
 			  ReceiveMessage(tPackets[i].Data);
 		  }
 		
-	  }
+	  }*/
 }
 
 void ZebroTopLevelController::BroadcastMessage(CByteArray& bytesToSend)
@@ -1574,6 +733,10 @@ void ZebroTopLevelController::Stop(){
 	direction = 0;
 	leftLegsVelocity = 0.0f;
 	rightLegsVelocity = 0.0f;
+}
+
+void ZebroTopLevelController::LayDown() {
+	Stop();
 }
 
 void ZebroTopLevelController::UpdateLegVelocities()
