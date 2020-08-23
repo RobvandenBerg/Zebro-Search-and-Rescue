@@ -745,7 +745,16 @@ void ZebroTopLevelController::UpdateLegVelocities()
 }
 
 
+void ZebroTopLevelController::BecomeCandidate()
+{
+	
+}
 
+string ZebroTopLevelController::MessageTypeToString(unsigned int messageType)
+{
+	string a = "test";
+	return a;
+}
 
 
 
