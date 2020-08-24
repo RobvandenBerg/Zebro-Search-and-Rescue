@@ -543,7 +543,7 @@ void ZebroTopLevelController::TryToDeliverMessage(CByteArray message)
 
 void ZebroTopLevelController::CheckForReceivedMessages()
 {
-	/*
+	
  const CCI_RangeAndBearingSensor::TReadings& tPackets = m_pcRABSens->GetReadings();
       for(size_t i = 0; i < tPackets.size(); ++i) {
 		   ZebroIdentifier receiverId = ZebroIdentifier(tPackets[i].Data[2]);
@@ -600,7 +600,7 @@ void ZebroTopLevelController::CheckForReceivedMessages()
 			  ReceiveMessage(tPackets[i].Data);
 		  }
 		
-	  }*/
+	  }
 }
 
 void ZebroTopLevelController::BroadcastMessage(CByteArray& bytesToSend)
@@ -648,13 +648,10 @@ void ZebroTopLevelController::SendMessage(CByteArray& bytesToSend, ZebroIdentifi
    cBuf[1] = messageNumber;
    cBuf[2] = receiverId.GetUnsignedCharValue();
    
-	cBuf[3] = bytesToSend[0];
-   cBuf[4] = bytesToSend[1];
-   cBuf[5] = bytesToSend[2];
-   cBuf[6] = bytesToSend[3];
-   cBuf[7] = bytesToSend[4];
-   cBuf[8] = bytesToSend[5];
-   cBuf[9] = bytesToSend[6];
+	for(int i = 0; i < bytesToSend.Size() && i < 7; i++)
+	{
+		cBuf[3+i] = bytesToSend[i];
+	}
    
    for(size_t i = 0; i < messageQueueSize; i++)
    {
@@ -673,7 +670,7 @@ void ZebroTopLevelController::SendMessage(CByteArray& bytesToSend, ZebroIdentifi
 			break;
 		}
    }
-   //m_pcRABAct->SetData(cBuf);
+   m_pcRABAct->SetData(cBuf);
    /* Write on robot log the sent value */
    
    
@@ -756,6 +753,35 @@ string ZebroTopLevelController::MessageTypeToString(unsigned int messageType)
 	return a;
 }
 
+
+
+
+
+
+ZebroIdentifier ZebroTopLevelController::GetIdFromArray(CByteArray& arr, int startIndex)
+{
+	CByteArray idbuilder(idsize);
+	for(int i = 0; i < idsize; i++)
+	{
+		idbuilder[i] = arr[i+startIndex];
+	}
+	return ZebroIdentifier(idbuilder);
+}
+
+
+void ZebroTopLevelController::WriteIdToArray(CByteArray& arr, int startIndex, ZebroIdentifier id)
+{
+	CByteArray idbytes = id.GetBytes(idsize);
+	for(int i = 0; i < idsize; i++)
+	{
+		arr[i+startIndex] = idbytes[i];
+	}
+}
+
+void ZebroTopLevelController::UnsetIdInArray(CByteArray& arr, int startIndex)
+{
+	WriteIdToArray(arr, startIndex, ZebroIdentifier());	
+}
 
 
 

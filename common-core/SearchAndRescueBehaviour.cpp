@@ -256,13 +256,13 @@ void SearchAndRescueBehaviour::Loop()
 		case ROLE_PASSIVE:
 		{
 			// a passive node may spontaneously try to become leader
-			int max = 6000;
+			int max = 600;
 			int min = 0;
 			int randNum = rand()%(max-min + 1) + min;
 			//AvoidObstaclesAutomatically();
-			//Stop();
-			MoveTowardsPosition(CVector3(15.0, 15.0, 0.0), 0.8);
-			if(randNum == 2 && false) // todo: This is bad syntax
+			Stop();
+			//MoveTowardsPosition(CVector3(15.0, 15.0, 0.0), 0.8);
+			if(randNum == 2) // todo: This is bad syntax
 			{
 				BecomeCandidate();
 			}
@@ -664,7 +664,7 @@ bool SearchAndRescueBehaviour::MoveTowardsPosition(CVector3 destination, Real ra
 		{
 			GoForwards();
 			returnToBasekeeperFirstTurnPreference = 0;
-			requiredGoStraightTicks = 1000;
+			requiredGoStraightTicks = 10;
 		}
 		return false; // didn't reach destination yet
 	}
@@ -1103,7 +1103,12 @@ void SearchAndRescueBehaviour::ReceiveMessage_SHAREPOSITION(ZebroIdentifier send
 			return;
 		}
 
-		if(!IsChildBasekeeper(senderId) && !mainBasekeeper.Equals(myId) && !senderId.Equals(parentBasekeeper))
+		if(IsChildBasekeeper(senderId) || parent.Equals(myId))
+		{
+			BOTDEBUG << "LFT: " << myId.ToString() << " updated " << senderId.ToString() << " as children basekeeper." << endl;
+			AddToChildrenBasekeepers(senderId, DecompressPosition(compressedPosition) - myAbsolutePosition);
+		}
+		else if(!mainBasekeeper.Equals(myId) && !senderId.Equals(parentBasekeeper))
 		{
 			if(hopsMade == 1)
 			{
@@ -1123,11 +1128,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_SHAREPOSITION(ZebroIdentifier send
 			return;
 		}
 
-		if(IsChildBasekeeper(senderId))
-		{
-			BOTDEBUG << "LFT: " << myId.ToString() << " updated " << senderId.ToString() << " as children basekeeper." << endl;
-			AddToChildrenBasekeepers(senderId, DecompressPosition(compressedPosition) - myAbsolutePosition);
-		}
+		
 	}
 }
 

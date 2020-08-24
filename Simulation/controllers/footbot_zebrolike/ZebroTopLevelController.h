@@ -168,6 +168,15 @@ public:
 	CVector3 relativeSafePosition;
 	
 	
+	
+	
+	
+	
+	ZebroIdentifier GetIdFromArray(CByteArray& arr, int startIndex);
+	void WriteIdToArray(CByteArray& arr, int startIndex, ZebroIdentifier id);
+	void UnsetIdInArray(CByteArray& arr, int startIndex);
+	
+	
 private:
 	/*
     * The following variables are used as parameters for the
