@@ -12,6 +12,7 @@ public:
 
    typedef std::map<CFootBotEntity*, std::vector<CVector3> > TWaypointMap;
    TWaypointMap m_tWaypoints;
+	CVector3 target;
    
 public:
 
@@ -26,9 +27,14 @@ public:
    inline const TWaypointMap& GetWaypoints() const {
       return m_tWaypoints;
    }
+	
+	inline const CVector3& GetTarget() const {
+		return target;
+	}
 
 private:
-
+	Real targetX;
+	Real targetY;
 };
 
 #endif

@@ -104,7 +104,9 @@
   <!-- * Loop functions * -->
   <!-- ****************** -->
   <loop_functions library="build/loop_functions/zone_loop_functions/libzone_loop_functions"
-                  label="estimatedtrajectory_loop_functions" />
+                  label="estimatedtrajectory_loop_functions">
+	  <target x="3.8" y="1.0"/>
+	</loop_functions>
 
   <!-- *********************** -->
   <!-- * Arena configuration * -->

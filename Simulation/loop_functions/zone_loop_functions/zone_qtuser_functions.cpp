@@ -10,6 +10,8 @@ CZONEQTUserFunctions::CZONEQTUserFunctions() :
    //RegisterUserFunction<CZONEQTUserFunctions,CFootBotEntity>(&CZONEQTUserFunctions::Draw);
    m_cTrajLF(dynamic_cast<CEstimatedTrajectoryLoopFunctions&>(CSimulator::GetInstance().GetLoopFunctions())) {
 	   RegisterUserFunction<CZONEQTUserFunctions,CFootBotEntity>(&CZONEQTUserFunctions::Draw);
+	   
+	target = m_cTrajLF.GetTarget();
 }
 
 /****************************************/

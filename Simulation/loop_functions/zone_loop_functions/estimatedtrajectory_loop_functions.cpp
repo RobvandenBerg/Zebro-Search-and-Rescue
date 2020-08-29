@@ -23,6 +23,22 @@ void CEstimatedTrajectoryLoopFunctions::Init(TConfigurationNode& t_tree) {
     * Go through all the robots in the environment
     * and create an entry in the waypoint map for each of them
     */
+	
+	try {
+      TConfigurationNode& tTarget = GetNode(t_tree, "target");
+		GetNodeAttribute(tTarget, "x", targetX);
+		//targetX *= targetX;
+		GetNodeAttribute(tTarget, "y", targetY);
+		//targetY *= targetY;
+		
+		}
+   catch(CARGoSException& ex) {
+      THROW_ARGOSEXCEPTION_NESTED("Error parsing argos file parameters!", ex);
+	   targetX = 0.1;
+	   targetY = 0.1;
+   }
+	target = CVector3(targetX, targetY, 0.1);
+	
    /* Get the map of all foot-bots from the space */
    CSpace::TMapPerType& tFBMap = GetSpace().GetEntitiesByType("foot-bot");
    /* Go through them */
