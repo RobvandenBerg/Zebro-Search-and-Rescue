@@ -1,5 +1,0 @@
-NUMBOTS=$1
-Echo "Amount of bots: $NUMBOTS"
-VAR=$NUMBOTS
-ROWSIZE=$(bc <<< "scale=0; sqrt($VAR-1)+1")
-echo "rows and columns: $ROWSIZE"

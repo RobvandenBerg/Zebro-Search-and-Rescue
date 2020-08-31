@@ -1,0 +1,137 @@
+ARENA=0
+NUMBOTS=10
+#LENGTH=$3
+SEED=124
+USE_VISUALIZATION=0
+
+
+
+POSITIONAL=()
+while [[ $# -gt 0 ]]
+do
+key="$1"
+
+case $key in
+    -a|--arena)
+    ARENA="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    -b|--bots)
+    NUMBOTS="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    -d|--duration)
+    LENGTH="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    -v|--visualization)
+    USE_VISUALIZATION=1
+    shift # past argument
+    ;;
+	-s|--seed)
+    SEED="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    *)    # unknown option
+    POSITIONAL+=("$1") # save it in an array for later
+    shift # past argument
+    ;;
+esac
+done
+set -- "${POSITIONAL[@]}" # restore positional parameters
+
+
+
+
+
+echo "Amount of bots: $NUMBOTS"
+VAR=$NUMBOTS
+ROWSIZE=$(bc <<< "scale=0; sqrt($VAR-1)+1")
+echo "rows and columns: $ROWSIZE"
+#SPREADSIZE=$(bc <<< "scale=3; 1/$ROWSIZE")
+SPREADSIZE=0.2
+echo "Spreadsize is $SPREADSIZE"
+
+STARTX="1.0"
+STARTY="1.0"
+
+TARGETX="0.0"
+TARGETY="0.0"
+
+WALLS=""
+
+CORRECT_ARENA=0
+if [ $ARENA = 1 ]
+then
+	CORRECT_ARENA=1
+	echo "You chose arena number 1."
+	STARTX="2.0"
+	STARTY="2.0"
+	WALLS="<box id=\"wall_north\" size=\"2,0.1,0.5\" movable=\"false\"><body position=\"0,1,0\" orientation=\"0,0,0\" /></box><box id=\"wall_south\" size=\"2,0.1,0.5\" movable=\"false\"><body position=\"0,-1,0\" orientation=\"0,0,0\" /></box><box id=\"wall_east\" size=\"0.1,2,0.5\" movable=\"false\"><body position=\"1,0,0\" orientation=\"0,0,0\" /></box><box id=\"wall_west\" size=\"0.1,2,0.5\" movable=\"false\"><body position=\"-1,0,0\" orientation=\"0,0,0\" /></box><box id=\"wall_north2\" size=\"8,0.1,0.5\" movable=\"false\"><body position=\"0,4,0\" orientation=\"0,0,0\" /></box><box id=\"wall_south2\" size=\"8,0.1,0.5\" movable=\"false\"><body position=\"0,-4,0\" orientation=\"0,0,0\" /></box><box id=\"wall_east2\" size=\"0.1,8,0.5\" movable=\"false\"><body position=\"4,0,0\" orientation=\"0,0,0\" /></box><box id=\"wall_west2\" size=\"0.1,8,0.5\" movable=\"false\"><body position=\"-4,0,0\" orientation=\"0,0,0\" /></box>"
+	TARGETX="3.8"
+	TARGETY="3.8"
+fi
+if [ $CORRECT_ARENA = 0 ]
+then
+	echo "No valid arena specified. Use -v *arena id* to specify an arena"
+	return
+fi
+
+TARGET="<target x=\"$TARGETX\" y=\"$TARGETY\"/>"
+
+VISUALIZATION=""
+if [ $USE_VISUALIZATION = 1 ]
+then
+	VISUALIZATION="<visualization><qt-opengl><user_functions library=\"build/loop_functions/zone_loop_functions/libzone_loop_functions\" label=\"zone_qtuser_functions\" /></qt-opengl></visualization>"
+fi
+
+echo "Start coordinates are ($STARTX,$STARTY)"
+
+x=0
+y=0
+BOTS=""
+for i in $(seq 1 $NUMBOTS)
+do
+	echo "Welcome $i times"
+	BOTX=$(bc <<< "scale=2; $STARTX+$x*$SPREADSIZE")
+	BOTY=$(bc <<< "scale=2; $STARTY+$y*$SPREADSIZE")
+	echo "BOTX is $BOTX and BOTY = $BOTY"
+	
+	
+	BOT="<foot-bot id=\"fb_$i\"><body position=\"$BOTX,$BOTY,0\" orientation=\"0,0,0\" /><controller config=\"fzc\"/></foot-bot>"
+	BOTS="$BOTS$BOT"
+	
+	
+	x=$(($x+1))
+	if [ $x = $ROWSIZE ]
+	then
+		x=0
+		y=$(($y+1))
+	fi
+done
+echo $TARGET
+echo $WALLS
+echo $BOTS
+echo $LENGTH
+
+sed "s~\$TARGET~$TARGET~g; s~\$WALLS~$WALLS~g; s~\$BOTS~$BOTS~g; s~\$LENGTH~$LENGTH~g; s~\$VISUALIZATION~$VISUALIZATION~g; s~\$SEED~$SEED~g" argos_file_template.txt > generated.argos
+
+
+output=$(argos3 -c generated.argos)
+while read -r line; do
+    echo "$line"
+	if [[ $line == *"Message type is 4"* ]];
+	then
+		#echo "Target was found: $line"
+	fi
+done <<< "$output"
+echo "Simulation ended."
+
+
+status=$?
+## take some decision ## 
+[ $status -eq 0 ] && echo "$cmd command was successful" || echo "$cmd failed"
