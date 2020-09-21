@@ -161,7 +161,7 @@
       $ argos3 -q media
   -->
   <media>
-  <range_and_bearing id="rab" />
+  <range_and_bearing id="rab" $CHECK_OCCLUSIONS/>
   </media>
 
   <!-- ****************** -->

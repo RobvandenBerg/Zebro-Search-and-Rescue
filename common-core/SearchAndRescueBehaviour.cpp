@@ -93,6 +93,10 @@ void SearchAndRescueBehaviour::Init() {
 	searchersToSendDownstream = 0;
 	searchersToSendUpstream = 0;
 	
+	m_pcRNG = CRandom::CreateRNG("argos");
+	
+	ticksPassed = 0;
+	
 	BOTDEBUG << "Inited SearchAndRescueBehaviour" << endl;
 }
 
@@ -102,7 +106,7 @@ void SearchAndRescueBehaviour::Init() {
 void SearchAndRescueBehaviour::ControlStep() {
 	CheckForReceivedMessages();
 	CheckPositioning();
-	
+	ticksPassed++;
 	Loop();
 	
 	TrackOwnPosition();
@@ -258,7 +262,7 @@ void SearchAndRescueBehaviour::Loop()
 			// a passive node may spontaneously try to become leader
 			int max = 600;
 			int min = 0;
-			int randNum = rand()%(max-min + 1) + min;
+			int randNum = GetRand()%(max-min + 1) + min;
 			//AvoidObstaclesAutomatically();
 			Stop();
 			//MoveTowardsPosition(CVector3(15.0, 15.0, 0.0), 0.8);
@@ -444,7 +448,7 @@ void SearchAndRescueBehaviour::Loop()
 					// just twitch a bit
 					int max = 10;
 					int min = 0;
-					int randNum = rand()%(max-min + 1) + min;
+					int randNum = GetRand()%(max-min + 1) + min;
 					if(randNum == 1)
 					{
 						GoForwards();
@@ -583,8 +587,8 @@ void SearchAndRescueBehaviour::SearchRandomly()
 	}
 	if(actionTicks == 0)
 	{
-		actionNum = (rand()%(6-0 + 1) + 0);
-		actionTicks = (rand()%(80-10 + 1) + 10);
+		actionNum = (GetRand()%(6-0 + 1) + 0);
+		actionTicks = (GetRand()%(80-10 + 1) + 10);
 	}
 	
 	if(actionNum == 0)
@@ -691,7 +695,7 @@ void SearchAndRescueBehaviour::ReceiveMessage(CByteArray message)
 	
 	int messageType = message[idsize*2+1];
 	
-	BOTDEBUG << "Message type is " << messageType << endl;
+	BOTDEBUG << "Message type is " << to_string(messageType) << endl;
 
 	switch(messageType)
 	{
@@ -1355,7 +1359,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_FOUNDTARGET(ZebroIdentifier sender
 				myTotalPathPoints = useAmountOfNodes;
 				amountOfRemainingSearchersToInstruct = useAmountOfSearchers;
 				BOTDEBUG << "use " << useAmountOfSearchers << " searchers (and 1 node)." << endl;
-				BOTDEBUG << "CYCLE COMPLETE!!!" << endl;
+				BOTDEBUG << "Mission accomplished! Ticks passed: " << (ticksPassed+1) << endl;
 			}
 			else
 			{
@@ -1426,6 +1430,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_FOUNDTARGETUPSTREAM(ZebroIdentifie
 				amountOfRemainingSearchersToInstruct = useAmountOfSearchers;
 
 				BOTDEBUG << "use " << useAmountOfSearchers << " searchers (and 1 node)." << endl;
+				BOTDEBUG << "Mission accomplished! Ticks passed: " << (ticksPassed+1) << endl;
 				sendMessageId++;
 				unsigned char msgNum = (unsigned char) sendMessageId;
 				SendMessage_PATHDATA(myId, msgNum, linkToTarget, hopsLeftToTarget - 1, amountOfSearchersLeft, sendSearchersNumber);
@@ -2043,7 +2048,7 @@ void SearchAndRescueBehaviour::DonateSearchers(int amountOfDonations)
 	
 	while(amountOfDonations > 0)
 	{
-		int chooseAction = rand()%(2-0 + 1) + 0;
+		int chooseAction = GetRand()%(2-0 + 1) + 0;
 		BOTDEBUG << "Chose random number " << chooseAction << endl;
 		if(canCreateNewBasekeeper && (!canRelocateSearchers || chooseAction == 1))
 		{
@@ -2615,7 +2620,7 @@ ZebroIdentifier SearchAndRescueBehaviour::PickRandomChildBasekeeper()
 {
 	// returns a random child basekeeper. Returns empty ZebroIdentifier if you have no child basekeepers.
 	
-	int chooseChildBasekeeper = rand()%(childrenBasekeepersTotal - 0 + 1 - 1) + 0;
+	int chooseChildBasekeeper = GetRand()%(childrenBasekeepersTotal - 0 + 1 - 1) + 0;
 	
 	ZebroIdentifier pickedChildBasekeeperId;
 	int childrenHad = 0;

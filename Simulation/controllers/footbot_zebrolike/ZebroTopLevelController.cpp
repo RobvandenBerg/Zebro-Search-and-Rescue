@@ -60,6 +60,7 @@ void ZebroTopLevelController::Init(TConfigurationNode& t_node) {
    m_pcRABSens = GetSensor <CCI_RangeAndBearingSensor >("range_and_bearing" );
    m_pcRABAct = GetActuator<CCI_RangeAndBearingActuator >("range_and_bearing");
    m_pcPosSens    = GetSensor  <CCI_PositioningSensor>("positioning");
+	m_pcRNG = CRandom::CreateRNG("argos");
    
    role = ROLE_PASSIVE;
    
@@ -98,12 +99,12 @@ void ZebroTopLevelController::Init(TConfigurationNode& t_node) {
    
    
    
-   myId = ZebroIdentifier((unsigned char)(rand()%(255-0 + 1) + 0)); // Random byte
+   myId = ZebroIdentifier((unsigned char)(GetRand()%(255-0 + 1) + 0)); // Random byte
 	
 	CByteArray id(6);
 	for(int i = 0; i < 6; i++)
 	{
-		id[i] = (unsigned char)(rand()%(255-0 + 1) + 0);
+		id[i] = (unsigned char)(GetRand()%(255-0 + 1) + 0);
 	}
 	// myId = ZebroIdentifier(id);
    
@@ -142,6 +143,15 @@ void ZebroTopLevelController::Init(TConfigurationNode& t_node) {
 
 	
 	BOTDEBUG << "Inited ZebroTopLevelController" << endl;
+}
+
+int ZebroTopLevelController::GetRand() {
+	CRange<Real> range(0.0, (Real) RAND_MAX);
+	Real res = m_pcRNG->Uniform(range);
+	return (int)res;
+	/*
+	
+	return (int)res;*/
 }
 
 /****************************************/

@@ -51,7 +51,7 @@ void CZONEQTUserFunctions::Draw(CFootBotEntity& c_entity) {
 		DrawRay(basekeeperRay, CColor::GREEN, 3.0f);
 	}
 	
-	cController.FindTarget(target, 0.14);
+	//cController.FindTarget(target, 0.14);
 }
 
 /****************************************/

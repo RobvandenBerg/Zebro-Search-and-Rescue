@@ -22,6 +22,7 @@
 /*
  * Include some necessary headers.
  */
+#include <argos3/core/utility/math/rng.h>
 /* Definition of the CCI_Controller class. */
 #include <argos3/core/control_interface/ci_controller.h>
 /* Definition of the differential steering actuator */
@@ -175,6 +176,11 @@ public:
 	ZebroIdentifier GetIdFromArray(CByteArray& arr, int startIndex);
 	void WriteIdToArray(CByteArray& arr, int startIndex, ZebroIdentifier id);
 	void UnsetIdInArray(CByteArray& arr, int startIndex);
+	
+	/* The random number generator */
+   CRandom::CRNG* m_pcRNG;
+	
+	int GetRand();
 	
 	
 private:

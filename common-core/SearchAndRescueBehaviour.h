@@ -202,6 +202,9 @@ public:
 	
 	virtual string MessageTypeToString(unsigned int messageType) override;
 	
+	/* The random number generator */
+   CRandom::CRNG* m_pcRNG;
+	
 
 private:
 	
@@ -256,6 +259,8 @@ private:
 	
 	int avoidTurnDirection;
 	int avoidingObstacleTicksLeft; // todo: change from ticks to time based system. ..or just implement a tick system on the actual zebro, based on time.
+	
+	int ticksPassed;
 };
 
 //todo: better documentation

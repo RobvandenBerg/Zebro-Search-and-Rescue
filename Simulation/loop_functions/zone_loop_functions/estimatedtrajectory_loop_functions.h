@@ -31,6 +31,8 @@ public:
 	inline const CVector3& GetTarget() const {
 		return target;
 	}
+	
+	int ticksPassed;
 
 private:
 	Real targetX;

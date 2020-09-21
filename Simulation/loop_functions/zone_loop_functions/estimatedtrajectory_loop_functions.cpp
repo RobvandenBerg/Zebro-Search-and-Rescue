@@ -54,6 +54,8 @@ void CEstimatedTrajectoryLoopFunctions::Init(TConfigurationNode& t_tree) {
       m_tWaypoints[pcFB].push_back(pcFB->GetEmbodiedEntity().GetOriginAnchor().Position);
 	  //m_tWaypoints[pcFB].push_back(cController.GetMyPosition());
    }
+	
+	ticksPassed = 0;
 }
 
 /****************************************/
@@ -76,14 +78,19 @@ void CEstimatedTrajectoryLoopFunctions::Reset() {
       /* Add the initial position of the foot-bot */
       m_tWaypoints[pcFB].push_back(pcFB->GetEmbodiedEntity().GetOriginAnchor().Position);
    }
+	
+	ticksPassed = 0;
 }
 
 /****************************************/
 /****************************************/
 
+
+
 void CEstimatedTrajectoryLoopFunctions::PostStep() {
    /* Get the map of all foot-bots from the space */
    CSpace::TMapPerType& tFBMap = GetSpace().GetEntitiesByType("foot-bot");
+	ticksPassed++;
    /* Go through them */
    for(CSpace::TMapPerType::iterator it = tFBMap.begin();
        it != tFBMap.end();
@@ -97,6 +104,8 @@ void CEstimatedTrajectoryLoopFunctions::PostStep() {
                         m_tWaypoints[pcFB].back()) > MIN_DISTANCE_SQUARED) {
          m_tWaypoints[pcFB].push_back(pos);
       }
+	   
+	  cController.FindTarget(target, 0.14);
    }
 }
 
