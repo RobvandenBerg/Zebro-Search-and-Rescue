@@ -349,25 +349,25 @@ void SearchAndRescueBehaviour::Loop()
 						BOTDEBUG << "Basekeeper " << myId.ToString() << " is disbanding because it is an end node and covered over 80% ground and [it failed to create a new node more than twice, or it still has less than two searchers]" << endl;
 						Disband();
 					}
-					else if(groundCovered >= 100  && mySearchersTotal > 1)
+					else if(groundCovered >= 100  && mySearchersTotal > 0)
 					{
-						DonateSearchers(mySearchersTotal-1);
+						DonateSearchers(mySearchersTotal-0);
 					}
-					else if(groundCovered >= 80  && mySearchersTotal > 3)
+					else if(groundCovered >= 80  && mySearchersTotal > 2)
 					{
-						DonateSearchers(mySearchersTotal-3);
+						DonateSearchers(mySearchersTotal-2);
 					}
-					else if(groundCovered >= 60  && mySearchersTotal > 5)
+					else if(groundCovered >= 60  && mySearchersTotal > 4)
 					{
-						DonateSearchers(mySearchersTotal-5);
+						DonateSearchers(mySearchersTotal-4);
 					}
-					else if(groundCovered >= 40  && mySearchersTotal > 7)
+					else if(groundCovered >= 40  && mySearchersTotal > 6)
 					{
-						DonateSearchers(mySearchersTotal-7);
+						DonateSearchers(mySearchersTotal-6);
 					}
-					else if(groundCovered >= 20 && mySearchersTotal > 9)
+					else if(groundCovered >= 20 && mySearchersTotal > 8)
 					{
-						DonateSearchers(mySearchersTotal-9);
+						DonateSearchers(mySearchersTotal-8);
 					}
 				}
 			}
