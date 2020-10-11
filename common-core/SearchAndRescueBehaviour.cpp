@@ -633,6 +633,8 @@ bool SearchAndRescueBehaviour::MoveTowardsPosition(CVector3 destination)
 
 bool SearchAndRescueBehaviour::MoveTowardsPosition(CVector3 destination, Real radius)
 {
+	// actively navigate towards destination
+	CVector3 relativeDestination = destination - myTrackedPosition;
 	if(relativeDestination.Length() <= radius)
 	{
 		Stop();
@@ -644,8 +646,7 @@ bool SearchAndRescueBehaviour::MoveTowardsPosition(CVector3 destination, Real ra
 		requiredGoStraightTicks = 0;
 		return false; // let the automatic obstacle avoidance handle it
 	}
-	// actively navigate towards destination
-	CVector3 relativeDestination = destination - myTrackedPosition;
+	
 	
 	Real wantedRotation = relativeDestination.GetZAngle().GetValue();
 
