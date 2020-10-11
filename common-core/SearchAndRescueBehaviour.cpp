@@ -2065,9 +2065,9 @@ void SearchAndRescueBehaviour::DonateSearchers(int amountOfDonations)
 	{
 		int chooseAction = GetRand()%(2-0 + 1) + 0;
 		BOTDEBUG << "Chose random number " << chooseAction << endl;
-		if(canCreateNewBasekeeper && (!canRelocateSearchers || chooseAction == 1))
+		if(canCreateNewBasekeeper && (!canRelocateSearchers || chooseAction != 1))
 		{
-			// if both actions are possible, this option has a chance of 33%
+			// if both actions are possible, this option has a chance of 67%
 			
 			// start looking for new basekeepers!
 			ticksSinceStartedLookingForNewBasekeeper = 0;
