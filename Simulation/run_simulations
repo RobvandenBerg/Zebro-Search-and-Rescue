@@ -1,0 +1,18 @@
+NUMBOTS=50
+MINBOTS=10
+BOTSSTEP=5
+STARTSEED=1
+TOTALSTEPS=6
+
+TRIES=10
+
+for i in $(seq 1 $TRIES)
+do
+	SEED=$i
+	for j in $(seq 0 $TOTALSTEPS)
+	do
+		NUMBOTS=$(($MINBOTS + $BOTSSTEP * $j))
+		echo "USING $NUMBOTS BOTS and SEED $SEED"
+		./simulate -a 2 -s $i -b $NUMBOTS
+	done
+done
