@@ -1951,7 +1951,7 @@ void SearchAndRescueBehaviour::CheckConnectionToParent()
 	// todo: what to do if a searcher loses connection to parent?
 	if(mainBasekeeper.Equals(myId)) { return; }
 	lastParentUpdate++;
-	if(lastParentUpdate > 50) // 500 ticks
+	if(lastParentUpdate > 5*50) // 5*500 ticks
 	{
 		BOTDEBUG << "Basekeeper " << myId.ToString() << " lost connection to its parent basekeeper ("<< parentBasekeeper.ToString() << ")." << endl;
 		Disband();
