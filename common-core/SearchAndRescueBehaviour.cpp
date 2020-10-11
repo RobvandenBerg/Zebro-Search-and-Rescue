@@ -2038,7 +2038,7 @@ void SearchAndRescueBehaviour::DonateSearchers(int amountOfDonations)
 	bool canCreateNewBasekeeper = false;
 	bool canRelocateSearchers = false;
 	
-	if(!satisfied && ticksSinceLastBasekeeperAppointment > 1000 && mySearchersTotal > 2 && (failedNewBasekeeperAttempts < 2 || !mainBasekeeper.Equals(myId)))
+	if(ticksSinceLastBasekeeperAppointment > 1000 && mySearchersTotal > 2 && ((!satisfied && failedNewBasekeeperAttempts < 2) || (mainBasekeeper.Equals(myId) && childrenBasekeepersTotal < 4)))
 	{
 		canCreateNewBasekeeper = true;
 	}
