@@ -386,6 +386,7 @@ void SearchAndRescueBehaviour::Loop()
 		}
 		case ROLE_SEARCHER:
 		{
+			ticksSinceLastBasekeeperMessage++;
 			if(!basekeeper.IsEmpty() && !iAmAPathpoint && !targetFound && ticksSinceLastBasekeeperMessage == 2500) // missed 5 shareposition messages in a row now
 			{
 				// Connection to basekeeper is lost.
