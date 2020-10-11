@@ -23,6 +23,7 @@ void CEstimatedTrajectoryLoopFunctions::Init(TConfigurationNode& t_tree) {
     * Go through all the robots in the environment
     * and create an entry in the waypoint map for each of them
     */
+	botId = 0;
 	
 	try {
       TConfigurationNode& tTarget = GetNode(t_tree, "target");
@@ -47,6 +48,10 @@ void CEstimatedTrajectoryLoopFunctions::Init(TConfigurationNode& t_tree) {
        ++it) {
       /* Create a pointer to the current foot-bot */
       CFootBotEntity* pcFB = any_cast<CFootBotEntity*>(it->second);
+	    SearchAndRescueBehaviour& cController = dynamic_cast<SearchAndRescueBehaviour&>(pcFB->GetControllableEntity().GetController());
+	   
+	   botId++;
+	   cController.PickId(botId);
 	  
       /* Create a waypoint vector */
       m_tWaypoints[pcFB] = std::vector<CVector3>();

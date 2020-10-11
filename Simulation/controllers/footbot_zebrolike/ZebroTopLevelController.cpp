@@ -99,7 +99,8 @@ void ZebroTopLevelController::Init(TConfigurationNode& t_node) {
    
    
    
-   myId = ZebroIdentifier((unsigned char)(GetRand()%(255-0 + 1) + 0)); // Random byte
+   //myId = ZebroIdentifier((unsigned char)(GetRand()%(255-0 + 1) + 0)); // Random byte
+	myId = ZebroIdentifier();
 	
 	CByteArray id(6);
 	for(int i = 0; i < 6; i++)
@@ -143,6 +144,11 @@ void ZebroTopLevelController::Init(TConfigurationNode& t_node) {
 
 	
 	BOTDEBUG << "Inited ZebroTopLevelController" << endl;
+}
+
+void ZebroTopLevelController::PickId(int id)
+{
+	myId = ZebroIdentifier((unsigned char) id);
 }
 
 int ZebroTopLevelController::GetRand() {

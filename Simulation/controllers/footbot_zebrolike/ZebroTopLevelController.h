@@ -182,6 +182,8 @@ public:
 	
 	int GetRand();
 	
+	void PickId(int id);
+	
 	
 private:
 	/*

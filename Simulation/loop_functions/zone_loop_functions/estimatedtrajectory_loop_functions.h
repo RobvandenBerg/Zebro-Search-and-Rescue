@@ -33,6 +33,7 @@ public:
 	}
 	
 	int ticksPassed;
+	int botId;
 
 private:
 	Real targetX;
