@@ -73,6 +73,7 @@ void SearchAndRescueBehaviour::Init() {
 	ticksUntilPositionShare = 0;
 	counter = 0;
 	ticksSinceLastHeartbeat = 0;
+	ticksSinceLastBasekeeperMessage = 0;
 	iAmAPathpoint = false; // todo: when will this be set to false again after being set to true?
 	ticksSinceStartedApplyingAsBasekeeper = -1;
 	sentFoundTargetMessage = true;
@@ -343,9 +344,9 @@ void SearchAndRescueBehaviour::Loop()
 				//BOTDEBUG << "ms: " << mySearchersTotal << " . gc: " << groundCovered << ". t: " << ticksSinceLastBasekeeperAppointment << endl;
 				if(ticksSinceStartedLookingForNewBasekeeper == -1)
 				{
-					if(groundCovered >= 80 && childrenBasekeepersTotal == 0 && failedNewBasekeeperAttempts >= 2)
+					if(groundCovered >= 80 && childrenBasekeepersTotal == 0 && (failedNewBasekeeperAttempts >= 2 || mySearchersTotal < 2) && !mainBasekeeper.Equals(myId))
 					{
-						BOTDEBUG << "Basekeeper " << myId.ToString() << " is disbanding because it is an end node and covered over 80% ground and it failed to create a new node more than twice" << endl;
+						BOTDEBUG << "Basekeeper " << myId.ToString() << " is disbanding because it is an end node and covered over 80% ground and [it failed to create a new node more than twice, or it still has less than two searchers]" << endl;
 						Disband();
 					}
 					else if(groundCovered >= 100  && mySearchersTotal > 1)
@@ -385,6 +386,14 @@ void SearchAndRescueBehaviour::Loop()
 		}
 		case ROLE_SEARCHER:
 		{
+			if(!basekeeper.IsEmpty() && !iAmAPathpoint && !targetFound && ticksSinceLastBasekeeperMessage == 2500) // missed 5 shareposition messages in a row now
+			{
+				// Connection to basekeeper is lost.
+				basekeeper = ZebroIdentifier();
+				ticksSinceStartedApplyingAsBasekeeper = -1;
+				basekeeperPositionKnown = false;
+				// todo: implement wandering behaviour
+			}
 			ticksSinceLastHeartbeat++;
 			if(ticksSinceLastHeartbeat >= 100) // send heartbeat every 100 ticks
 			{
@@ -445,6 +454,8 @@ void SearchAndRescueBehaviour::Loop()
 				}
 				else
 				{
+					SearchRandomly(); // just wander around and hope to get adopted
+					/*
 					// just twitch a bit
 					int max = 10;
 					int min = 0;
@@ -460,7 +471,7 @@ void SearchAndRescueBehaviour::Loop()
 					else
 					{
 						Stop();
-					}
+					}*/
 				}
 				break;
 			}
@@ -622,6 +633,11 @@ bool SearchAndRescueBehaviour::MoveTowardsPosition(CVector3 destination)
 
 bool SearchAndRescueBehaviour::MoveTowardsPosition(CVector3 destination, Real radius)
 {
+	if(relativeDestination.Length() <= radius)
+	{
+		Stop();
+		return true; // reached destination
+	}
 	AvoidObstaclesAutomatically();
 	if(avoidingObstacleTicksLeft != 0)
 	{
@@ -631,52 +647,44 @@ bool SearchAndRescueBehaviour::MoveTowardsPosition(CVector3 destination, Real ra
 	// actively navigate towards destination
 	CVector3 relativeDestination = destination - myTrackedPosition;
 	
-	if(relativeDestination.Length() > radius)
+	Real wantedRotation = relativeDestination.GetZAngle().GetValue();
+
+	Real allowed_leeway = 0.2;
+
+	// BOTDEBUG << "w: " << wantedRotation << ". m: " << myRotation << ". d: " << (wantedRotation - myRotation) << ". " << endl;
+
+	Real rotationDifference = wantedRotation - myRotation;
+	while(rotationDifference > M_PI)
 	{
-		Real wantedRotation = relativeDestination.GetZAngle().GetValue();
-		
-		Real allowed_leeway = 0.2;
-		
-		// BOTDEBUG << "w: " << wantedRotation << ". m: " << myRotation << ". d: " << (wantedRotation - myRotation) << ". " << endl;
-		
-		Real rotationDifference = wantedRotation - myRotation;
-		while(rotationDifference > M_PI)
-		{
-			rotationDifference -= 2*M_PI;
-		}
-		while(rotationDifference < -M_PI)
-		{
-			rotationDifference += 2*M_PI;
-		}
-		
-		if(requiredGoStraightTicks > 0)
-		{
-			requiredGoStraightTicks--;
-			GoForwards();
-			return false;
-		}
-		
-		if(rotationDifference > allowed_leeway)
-		{
-			SharpLeftTurn();
-		}
-		else if(rotationDifference < -allowed_leeway)
-		{
-			SharpRightTurn();
-		}
-		else
-		{
-			GoForwards();
-			returnToBasekeeperFirstTurnPreference = 0;
-			requiredGoStraightTicks = 10;
-		}
-		return false; // didn't reach destination yet
+		rotationDifference -= 2*M_PI;
+	}
+	while(rotationDifference < -M_PI)
+	{
+		rotationDifference += 2*M_PI;
+	}
+
+	if(requiredGoStraightTicks > 0)
+	{
+		requiredGoStraightTicks--;
+		GoForwards();
+		return false;
+	}
+
+	if(rotationDifference > allowed_leeway)
+	{
+		SharpLeftTurn();
+	}
+	else if(rotationDifference < -allowed_leeway)
+	{
+		SharpRightTurn();
 	}
 	else
 	{
-		Stop();
-		return true; // reached destination
+		GoForwards();
+		returnToBasekeeperFirstTurnPreference = 0;
+		requiredGoStraightTicks = 10;
 	}
+	return false; // didn't reach destination yet
 }
 
 std::string SearchAndRescueBehaviour::GetId()
@@ -1068,6 +1076,11 @@ void SearchAndRescueBehaviour::ReceiveMessage_SHAREPOSITION(ZebroIdentifier send
 		{
 			getAdoptedBy(senderId);
 		}
+		
+		if(senderId.Equals(basekeeper) && !senderId.Equals(myId))
+		{
+			ticksSinceLastBasekeeperMessage = 0;	// reset this variable	
+		}
 
 		if(senderId.Equals(basekeeper) || parent.Equals(parentBasekeeper) || senderId.Equals(parentBasekeeper) || hopsMade < 2)
 		{
@@ -1150,7 +1163,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_DISBAND(ZebroIdentifier senderId, 
 
 			BOTDEBUG << "Bot " << myId.ToString() << " knows its parent basekeeper disbanded" << endl;
 
-			basekeeper = 0x00;
+			basekeeper = ZebroIdentifier();
 			basekeeperPositionKnown = false;
 
 			CVector3 absoluteResponsePosition = DecompressPosition(compressedPosition);
@@ -1172,7 +1185,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_DISBAND(ZebroIdentifier senderId, 
 
 		SendMessage_DISBAND(myId, messageNumber, compressedPosition); // propagate it
 
-		basekeeper = ZebroIdentifier(0x00);
+		basekeeper = ZebroIdentifier();
 		basekeeperPositionKnown = false;
 		role = ROLE_SEARCHER;
 		ticksSinceStartedApplyingAsBasekeeper = -1;
@@ -2023,7 +2036,7 @@ void SearchAndRescueBehaviour::DonateSearchers(int amountOfDonations)
 	bool canCreateNewBasekeeper = false;
 	bool canRelocateSearchers = false;
 	
-	if(!satisfied && ticksSinceLastBasekeeperAppointment > 1000 && mySearchersTotal > 2 && failedNewBasekeeperAttempts < 2)
+	if(!satisfied && ticksSinceLastBasekeeperAppointment > 1000 && mySearchersTotal > 2 && (failedNewBasekeeperAttempts < 2 || !mainBasekeeper.Equals(myId)))
 	{
 		canCreateNewBasekeeper = true;
 	}

@@ -216,6 +216,7 @@ private:
 	int ticksUntilPositionShare;
 	int counter;
 	int ticksSinceLastHeartbeat;
+	int ticksSinceLastBasekeeperMessage;
 	bool iAmAPathpoint;
 	CVector3 pathpointPositionFromBasekeeper;
 	int searchersToSendDownstream;

@@ -1,6 +1,6 @@
 ARENA=0
 NUMBOTS=10
-LENGTH=10000
+LENGTH=100000
 SEED=124
 USE_VISUALIZATION=0
 CHECK_OCCLUSIONS=""
@@ -96,7 +96,10 @@ CORRECT_ARENA=0
 if [ $ARENA = 1 ]
 then
 	CORRECT_ARENA=1
-	echo "You chose arena number 1."
+	if [ $VERBOSE = true ]
+	then
+		echo "You chose arena number 1."
+	fi
 	STARTX="2.0"
 	STARTY="2.0"
 	WALLS="<box id=\"wall_north\" size=\"2,0.1,0.5\" movable=\"false\"><body position=\"0,1,0\" orientation=\"0,0,0\" /></box><box id=\"wall_south\" size=\"2,0.1,0.5\" movable=\"false\"><body position=\"0,-1,0\" orientation=\"0,0,0\" /></box><box id=\"wall_east\" size=\"0.1,2,0.5\" movable=\"false\"><body position=\"1,0,0\" orientation=\"0,0,0\" /></box><box id=\"wall_west\" size=\"0.1,2,0.5\" movable=\"false\"><body position=\"-1,0,0\" orientation=\"0,0,0\" /></box><box id=\"wall_north2\" size=\"8,0.1,0.5\" movable=\"false\"><body position=\"0,4,0\" orientation=\"0,0,0\" /></box><box id=\"wall_south2\" size=\"8,0.1,0.5\" movable=\"false\"><body position=\"0,-4,0\" orientation=\"0,0,0\" /></box><box id=\"wall_east2\" size=\"0.1,8,0.5\" movable=\"false\"><body position=\"4,0,0\" orientation=\"0,0,0\" /></box><box id=\"wall_west2\" size=\"0.1,8,0.5\" movable=\"false\"><body position=\"-4,0,0\" orientation=\"0,0,0\" /></box>"
@@ -106,7 +109,10 @@ fi
 if [ $ARENA = 2 ]
 then
 	CORRECT_ARENA=2
-	echo "You chose arena number 2."
+	if [ $VERBOSE = true ]
+	then
+		echo "You chose arena number 2."
+	fi
 	STARTX="2.0"
 	STARTY="2.0"
 	WALLS="<box id=\"wall_north\" size=\"2,0.1,0.5\" movable=\"false\"><body position=\"0,1,0\" orientation=\"0,0,0\" /></box><box id=\"wall_south\" size=\"2,0.1,0.5\" movable=\"false\"><body position=\"0,-1,0\" orientation=\"0,0,0\" /></box><box id=\"wall_east\" size=\"0.1,2,0.5\" movable=\"false\"><body position=\"1,0,0\" orientation=\"0,0,0\" /></box><box id=\"wall_west\" size=\"0.1,2,0.5\" movable=\"false\"><body position=\"-1,0,0\" orientation=\"0,0,0\" /></box><box id=\"wall_north2\" size=\"8,0.1,0.5\" movable=\"false\"><body position=\"0,4,0\" orientation=\"0,0,0\" /></box><box id=\"wall_south2\" size=\"8,0.1,0.5\" movable=\"false\"><body position=\"0,-4,0\" orientation=\"0,0,0\" /></box><box id=\"wall_east2\" size=\"0.1,8,0.5\" movable=\"false\"><body position=\"4,0,0\" orientation=\"0,0,0\" /></box><box id=\"wall_west2\" size=\"0.1,8,0.5\" movable=\"false\"><body position=\"-4,0,0\" orientation=\"0,0,0\" /></box>"
@@ -116,7 +122,10 @@ fi
 if [ $ARENA = 3 ]
 then
 	CORRECT_ARENA=3
-	echo "You chose arena number 3."
+	if [ $VERBOSE = true ]
+	then
+		echo "You chose arena number 3."
+	fi
 	STARTX="2.0"
 	STARTY="2.0"
 	WALLS="<box id=\"wall_north\" size=\"2,0.1,0.5\" movable=\"false\"><body position=\"0,1,0\" orientation=\"0,0,0\" /></box><box id=\"wall_south\" size=\"2,0.1,0.5\" movable=\"false\"><body position=\"0,-1,0\" orientation=\"0,0,0\" /></box><box id=\"wall_east\" size=\"0.1,2,0.5\" movable=\"false\"><body position=\"1,0,0\" orientation=\"0,0,0\" /></box><box id=\"wall_west\" size=\"0.1,2,0.5\" movable=\"false\"><body position=\"-1,0,0\" orientation=\"0,0,0\" /></box><box id=\"wall_north2\" size=\"8,0.1,0.5\" movable=\"false\"><body position=\"0,4,0\" orientation=\"0,0,0\" /></box><box id=\"wall_south2\" size=\"8,0.1,0.5\" movable=\"false\"><body position=\"0,-4,0\" orientation=\"0,0,0\" /></box><box id=\"wall_east2\" size=\"0.1,8,0.5\" movable=\"false\"><body position=\"4,0,0\" orientation=\"0,0,0\" /></box><box id=\"wall_west2\" size=\"0.1,8,0.5\" movable=\"false\"><body position=\"-4,0,0\" orientation=\"0,0,0\" /></box>"
@@ -125,7 +134,7 @@ then
 fi
 if [ $CORRECT_ARENA = 0 ]
 then
-	echo "No valid arena specified. Use -v *arena id* to specify an arena"
+	echo "No valid arena specified. Use -a *arena id* to specify an arena"
 	echo "Use -h or --help to see all possible parameters"
 	exit
 fi
@@ -189,9 +198,8 @@ then
 fi
 pid=${simulationprocess_PID}
 pid=$((pid+1))
-echo "Argos3 simulation started with a process ID of $pid"                                                                          
+echo "Running the Argos3 simulation started with a process ID of $pid..."                                                                          
 
-echo "Running the simulation..."
 
 target_found=false
 while read -r line; do
