@@ -136,6 +136,7 @@ public:
 	virtual void ReceiveMessage_PINGALLBASEKEEPERS(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, CByteArray compressedPosition);
 	virtual void ReceiveMessage_APPLYASBASEKEEPER(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, CByteArray compressedPosition);
 	virtual void ReceiveMessage_HEARTBEAT(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver);
+	virtual void ReceiveMessage_CYCLECOMPLETE(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver);
 	
 	virtual void LostConnectionToChildBasekeeper(ZebroIdentifier lostChildId);
 	

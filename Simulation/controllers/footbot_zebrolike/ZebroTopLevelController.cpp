@@ -450,6 +450,11 @@ void ZebroTopLevelController::ReceiveMessage_HEARTBEAT(ZebroIdentifier senderId,
 
 }
 
+void ZebroTopLevelController::ReceiveMessage_CYCLECOMPLETE(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver)
+{
+	
+}
+
 void ZebroTopLevelController::ReceiveMessage(CByteArray message)
 {
 		BOTDEBUG << "Receiving message in ZebroTopLevelController"  << endl;

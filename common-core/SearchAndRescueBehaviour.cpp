@@ -76,7 +76,7 @@ void SearchAndRescueBehaviour::Init() {
 	ticksSinceLastBasekeeperMessage = 0;
 	iAmAPathpoint = false; // todo: when will this be set to false again after being set to true?
 	ticksSinceStartedApplyingAsBasekeeper = -1;
-	sentFoundTargetMessage = true;
+	iAmTheReporter = false;
 	owner = ZebroIdentifier();
    father = ZebroIdentifier(); // todo: can't this just be replaced with mainBasekeeper?
 	hopsToFather = 0x00;
@@ -127,7 +127,8 @@ void SearchAndRescueBehaviour::FindTarget(CVector3 targetPosition, Real maxDista
 	if((myAbsolutePosition - targetPosition).Length() <= maxDistance)
 	{
 		targetFound = true;
-		sentFoundTargetMessage = false;
+		iAmTheReporter = true;
+		ticksUntilNextFoundMessage = 0;
 		BOTDEBUG << "Bot " << myId.ToString() << " found the target!" << endl;
 	}
 }
@@ -243,13 +244,30 @@ void SearchAndRescueBehaviour::Loop()
 	}
 #endif
 	//BOTDEBUG << "In Zebro thingy loop" << endl;
-	if(role == ROLE_SEARCHER && targetFound && !sentFoundTargetMessage)
+	if(targetFound)
 	{
-		sentFoundTargetMessage = true;
-		sendMessageId++;
-		unsigned char msgNum = (unsigned char) sendMessageId;
-		BOTDEBUG << "[" << myId.ToString() << "]: Sending found target message because I found it myself." << endl;
-		SendMessage_FOUNDTARGET(myId, msgNum, basekeeper, myAbsolutePosition);
+		if(role == ROLE_SEARCHER && ticksUntilNextFoundMessage == 0 && iAmTheReporter)
+		{
+			sendMessageId++;
+			unsigned char msgNum = (unsigned char) sendMessageId;
+			BOTDEBUG << "[" << myId.ToString() << "]: Sending found target message." << endl;
+			SendMessage_FOUNDTARGET(myId, msgNum, basekeeper, myAbsolutePosition);
+			ticksUntilNextFoundMessage = 500;
+		}
+		if(role == ROLE_SEARCHER && iAmTheReporter)
+		{
+			ticksUntilNextFoundMessage--;
+		}
+		if(!myId.Equals(mainBasekeeper))
+		{
+			ticksSinceLastPathDataMessage++;
+			if(ticksSinceLastPathDataMessage > 5*500)
+			{
+				// The target target found messaging cycle was broken/not complete
+				targetFound = false;
+				iAmAPathpoint = false;
+			}
+		}
 	}
 	decaTickCounter++;
 	if(decaTickCounter >= 10)
@@ -886,6 +904,12 @@ void SearchAndRescueBehaviour::ReceiveMessage(CByteArray message)
 			ReceiveMessage_HEARTBEAT(senderId, messageNumber, intendedReceiver);
 			break;
 		}
+			
+		case MESSAGETYPE_CYCLECOMPLETE:
+		{
+			ReceiveMessage_CYCLECOMPLETE(senderId, messageNumber, intendedReceiver);
+			break;	
+		}
 	}
 }
 
@@ -1340,6 +1364,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_FOUNDTARGET(ZebroIdentifier sender
 	if(role == ROLE_PASSIVE || role == ROLE_SEARCHER || role == ROLE_BASEKEEPER)
 	{
 		targetFound = true;
+		ticksSinceLastPathDataMessage = 0;
 		if((basekeeper.Equals(parent) || parentBasekeeper.Equals(parent)) && !senderId.Equals(myId) && !parent.Equals(myId))
 		{
 			// propagate the message
@@ -1351,6 +1376,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_FOUNDTARGET(ZebroIdentifier sender
 	if(role == ROLE_CANDIDATE || role == ROLE_BASEKEEPER)
 	{
 		targetFound = true;
+		ticksSinceLastPathDataMessage = 0;
 		if(parent.Equals(myId))
 		{
 			linkToTarget = senderId;
@@ -1392,6 +1418,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_FOUNDTARGETUPSTREAM(ZebroIdentifie
 	if(role == ROLE_PASSIVE || role == ROLE_SEARCHER || role == ROLE_BASEKEEPER)
 	{
 		targetFound = true;
+		ticksSinceLastPathDataMessage = 0;
 		if((basekeeper.Equals(parent) || parentBasekeeper.Equals(parent)) && !senderId.Equals(myId))
 		{
 			// propagate the message
@@ -1404,6 +1431,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_FOUNDTARGETUPSTREAM(ZebroIdentifie
 	{
 		totalSearchers += mySearchersTotal;
 		targetFound = true;
+		ticksSinceLastPathDataMessage = 0;
 		if(parent.Equals(myId))
 		{
 			linkToTarget = senderId;
@@ -1463,6 +1491,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_FOUNDTARGETUPSTREAM(ZebroIdentifie
 
 void SearchAndRescueBehaviour::ReceiveMessage_PATHDATA(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, ZebroIdentifier to, unsigned char hopsLeftToTarget, int amountOfSearchersLeft, int sendSearchersNumber)
 {
+	ticksSinceLastPathDataMessage = 0;
 	if(role == ROLE_PASSIVE || role == ROLE_SEARCHER || role == ROLE_BASEKEEPER)
 	{
 		if(role != ROLE_SEARCHER)
@@ -1482,11 +1511,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_PATHDATA(ZebroIdentifier senderId,
 	
 	if(role == ROLE_CANDIDATE || role == ROLE_BASEKEEPER)
 	{
-		if(!myId.Equals(to))
-		{
-			
-		}
-		else
+		if(myId.Equals(to))
 		{
 			searchersToSendDownstream = 0;
 			searchersToSendUpstream = 0;
@@ -1502,8 +1527,11 @@ void SearchAndRescueBehaviour::ReceiveMessage_PATHDATA(ZebroIdentifier senderId,
 			{
 				useAmountOfSearchers = 10;
 			}
+			if(myTotalPathPoints != useAmountOfNodes)
+			{
+				amountOfRemainingSearchersToInstruct = useAmountOfSearchers;
+			}
 			myTotalPathPoints = useAmountOfNodes;
-			amountOfRemainingSearchersToInstruct = useAmountOfSearchers;
 			amountOfSearchersLeft = amountOfSearchersLeft - useAmountOfSearchers;
 			int newSendSearchersNumber = mySearchersTotal + sendSearchersNumber - useAmountOfSearchers; // this number can be negative!
 			if(newSendSearchersNumber > 0)
@@ -1521,20 +1549,32 @@ void SearchAndRescueBehaviour::ReceiveMessage_PATHDATA(ZebroIdentifier senderId,
 			else
 			{
 				searchersToSendDownstream = 0;
-				BOTDEBUG << "CYCLE COMPLETE!!!" << endl;
+				//BOTDEBUG << "CYCLE COMPLETE!!!" << endl;
+				SendMessage_CYCLECOMPLETE(myId, msgNum, linkToTarget);
 			}
 		}
 	}
 }
 
+void SearchAndRescueBehaviour::ReceiveMessage_CYCLECOMPLETE(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver)
+{
+	if(role == ROLE_SEARCHER && iAmTheReporter && myId.Equals(intendedReceiver))
+	{
+		BOTDEBUG << "CYCLE COMPLETE!!!" << endl;
+		ticksSinceLastPathDataMessage = 0;
+	}
+}
+
 void SearchAndRescueBehaviour::ReceiveMessage_BECOMEPATHPOINT(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, ZebroIdentifier searcherId, CByteArray compressedPosition)
 {
+	ticksSinceLastPathDataMessage = 0;
 	if(role == ROLE_PASSIVE || role == ROLE_SEARCHER || role == ROLE_BASEKEEPER)
 	{
 		if(searcherId.Equals(myId))
 		{
 			iAmAPathpoint = true;
 			targetFound = true;
+			ticksSinceLastPathDataMessage = 0;
 			BOTDEBUG << "Searcher " << myId.ToString() << " is now a pathpoint for " << basekeeper.ToString() << "!" << endl;
 			pathpointPositionFromBasekeeper = DecompressPosition(compressedPosition);
 		}
@@ -1614,6 +1654,14 @@ void SearchAndRescueBehaviour::ReceiveMessage_HEARTBEAT(ZebroIdentifier senderId
 	}
 }
 
+void SearchAndRescueBehaviour::SendMessage_CYCLECOMPLETE(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier intendedReceiver)
+{
+	CByteArray cBuf(1+idsize);
+	cBuf[0] = MESSAGETYPE_CYCLECOMPLETE;
+	WriteIdToArray(cBuf, 1, intendedReceiver);
+	
+	SendMessage(cBuf, from, messageNumber);
+}
 
 void SearchAndRescueBehaviour::SendMessage_DISBAND(ZebroIdentifier from, unsigned char messageNumber, unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2)
 {
@@ -2751,6 +2799,10 @@ string SearchAndRescueBehaviour::MessageTypeToString(unsigned int messageType)
 			
 		case 23:
 			return "DETECTTARGET";
+			break;
+			
+		case 24:
+			return "CYCLECOMPLETE";
 			break;
 	}
 	return "UNKNOWN";

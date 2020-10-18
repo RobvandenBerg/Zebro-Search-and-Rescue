@@ -104,6 +104,7 @@ public:
 	virtual void ReceiveMessage_PINGALLBASEKEEPERS(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, CByteArray compressedPosition) override;
 	virtual void ReceiveMessage_APPLYASBASEKEEPER(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, CByteArray compressedPosition) override;
 	virtual void ReceiveMessage_HEARTBEAT(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver) override;
+	virtual void ReceiveMessage_CYCLECOMPLETE(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver) override;
    
 	virtual void LostConnectionToChildBasekeeper(ZebroIdentifier lostChildId) override;
 	
@@ -132,6 +133,7 @@ public:
    void SendMessage_DISBAND(ZebroIdentifier from, unsigned char messageNumber, CVector3 safePosition);
    void SendMessage_DISBAND(ZebroIdentifier from, unsigned char messageNumber, CByteArray compressedPosition);
    void SendMessage_PATHDATA(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier linkToTarget, unsigned char hopsLeftToTarget, int amountOfSearchersLeft, int sendSearchersNumber);
+	void SendMessage_CYCLECOMPLETE(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier intendedReceiver);
    
 	
 	
@@ -260,6 +262,10 @@ private:
 	
 	int avoidTurnDirection;
 	int avoidingObstacleTicksLeft; // todo: change from ticks to time based system. ..or just implement a tick system on the actual zebro, based on time.
+	
+	bool iAmTheReporter;
+	int ticksUntilNextFoundMessage;
+	int ticksSinceLastPathDataMessage;
 	
 	int ticksPassed;
 };
