@@ -39,6 +39,7 @@ void CEstimatedTrajectoryLoopFunctions::Init(TConfigurationNode& t_tree) {
 	   targetY = 0.1;
    }
 	target = CVector3(targetX, targetY, 0.1);
+	bool firstBot = true;
 	
    /* Get the map of all foot-bots from the space */
    CSpace::TMapPerType& tFBMap = GetSpace().GetEntitiesByType("foot-bot");
@@ -52,6 +53,12 @@ void CEstimatedTrajectoryLoopFunctions::Init(TConfigurationNode& t_tree) {
 	   
 	   botId++;
 	   cController.PickId(botId);
+	   
+	   if(firstBot)
+	   {
+		   cController.BecomeCandidate();
+			firstBot = false;
+	   }
 	  
       /* Create a waypoint vector */
       m_tWaypoints[pcFB] = std::vector<CVector3>();
