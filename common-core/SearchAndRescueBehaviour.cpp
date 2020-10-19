@@ -1579,10 +1579,10 @@ void SearchAndRescueBehaviour::ReceiveMessage_PATHDATA(ZebroIdentifier senderId,
 
 void SearchAndRescueBehaviour::ReceiveMessage_CYCLECOMPLETE(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver)
 {
+	ticksSinceLastPathDataMessage = 0;
 	if(role == ROLE_SEARCHER && iAmTheReporter && myId.Equals(intendedReceiver))
 	{
 		BOTDEBUG << "CYCLE COMPLETE!!!" << endl;
-		ticksSinceLastPathDataMessage = 0;
 	}
 	else if(role == ROLE_BASEKEEPER && linkToTarget.IsEmpty())
 	{
