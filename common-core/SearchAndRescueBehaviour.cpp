@@ -90,6 +90,7 @@ void SearchAndRescueBehaviour::Init() {
 	decaTickCounter = 0;
 	killed = false;
 	avoidingObstacleTicksLeft = 0;
+	ignoringTargetTicks = 0;
 	
 	searchersToSendDownstream = 0;
 	searchersToSendUpstream = 0;
@@ -124,7 +125,7 @@ void SearchAndRescueBehaviour::FindTarget(CVector3 targetPosition, Real maxDista
 	{
 		return;
 	}
-	if((myAbsolutePosition - targetPosition).Length() <= maxDistance)
+	if((myAbsolutePosition - targetPosition).Length() <= maxDistance && ignoringTargetTicks == 0)
 	{
 		targetFound = true;
 		iAmTheReporter = true;
@@ -258,16 +259,27 @@ void SearchAndRescueBehaviour::Loop()
 		{
 			ticksUntilNextFoundMessage--;
 		}
-		if(!myId.Equals(mainBasekeeper))
-		{
+		//if(!myId.Equals(mainBasekeeper))
+		//{
 			ticksSinceLastPathDataMessage++;
 			if(ticksSinceLastPathDataMessage > 5*500)
 			{
 				// The target target found messaging cycle was broken/not complete
 				targetFound = false;
+				linkToTarget = ZebroIdentifier();
 				iAmAPathpoint = false;
+				iAmTheReporter = false;
+				ticksUntilNextFoundMessage = 0;
+				myTotalPathPoints = 0;
+				amountOfRemainingSearchersToInstruct = 0;
+				ignoringTargetTicks = 500;
+				
 			}
-		}
+		//}
+	}
+	if(ignoringTargetTicks > 0)
+	{
+		ignoringTargetTicks--;	
 	}
 	decaTickCounter++;
 	if(decaTickCounter >= 10)
@@ -405,7 +417,7 @@ void SearchAndRescueBehaviour::Loop()
 		case ROLE_SEARCHER:
 		{
 			ticksSinceLastBasekeeperMessage++;
-			if(!basekeeper.IsEmpty() && !iAmAPathpoint && !targetFound && ticksSinceLastBasekeeperMessage == 2500) // missed 5 shareposition messages in a row now
+			if(!basekeeper.IsEmpty() && !iAmAPathpoint && ticksSinceLastBasekeeperMessage == 2500) // missed 5 shareposition messages in a row now
 			{
 				// Connection to basekeeper is lost.
 				basekeeper = ZebroIdentifier();
@@ -524,28 +536,22 @@ void SearchAndRescueBehaviour::Loop()
 					}
 					MoveTowardsPosition(lastMeasuredBasekeeperPosition, 1);
 				}
+				else if(targetFound && iAmTheReporter)
+				{
+					Stop();
+				}
+				else if(iAmAPathpoint)
+				{
+					// todo: form more perfect line by going as perfectly to the point as possible.
+					bool reached = MoveTowardsPosition(lastMeasuredBasekeeperPosition + pathpointPositionFromBasekeeper, 0.1);
+					if(reached)
+					{
+						Stop();
+					}
+				}
 				else
 				{
-					if(targetFound)
-					{
-						if(iAmAPathpoint)
-						{
-							// todo: form more perfect line by going as perfectly to the point as possible.
-							bool reached = MoveTowardsPosition(lastMeasuredBasekeeperPosition + pathpointPositionFromBasekeeper, 0.1);
-							if(reached)
-							{
-								Stop();
-							}
-						}
-						else
-						{
-							Stop();
-						}
-					}
-					else
-					{
-						SearchRandomly();
-					}
+					SearchRandomly();
 				}
 			}
 		}
@@ -723,7 +729,7 @@ void SearchAndRescueBehaviour::ReceiveMessage(CByteArray message)
 	
 	int messageType = message[idsize*2+1];
 	
-	BOTDEBUG << "Message type is " << to_string(messageType) << endl;
+	BOTDEBUG << "Message type is " << MessageTypeToString(messageType) << endl;
 
 	switch(messageType)
 	{
@@ -1401,6 +1407,10 @@ void SearchAndRescueBehaviour::ReceiveMessage_FOUNDTARGET(ZebroIdentifier sender
 				amountOfRemainingSearchersToInstruct = useAmountOfSearchers;
 				BOTDEBUG << "use " << useAmountOfSearchers << " searchers (and 1 node)." << endl;
 				BOTDEBUG << "Mission accomplished! Ticks passed: " << (ticksPassed+1) << endl;
+				sendMessageId++;
+				unsigned char msgNum = (unsigned char) sendMessageId;
+				SendMessage_CYCLECOMPLETE(myId, msgNum, linkToTarget);
+				ticksSinceLastPathDataMessage = 0;
 			}
 			else
 			{
@@ -1477,6 +1487,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_FOUNDTARGETUPSTREAM(ZebroIdentifie
 				sendMessageId++;
 				unsigned char msgNum = (unsigned char) sendMessageId;
 				SendMessage_PATHDATA(myId, msgNum, linkToTarget, hopsLeftToTarget - 1, amountOfSearchersLeft, sendSearchersNumber);
+				ticksSinceLastPathDataMessage = 0;
 			}
 			else
 			{
@@ -1553,6 +1564,11 @@ void SearchAndRescueBehaviour::ReceiveMessage_PATHDATA(ZebroIdentifier senderId,
 				SendMessage_CYCLECOMPLETE(myId, msgNum, linkToTarget);
 			}
 		}
+		else if(linkToTarget.IsEmpty())
+		{
+			// This basekeeper is not part of the chain from the main base keeper to the target. So disband
+			Disband();
+		}
 	}
 }
 
@@ -1562,6 +1578,11 @@ void SearchAndRescueBehaviour::ReceiveMessage_CYCLECOMPLETE(ZebroIdentifier send
 	{
 		BOTDEBUG << "CYCLE COMPLETE!!!" << endl;
 		ticksSinceLastPathDataMessage = 0;
+	}
+	else if(role == ROLE_BASEKEEPER && linkToTarget.IsEmpty())
+	{
+		// This basekeeper is not part of the chain from the main base keeper to the target. So disband
+		Disband();
 	}
 }
 
@@ -1592,6 +1613,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_BECOMEPATHPOINT(ZebroIdentifier se
 		{
 			
 		}
+		
 	}
 }
 
@@ -2047,6 +2069,10 @@ void SearchAndRescueBehaviour::RelocateSearchersNeededElsewhere()
 			BOTDEBUG << "ERROR! Couldn't relocate any searcher, though bot " << myId.ToString() << " expected to be able to." << endl;	
 			return;
 		}
+		if(pickedSearcherId.Equals(linkToTarget))
+		{
+			continue; // don't relocate the node that found the target	
+		}
 		AddToIgnoreSearchers(pickedSearcherId);
 		
 		sendMessageId++;
@@ -2216,6 +2242,11 @@ void SearchAndRescueBehaviour::TryToInstructSearchers()
 		{
 			// none of the current searchers can be picked right now. Maybe at some later point?
 			return;
+		}
+		if(pickedSearcherId.Equals(linkToTarget))
+		{
+			BOTDEBUG << "Do not instruct " << pickedSearcherId.ToString() << "!" << endl;
+			continue; // don't make a pathpoint out of the node that found the target	
 		}
 		AddToIgnoreSearchers(pickedSearcherId); // to do: this can be done better... the whole iAmAPathpoint thing
 		

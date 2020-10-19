@@ -259,6 +259,7 @@ private:
 	int decaTickCounter;
 	
 	bool killed;
+	int ignoringTargetTicks;
 	
 	int avoidTurnDirection;
 	int avoidingObstacleTicksLeft; // todo: change from ticks to time based system. ..or just implement a tick system on the actual zebro, based on time.
