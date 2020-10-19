@@ -125,8 +125,9 @@ void SearchAndRescueBehaviour::FindTarget(CVector3 targetPosition, Real maxDista
 	{
 		return;
 	}
-	if((myAbsolutePosition - targetPosition).Length() <= maxDistance && ignoringTargetTicks == 0)
+	if((myAbsolutePosition - targetPosition).Length() <= maxDistance && ignoringTargetTicks == 0 && basekeeperPositionKnown && role == ROLE_SEARCHER)
 	{
+		// todo: what happens if role is ROLE_BASEKEEPER?
 		targetFound = true;
 		iAmTheReporter = true;
 		ticksUntilNextFoundMessage = 0;
@@ -273,6 +274,7 @@ void SearchAndRescueBehaviour::Loop()
 				myTotalPathPoints = 0;
 				amountOfRemainingSearchersToInstruct = 0;
 				ignoringTargetTicks = 500;
+				ticksSinceLastPathDataMessage = 0;
 				
 			}
 		//}
@@ -509,7 +511,23 @@ void SearchAndRescueBehaviour::Loop()
 			else
 			{
 				// actively navigate towards father
-				Real distanceToBasekeeper = (lastMeasuredBasekeeperPosition - myTrackedPosition).Length() ;
+				if(targetFound && iAmTheReporter)
+				{
+					Stop();
+					break;
+				}
+				else if(targetFound && iAmAPathpoint)
+				{
+					// todo: form more perfect line by going as perfectly to the point as possible.
+					bool reached = MoveTowardsPosition(lastMeasuredBasekeeperPosition + pathpointPositionFromBasekeeper, 0.1);
+					if(reached)
+					{
+						Stop();
+					}
+					break;
+				}
+				
+				Real distanceToBasekeeper = (lastMeasuredBasekeeperPosition - myTrackedPosition).Length();
 				if(returningToBasekeeper)
 				{
 					bool reached = MoveTowardsPosition(lastMeasuredBasekeeperPosition, 1.5);
@@ -535,19 +553,6 @@ void SearchAndRescueBehaviour::Loop()
 						returnToBasekeeperFirstTurnPreference = 2;
 					}
 					MoveTowardsPosition(lastMeasuredBasekeeperPosition, 1);
-				}
-				else if(targetFound && iAmTheReporter)
-				{
-					Stop();
-				}
-				else if(iAmAPathpoint)
-				{
-					// todo: form more perfect line by going as perfectly to the point as possible.
-					bool reached = MoveTowardsPosition(lastMeasuredBasekeeperPosition + pathpointPositionFromBasekeeper, 0.1);
-					if(reached)
-					{
-						Stop();
-					}
 				}
 				else
 				{
