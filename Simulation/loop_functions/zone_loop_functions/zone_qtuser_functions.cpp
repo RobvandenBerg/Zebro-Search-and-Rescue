@@ -37,8 +37,8 @@ void CZONEQTUserFunctions::Draw(CFootBotEntity& c_entity) {
 	);
    }
 	std::string s = "";
-		   s.append(c_entity.GetId().c_str());
-		   s.append(" - ");
+		   //s.append(c_entity.GetId().c_str());
+		   //s.append(" - ");
 		   s.append(cController.GetId());
 	DrawText(CVector3(0.0, 0.0, 0.3),   // position
            //c_entity.GetId().c_str() << " - " << cController.GetId()); // text
@@ -85,12 +85,12 @@ void CZONEQTUserFunctions::DrawWaypoints(const std::vector<CVector3>& c_waypoint
 void CZONEQTUserFunctions::DrawTarget() {
    if(target.GetX() == 0)
    {
-		target = CVector3(3.8,1, 0.1);
+		target = CVector3(3.8,1, 0.2);
    }
    
    DrawCircle(CVector3(target.GetX(), target.GetY(), target.GetZ()),
 		CQuaternion(),
-		0.1,
+		0.2,
 		CColor::YELLOW,
 		true,
 		10 

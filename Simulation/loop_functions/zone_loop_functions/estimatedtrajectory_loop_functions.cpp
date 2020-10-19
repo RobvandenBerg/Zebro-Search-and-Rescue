@@ -117,7 +117,7 @@ void CEstimatedTrajectoryLoopFunctions::PostStep() {
          m_tWaypoints[pcFB].push_back(pos);
       }
 	   
-	  cController.FindTarget(target, 0.14);
+	  cController.FindTarget(target, 0.24);
    }
 }
 
