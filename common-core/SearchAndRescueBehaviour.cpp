@@ -2620,6 +2620,7 @@ void SearchAndRescueBehaviour::ResetChildrenBasekeepers()
 	{
 		childrenBasekeepers[i] = 0x00;
 	}
+	childrenBasekeepersTotal = 0;
 }
 
 void SearchAndRescueBehaviour::ResetIgnoreSearchers()
