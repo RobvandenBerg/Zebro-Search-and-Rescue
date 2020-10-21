@@ -2228,6 +2228,7 @@ void SearchAndRescueBehaviour::BecomeBasekeeper()
 	satisfied = false;
 	ResetChildrenBasekeepers(); // to do: implement this in the init
 	ResetIgnoreSearchers();
+	ResetMySearchers();
 	ticksSinceStartedLookingForNewBasekeeper = -1;
 	ticksSinceLastBasekeeperAppointment = 0;
 	amountOfRemainingSearchersToInstruct = 0;
@@ -2644,6 +2645,7 @@ void SearchAndRescueBehaviour::ResetMySearchers()
 	{
 		mySearchers[i] = 0x00;	
 	}
+	mySearchersTotal = 0;
 }
 
 
