@@ -373,6 +373,17 @@ void SearchAndRescueBehaviour::Loop()
 					}
 				}
 				
+				
+				double A = 10.0; // This defines the rate at which the basekeeper will donate searchers
+				int botsToKeep = (int) ceil((double) (10.0 - (A * (groundCovered/100.0)))/2)*2;
+				
+				if(botsToKeep < 0)
+				{
+					botsToKeep = 0;	
+				}
+				
+				int botsAvailableToDonate = mySearchersTotal - botsToKeep;
+				
 				//BOTDEBUG << "ms: " << mySearchersTotal << " . gc: " << groundCovered << ". t: " << ticksSinceLastBasekeeperAppointment << endl;
 				if(ticksSinceStartedLookingForNewBasekeeper == -1)
 				{
@@ -381,6 +392,11 @@ void SearchAndRescueBehaviour::Loop()
 						BOTDEBUG << "Basekeeper " << myId.ToString() << " is disbanding because it is an end node and covered over 80% ground and [it failed to create a new node more than twice, or it still has less than two searchers]" << endl;
 						Disband();
 					}
+					else if(botsAvailableToDonate > 0)
+					{
+						DonateSearchers(botsAvailableToDonate);
+					}
+					/*
 					else if(groundCovered >= 100  && mySearchersTotal > 0)
 					{
 						DonateSearchers(mySearchersTotal-0);
@@ -399,8 +415,12 @@ void SearchAndRescueBehaviour::Loop()
 					}
 					else if(groundCovered >= 20 && mySearchersTotal > 8)
 					{
+						if(mySearchersTotal - 8 != botsAvailableToDonate)
+						{
+							BOTDEBUG << endl << endl << "ERR: " << (mySearchersTotal - 8) << " is not " << botsAvailableToDonate << " ( " << botsToKeep << ", " << groundCovered << ", " << (10.0 - (A * (groundCovered/100.0))) << ", " << ceil((double) (10.0 - (A * (groundCovered/100.0)))/2.0) << ", " << ceil((double) (10.0 - (A * (groundCovered/100.0)))/2.0)*2 << ")." << endl << endl;	
+						}
 						DonateSearchers(mySearchersTotal-8);
-					}
+					}*/
 				}
 			}
 			
