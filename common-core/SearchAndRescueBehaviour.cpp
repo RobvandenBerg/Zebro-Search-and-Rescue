@@ -998,7 +998,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_CAPTUREACK(ZebroIdentifier senderI
 		{
 			sendMessageId++;
 			msgNum = (unsigned char) sendMessageId;
-			SendMessage_CAPTUREACK(myId, msgNum, hopsToFather - 0x01, father, myId, 0x00, 0x00);
+			SendMessage_CAPTUREACK(myId, msgNum, hopsToFather - 0x01, father, myId, ZebroIdentifier(), ZebroIdentifier());
 		}
 	}
 	if(role == ROLE_CANDIDATE || role == ROLE_BASEKEEPER)
@@ -1073,7 +1073,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_CAPTUREBROADCAST(ZebroIdentifier s
 					BOTDEBUG << "205 GETS PWND BY " << senderId.ToString() << endl;	
 				}
 				role = ROLE_SEARCHER; // Change role to searcher
-				level = level + 1;
+				// level = level + 1; This line "optimalisation" actually breaks the algorithm in some cases...
 				//from = myId;
 				hopsToFather = hopsMade;
 				// Ack father
@@ -1103,6 +1103,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_CAPTUREBROADCAST(ZebroIdentifier s
 			if(res == 1)
 			{
 				// get captured
+				int levelCached = level;
 				level = receivedLevel;
 				owner = candidateId.Copy();
 				father = candidateId;
@@ -1110,10 +1111,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_CAPTUREBROADCAST(ZebroIdentifier s
 				basekeeper = mainBasekeeper;
 				hopsToFather = hopsMade;
 				killed = true; // todo: do something with this flag??
-				BOTDEBUG << "I (id ";
-				BOTDEBUG << myId.ToString();
-				BOTDEBUG << ") got killed by this message";
-				BOTDEBUG << endl;
+				BOTDEBUG << "I (id " << myId.ToString() << ") got killed by this message. My level was " << levelCached << " and received level is " << receivedLevel << endl;
 				role = ROLE_SEARCHER;
 				sendMessageId++;
 				unsigned char msgNum = (unsigned char) sendMessageId;
