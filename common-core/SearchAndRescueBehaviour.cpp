@@ -1692,7 +1692,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_HEARTBEAT(ZebroIdentifier senderId
 {
 	if(role == ROLE_CANDIDATE || role == ROLE_BASEKEEPER)
 	{
-		if(!IsIgnoringSearcher(senderId)) // we are ignoring heartbeats from this searcher if we just relocated this searcher to a child basekeeper less than 200 ticks ago
+		if(!IsIgnoringSearcher(senderId) && !parentBasekeeper.Equals(senderId)) // we are ignoring heartbeats from this searcher if we just relocated this searcher to a child basekeeper less than 200 ticks ago
 		{
 			AddToMySearchers(senderId);
 		}
