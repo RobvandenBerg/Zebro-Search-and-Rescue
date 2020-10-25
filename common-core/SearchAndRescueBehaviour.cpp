@@ -597,20 +597,7 @@ void SearchAndRescueBehaviour::Loop()
 				}
 				if(distanceToBasekeeper > 2.5)
 				{
-					returningToBasekeeper = true;
-					
-					CVector3 relativeDestination = lastMeasuredBasekeeperPosition - myTrackedPosition;
-					Real wantedRotation = relativeDestination.GetZAngle().GetValue();
-					Real rotationDifference = wantedRotation - myRotation;
-					if(rotationDifference < 0)
-					{
-						returnToBasekeeperFirstTurnPreference = 1;
-					}
-					else
-					{
-						returnToBasekeeperFirstTurnPreference = 2;
-					}
-					MoveTowardsPosition(lastMeasuredBasekeeperPosition, 1);
+					StartHeadingToBasekeeper();
 				}
 				else
 				{
@@ -621,6 +608,23 @@ void SearchAndRescueBehaviour::Loop()
 	}
 	
 	PostLoop();
+}
+
+void SearchAndRescueBehaviour::StartHeadingToBasekeeper()
+{
+	returningToBasekeeper = true;
+	CVector3 relativeDestination = lastMeasuredBasekeeperPosition - myTrackedPosition;
+	Real wantedRotation = relativeDestination.GetZAngle().GetValue();
+	Real rotationDifference = wantedRotation - myRotation;
+	if(rotationDifference < 0)
+	{
+		returnToBasekeeperFirstTurnPreference = 1;
+	}
+	else
+	{
+		returnToBasekeeperFirstTurnPreference = 2;
+	}
+	MoveTowardsPosition(lastMeasuredBasekeeperPosition, 1);
 }
 
 void SearchAndRescueBehaviour::PostLoop()
@@ -1226,6 +1230,10 @@ void SearchAndRescueBehaviour::ReceiveMessage_SHAREPOSITION(ZebroIdentifier send
 			myLastAbsolutePosition = myAbsolutePosition;
 			lastMeasuredBasekeeperPosition = absoluteBasekeeperPosition - myAbsolutePosition;
 			myTrackedPosition = CVector3();
+			if(!basekeeperPositionKnown)
+			{
+				StartHeadingToBasekeeper();
+			}
 			basekeeperPositionKnown = true;
 		}
 	}
@@ -1245,6 +1253,10 @@ void SearchAndRescueBehaviour::ReceiveMessage_SHAREPOSITION(ZebroIdentifier send
 			myLastAbsolutePosition = myAbsolutePosition;
 			lastMeasuredParentBasekeeperPosition = absoluteParentBasekeeperPosition - myAbsolutePosition;
 			myTrackedPosition = CVector3();
+			if(!basekeeperPositionKnown)
+			{
+				StartHeadingToBasekeeper();
+			}
 			basekeeperPositionKnown = true;
 			return;
 		}
@@ -1397,6 +1409,10 @@ void SearchAndRescueBehaviour::ReceiveMessage_PINGREPLY(ZebroIdentifier senderId
 				lastMeasuredBasekeeperPosition = relativeResponsePosition;
 				myLastAbsolutePosition = myAbsolutePosition;
 				myTrackedPosition = CVector3();
+				if(!basekeeperPositionKnown)
+				{
+					StartHeadingToBasekeeper();
+				}
 				basekeeperPositionKnown = true;
 			}
 

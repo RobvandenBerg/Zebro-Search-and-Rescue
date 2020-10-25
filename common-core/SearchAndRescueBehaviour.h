@@ -137,7 +137,7 @@ public:
    
 	
 	
-   
+   void StartHeadingToBasekeeper();
    void SearchRandomly();
    bool MoveTowardsPosition(CVector3 destination, Real radius);
    bool MoveTowardsPosition(CVector3 destination);

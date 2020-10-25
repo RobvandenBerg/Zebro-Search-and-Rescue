@@ -1,0 +1,21 @@
+
+NUMBOTS=25
+MINVAR=0.0
+VARSTEP=0.1
+STARTSEED=1
+TOTALSTEPS=8
+
+TRIES=10
+
+ENDSEED=$(echo "$STARTSEED + $TRIES - 1" | bc)
+
+for i in $(seq $STARTSEED $ENDSEED)
+do
+	SEED=$i
+	for j in $(seq 0 $TOTALSTEPS)
+	do
+		VAR=$(echo "$MINVAR + $VARSTEP * $j" | bc)
+		echo "USING $VAR VAR and SEED $SEED"
+		./simulate -a 3 -s $i -b $NUMBOTS -p $VAR
+	done
+done
