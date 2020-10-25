@@ -24,7 +24,19 @@ void CEstimatedTrajectoryLoopFunctions::Init(TConfigurationNode& t_tree) {
     * and create an entry in the waypoint map for each of them
     */
 	botId = 0;
-	
+	debug = false;
+	try {
+		TConfigurationNode & debugSettings = GetNode(t_tree, "debug");
+		string debugString;
+		GetNodeAttribute(debugSettings, "value", debugString);
+		if(debugString.compare("true") == 0)
+		{
+			debug = true;	
+		}
+	}
+	catch(CARGoSException& ex) {
+      THROW_ARGOSEXCEPTION_NESTED("Error getting debug paramter", ex);
+   }
 	try {
       TConfigurationNode& tTarget = GetNode(t_tree, "target");
 		GetNodeAttribute(tTarget, "x", targetX);
@@ -50,6 +62,8 @@ void CEstimatedTrajectoryLoopFunctions::Init(TConfigurationNode& t_tree) {
       /* Create a pointer to the current foot-bot */
       CFootBotEntity* pcFB = any_cast<CFootBotEntity*>(it->second);
 	    SearchAndRescueBehaviour& cController = dynamic_cast<SearchAndRescueBehaviour&>(pcFB->GetControllableEntity().GetController());
+	   
+	   cController.SetDebug(debug);
 	   
 	   botId++;
 	   cController.PickId(botId);

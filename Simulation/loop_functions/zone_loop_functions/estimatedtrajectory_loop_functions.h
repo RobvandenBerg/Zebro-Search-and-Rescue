@@ -34,6 +34,7 @@ public:
 	
 	int ticksPassed;
 	int botId;
+	bool debug;
 
 private:
 	Real targetX;

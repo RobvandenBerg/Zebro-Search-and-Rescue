@@ -51,7 +51,10 @@ void SearchAndRescueBehaviour::Init(ZebroIdentifier id)
 {
 	myId = id.Copy();
 	
-	BOTDEBUG << "init with id " << myId.ToString() << endl;
+	if(debug)
+	{
+		BOTDEBUG << "init with id " << myId.ToString() << endl;
+	}
 	Init();
 }
 
@@ -101,7 +104,10 @@ void SearchAndRescueBehaviour::Init() {
 	
 	ticksPassed = 0;
 	
-	BOTDEBUG << "Inited SearchAndRescueBehaviour" << endl;
+	if(debug)
+	{
+		BOTDEBUG << "Inited SearchAndRescueBehaviour" << endl;
+	}
 }
 
 /****************************************/
@@ -133,7 +139,10 @@ void SearchAndRescueBehaviour::FindTarget(CVector3 targetPosition, Real maxDista
 		targetFound = true;
 		iAmTheReporter = true;
 		ticksUntilNextFoundMessage = 0;
-		BOTDEBUG << "Bot " << myId.ToString() << " found the target!" << endl;
+		if(debug)
+		{
+			BOTDEBUG << "Bot " << myId.ToString() << " found the target!" << endl;
+		}
 	}
 }
 
@@ -254,7 +263,10 @@ void SearchAndRescueBehaviour::Loop()
 		{
 			sendMessageId++;
 			unsigned char msgNum = (unsigned char) sendMessageId;
-			BOTDEBUG << "[" << myId.ToString() << "]: Sending found target message." << endl;
+			if(debug)
+			{
+				BOTDEBUG << "[" << myId.ToString() << "]: Sending found target message." << endl;
+			}
 			SendMessage_FOUNDTARGET(myId, msgNum, basekeeper, myAbsolutePosition);
 			ticksUntilNextFoundMessage = 500;
 		}
@@ -351,20 +363,28 @@ void SearchAndRescueBehaviour::Loop()
 							ticksSinceLastBasekeeperAppointment = 0;
 							ticksSinceStartedLookingForNewBasekeeper = -1;
 							failedNewBasekeeperAttempts = 0;
-							BOTDEBUG << "Accept this applicant as new basekeeper: " << bestApplicant.ToString() << "!" << endl;
-							
+							if(debug)
+							{
+								BOTDEBUG << "Accept this applicant as new basekeeper: " << bestApplicant.ToString() << "!" << endl;
+							}
 							sendMessageId++;
 							unsigned char msgNum = (unsigned char) sendMessageId;
 							SendMessage_APPOINTNEWBASEKEEPER(myId, msgNum, bestApplicant, basekeeperLevel + 1);
 							// RemoveFromMySearchers(bestApplicant); This is now automatically done within the AddToChildrenBasekeepers function
-							BOTDEBUG << "LFT2: " << myId.ToString() << " added " << bestApplicant.ToString() << " to its children basekeepers." << endl;
+							if(debug)
+							{
+								BOTDEBUG << "LFT2: " << myId.ToString() << " added " << bestApplicant.ToString() << " to its children basekeepers." << endl;
+							}
 							AddToChildrenBasekeepers(bestApplicant, bestApplicantPosition);
 							RelocateRandomSearcherToChildBasekeeper(bestApplicant, bestApplicantPosition);
 						}
 						else
 						{
 							failedNewBasekeeperAttempts++;
-							BOTDEBUG << "Basekeeper " << myId.ToString() << " did not appoint a new basekeeper, because nobody meets the criteria!" << endl;
+							if(debug)
+							{
+								BOTDEBUG << "Basekeeper " << myId.ToString() << " did not appoint a new basekeeper, because nobody meets the criteria!" << endl;
+							}
 						}
 					}
 					
@@ -391,7 +411,10 @@ void SearchAndRescueBehaviour::Loop()
 				{
 					if(groundCovered >= 80 && childrenBasekeepersTotal == 0 && (failedNewBasekeeperAttempts >= 2 || mySearchersTotal < 2) && !mainBasekeeper.Equals(myId))
 					{
-						BOTDEBUG << "Basekeeper " << myId.ToString() << " is disbanding because it is an end node and covered over 80% ground and [it failed to create a new node more than twice, or it still has less than two searchers]" << endl;
+						if(debug)
+						{
+							BOTDEBUG << "Basekeeper " << myId.ToString() << " is disbanding because it is an end node and covered over 80% ground and [it failed to create a new node more than twice, or it still has less than two searchers]" << endl;
+						}
 						Disband();
 					}
 					else if(botsAvailableToDonate > 0)
@@ -494,7 +517,10 @@ void SearchAndRescueBehaviour::Loop()
 					if(ticksSinceStartedApplyingAsBasekeeper > 1200)
 					{
 						// Apparently this searcher did not become the new basekeeper.
-						BOTDEBUG << "Bot " << myId.ToString() << " concludes it did not become the new basekeeper." << endl;
+						if(debug)
+						{
+							BOTDEBUG << "Bot " << myId.ToString() << " concludes it did not become the new basekeeper." << endl;
+						}
 						ticksSinceStartedApplyingAsBasekeeper = -1;
 					}
 					break;
@@ -753,7 +779,6 @@ std::string SearchAndRescueBehaviour::GetId()
 
 void SearchAndRescueBehaviour::ReceiveMessage(CByteArray message)
 {
-	BOTDEBUG << "Receiving message in SearchAndRescueBehaviour" << endl;
 	
 	ZebroIdentifier senderId = GetIdFromArray(message, 0);
 	unsigned char messageNumber = message[idsize];
@@ -761,7 +786,10 @@ void SearchAndRescueBehaviour::ReceiveMessage(CByteArray message)
 	
 	int messageType = message[idsize*2+1];
 	
-	BOTDEBUG << "Message type is " << MessageTypeToString(messageType) << endl;
+	if(debug)
+	{
+		BOTDEBUG << "Receiving a " << MessageTypeToString(messageType) << " message in SearchAndRescueBehaviour" << endl;
+	}
 
 	switch(messageType)
 	{
@@ -780,7 +808,10 @@ void SearchAndRescueBehaviour::ReceiveMessage(CByteArray message)
 
 		case MESSAGETYPE_CAPTUREBROADCAST:
 		{
-			BOTDEBUG << "It is a broadcast." << endl;
+			if(debug)
+			{
+				BOTDEBUG << "It is a broadcast." << endl;
+			}
 			unsigned char hopsMade = message[idsize*2+2];
 			ZebroIdentifier candidateId = GetIdFromArray(message, idsize*2+3);
 			int receivedLevel = (int) message[idsize*3+3];
@@ -961,8 +992,10 @@ void SearchAndRescueBehaviour::ReceiveMessage_CAPTUREACK(ZebroIdentifier senderI
 			// Cannot propagate this ack.
 			propagateAck = false;
 		}
-		
-		BOTDEBUG << "Hops to owner is " << hopsToOwner << endl;
+		if(debug)
+		{
+			BOTDEBUG << "Hops to owner is " << hopsToOwner << endl;
+		}
 		// Can propagate this ack!
 
 		bool newCaptureAck = false;
@@ -1015,7 +1048,10 @@ void SearchAndRescueBehaviour::ReceiveMessage_CAPTUREACK(ZebroIdentifier senderI
 			if(!candidateId.Equals(myId)) { return; }
 
 			// capturedNodeId has been captured
-			BOTDEBUG << "I (id " << myId.ToString() << ") captured nodes: "<< capturedNodeId.ToString() << "," << capturedNodeId2.ToString() << "," << capturedNodeId3.ToString() << endl;
+			if(debug)
+			{
+				BOTDEBUG << "I (id " << myId.ToString() << ") captured nodes: "<< capturedNodeId.ToString() << "," << capturedNodeId2.ToString() << "," << capturedNodeId3.ToString() << endl;
+			}
 			AddToCapturedNodes(capturedNodeId);
 			AddToMySearchers(capturedNodeId);
 			if(!capturedNodeId2.IsEmpty())
@@ -1045,7 +1081,10 @@ void SearchAndRescueBehaviour::ReceiveMessage_CAPTUREACK(ZebroIdentifier senderI
 
 void SearchAndRescueBehaviour::ReceiveMessage_CAPTUREBROADCAST(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, unsigned char hopsMade, ZebroIdentifier candidateId, int receivedLevel)
 {
-	BOTDEBUG << "Receiving capture broadcast from " << senderId.ToString() << endl;
+	if(debug)
+	{
+		BOTDEBUG << "Receiving capture broadcast from " << senderId.ToString() << endl;
+	}
 	if(role == ROLE_PASSIVE || role == ROLE_SEARCHER || (role == ROLE_BASEKEEPER && !mainBasekeeper.Equals(myId)))
 	{
 		ZebroIdentifier from = senderId.Copy();
@@ -1059,7 +1098,10 @@ void SearchAndRescueBehaviour::ReceiveMessage_CAPTUREBROADCAST(ZebroIdentifier s
 		int res = CompareLevelAndId(receivedLevel, candidateId, level, owner);
 		if(res == 1)
 		{
-			BOTDEBUG << "Propagate it!" << endl;
+			if(debug)
+			{
+				BOTDEBUG << "Propagate it!" << endl;
+			}
 			// Propagate it!
 			level = receivedLevel;
 			owner = candidateId.Copy();
@@ -1071,13 +1113,19 @@ void SearchAndRescueBehaviour::ReceiveMessage_CAPTUREBROADCAST(ZebroIdentifier s
 			if(father.IsEmpty())
 			{
 				// You can change father immediately
-				BOTDEBUG << "I have a new father!" << endl;
+				if(debug)
+				{
+					BOTDEBUG << "I have a new father!" << endl;
+				}
 				father = owner.Copy();
 				mainBasekeeper = father;
 				basekeeper = mainBasekeeper;
 				if(myId.Equals((unsigned char) 205) && role == ROLE_BASEKEEPER)
 				{
-					BOTDEBUG << "205 GETS PWND BY " << senderId.ToString() << endl;	
+					if(debug)
+					{
+						BOTDEBUG << "205 GETS PWND BY " << senderId.ToString() << endl;	
+					}
 				}
 				role = ROLE_SEARCHER; // Change role to searcher
 				// level = level + 1; This line "optimalisation" actually breaks the algorithm in some cases...
@@ -1096,9 +1144,15 @@ void SearchAndRescueBehaviour::ReceiveMessage_CAPTUREBROADCAST(ZebroIdentifier s
 	{
 		if(mainBasekeeper.Equals(myId))
 		{
-			BOTDEBUG << "Receiving capture broadcast from " << candidateId.ToString() << " and my id is " << myId.ToString() << endl;
+			if(debug)
+			{
+				BOTDEBUG << "Receiving capture broadcast from " << candidateId.ToString() << " and my id is " << myId.ToString() << endl;
+			}
 			if(candidateId.Equals(myId)) { return; } // don't have to process a capture broadcast from yourself
-			BOTDEBUG << "They are not the same" << endl;
+			if(debug)
+			{
+				BOTDEBUG << "They are not the same" << endl;
+			}
 			ZebroIdentifier from = senderId.Copy();
 
 
@@ -1118,7 +1172,10 @@ void SearchAndRescueBehaviour::ReceiveMessage_CAPTUREBROADCAST(ZebroIdentifier s
 				basekeeper = mainBasekeeper;
 				hopsToFather = hopsMade;
 				killed = true; // todo: do something with this flag??
-				BOTDEBUG << "I (id " << myId.ToString() << ") got killed by this message. My level was " << levelCached << " and received level is " << receivedLevel << endl;
+				if(debug)
+				{
+					BOTDEBUG << "I (id " << myId.ToString() << ") got killed by this message. My level was " << levelCached << " and received level is " << receivedLevel << endl;
+				}
 				role = ROLE_SEARCHER;
 				sendMessageId++;
 				unsigned char msgNum = (unsigned char) sendMessageId;
@@ -1184,7 +1241,10 @@ void SearchAndRescueBehaviour::ReceiveMessage_SHAREPOSITION(ZebroIdentifier send
 
 		if(IsChildBasekeeper(senderId) || parent.Equals(myId))
 		{
-			BOTDEBUG << "LFT: " << myId.ToString() << " updated " << senderId.ToString() << " as children basekeeper." << endl;
+			if(debug)
+			{
+				BOTDEBUG << "LFT: " << myId.ToString() << " updated " << senderId.ToString() << " as children basekeeper." << endl;
+			}
 			AddToChildrenBasekeepers(senderId, DecompressPosition(compressedPosition) - myAbsolutePosition);
 		}
 		else if(!mainBasekeeper.Equals(myId) && !senderId.Equals(parentBasekeeper))
@@ -1199,7 +1259,10 @@ void SearchAndRescueBehaviour::ReceiveMessage_SHAREPOSITION(ZebroIdentifier send
 				Real distanceToParentBasekeeper = lastMeasuredParentBasekeeperPosition.Length();
 				if(distanceToOtherBasekeeper < distanceToParentBasekeeper)
 				{
-					BOTDEBUG << "Basekeeper " << myId.ToString() << " wants to disband because basekeeper " << senderId.ToString() << " is closer to it in a direct line than it is to its parent" << endl;
+					if(debug)
+					{
+						BOTDEBUG << "Basekeeper " << myId.ToString() << " wants to disband because basekeeper " << senderId.ToString() << " is closer to it in a direct line than it is to its parent" << endl;
+					}
 					Disband();
 					ticksSinceStartedApplyingAsBasekeeper = -1;
 				}
@@ -1222,8 +1285,10 @@ void SearchAndRescueBehaviour::ReceiveMessage_DISBAND(ZebroIdentifier senderId, 
 		else
 		{
 			SendMessage_DISBAND(senderId, messageNumber, compressedPosition); // propagate it
-
-			BOTDEBUG << "Bot " << myId.ToString() << " knows its parent basekeeper disbanded" << endl;
+			if(debug)
+			{
+				BOTDEBUG << "Bot " << myId.ToString() << " knows its parent basekeeper disbanded" << endl;
+			}
 
 			basekeeper = ZebroIdentifier();
 			basekeeperPositionKnown = false;
@@ -1253,8 +1318,10 @@ void SearchAndRescueBehaviour::ReceiveMessage_DISBAND(ZebroIdentifier senderId, 
 		canFindTarget = false;
 		role = ROLE_SEARCHER;
 		ticksSinceStartedApplyingAsBasekeeper = -1;
-
-		BOTDEBUG << "Bot " << myId.ToString() << " disbanded because its parent basekeeper disbanded!" << endl;
+		if(debug)
+		{
+			BOTDEBUG << "Bot " << myId.ToString() << " disbanded because its parent basekeeper disbanded!" << endl;
+		}
 
 		CVector3 absoluteResponsePosition = DecompressPosition(compressedPosition);
 		CVector3 relativeResponsePosition = absoluteResponsePosition - myAbsolutePosition;
@@ -1305,7 +1372,10 @@ void SearchAndRescueBehaviour::ReceiveMessage_PINGREPLY(ZebroIdentifier senderId
 			{
 				// This basekeeper is preventing me from becoming a new basekeeper. Let's honor their rejection and stop becoming a new basekeeper.
 				ticksSinceStartedApplyingAsBasekeeper = -1;
-				BOTDEBUG << "Bot " << myId.ToString() << " is refraining from appplying as basekeeper because " << senderId.ToString() << " rejected it" << endl;
+				if(debug)
+				{
+					BOTDEBUG << "Bot " << myId.ToString() << " is refraining from appplying as basekeeper because " << senderId.ToString() << " rejected it" << endl;
+				}
 				return;
 			}
 
@@ -1356,7 +1426,10 @@ void SearchAndRescueBehaviour::ReceiveMessage_APPOINTNEWBASEKEEPER(ZebroIdentifi
 			else
 			{
 				ticksSinceStartedApplyingAsBasekeeper = -1;
-				BOTDEBUG << "Bot " << myId.ToString() << " now knows that " << newBasekeeperId.ToString() << " became the new basekeeper" << endl;
+				if(debug)
+				{
+					BOTDEBUG << "Bot " << myId.ToString() << " now knows that " << newBasekeeperId.ToString() << " became the new basekeeper" << endl;
+				}
 				// propagate the message
 				SendMessage_APPOINTNEWBASEKEEPER(senderId, messageNumber, newBasekeeperId, compressedPosition, basekeeperL);
 			}
@@ -1377,7 +1450,10 @@ void SearchAndRescueBehaviour::ReceiveMessage_RELOCATESEARCHER(ZebroIdentifier s
 			if(searcherId.Equals(myId))
 			{
 				// This message is meant for me! Switch basekeeper!
-				BOTDEBUG << "Bot " << myId.ToString() << " is relocating from basekeeper " << basekeeper.ToString() << " to " << basekeeperId.ToString() << endl;
+				if(debug)
+				{
+					BOTDEBUG << "Bot " << myId.ToString() << " is relocating from basekeeper " << basekeeper.ToString() << " to " << basekeeperId.ToString() << endl;
+				}
 				basekeeper = basekeeperId.Copy();
 
 				// to do: rewrite this to keep in mind relative positioning
@@ -1421,8 +1497,11 @@ void SearchAndRescueBehaviour::ReceiveMessage_FOUNDTARGET(ZebroIdentifier sender
 			CVector3 absoluteResponsePosition = DecompressPosition(compressedPosition);
 			CVector3 relativeFinderPosition = absoluteResponsePosition - myAbsolutePosition;
 			vectorToTarget = relativeFinderPosition;
-			BOTDEBUG << "handling messagenumber " << messageNumber << endl;
-			BOTDEBUG << "Vector to target: (" << vectorToTarget.GetX() << ", " << vectorToTarget.GetY() << ")" << endl;
+			if(debug)
+			{
+				BOTDEBUG << "handling messagenumber " << messageNumber << endl;
+				BOTDEBUG << "Vector to target: (" << vectorToTarget.GetX() << ", " << vectorToTarget.GetY() << ")" << endl;
+			}
 			distanceToNextNode = relativeFinderPosition.Length();
 			distanceLeft = distanceToNextNode;
 			hopsLeftToTarget = 1;
@@ -1437,7 +1516,10 @@ void SearchAndRescueBehaviour::ReceiveMessage_FOUNDTARGET(ZebroIdentifier sender
 				}
 				myTotalPathPoints = useAmountOfNodes;
 				amountOfRemainingSearchersToInstruct = useAmountOfSearchers;
-				BOTDEBUG << "use " << useAmountOfSearchers << " searchers (and 1 node)." << endl;
+				if(debug)
+				{
+					BOTDEBUG << "use " << useAmountOfSearchers << " searchers (and 1 node)." << endl;
+				}
 				BOTDEBUG << "Mission accomplished! Ticks passed: " << (ticksPassed+1) << endl;
 				sendMessageId++;
 				unsigned char msgNum = (unsigned char) sendMessageId;
@@ -1478,8 +1560,10 @@ void SearchAndRescueBehaviour::ReceiveMessage_FOUNDTARGETUPSTREAM(ZebroIdentifie
 		{
 			linkToTarget = senderId;
 			vectorToTarget = GetVectorToChild(senderId);
-
-			BOTDEBUG << "Vector to target: (" << vectorToTarget.GetX() << ", " << vectorToTarget.GetY() << ")" << endl;
+			if(debug)
+			{
+				BOTDEBUG << "Vector to target: (" << vectorToTarget.GetX() << ", " << vectorToTarget.GetY() << ")" << endl;
+			}
 
 			distanceToNextNode = vectorToTarget.Length();
 			distanceLeft = Convert2BytesToLength(compressedLength) + distanceToNextNode;
@@ -1489,10 +1573,11 @@ void SearchAndRescueBehaviour::ReceiveMessage_FOUNDTARGETUPSTREAM(ZebroIdentifie
 			if(mainBasekeeper.Equals(myId))
 			{
 				// arrived at mainBasekeeper
-
-				BOTDEBUG << "FOUND TARGET ARRIVED AT MAIN BASEKEEPER" << endl;
-				BOTDEBUG << "total searchers: " << totalSearchers << endl;
-
+				if(debug)
+				{
+					BOTDEBUG << "FOUND TARGET ARRIVED AT MAIN BASEKEEPER" << endl;
+					BOTDEBUG << "total searchers: " << totalSearchers << endl;
+				}
 				Real totalNodesLeft = totalSearchers + hopsLeftToTarget;
 
 				Real nodesPerDistanceUnit = (Real) totalNodesLeft/distanceLeft;
@@ -1513,8 +1598,10 @@ void SearchAndRescueBehaviour::ReceiveMessage_FOUNDTARGETUPSTREAM(ZebroIdentifie
 				}
 				myTotalPathPoints = useAmountOfNodes;
 				amountOfRemainingSearchersToInstruct = useAmountOfSearchers;
-
-				BOTDEBUG << "use " << useAmountOfSearchers << " searchers (and 1 node)." << endl;
+				if(debug)
+				{
+					BOTDEBUG << "use " << useAmountOfSearchers << " searchers (and 1 node)." << endl;
+				}
 				BOTDEBUG << "Mission accomplished! Ticks passed: " << (ticksPassed+1) << endl;
 				sendMessageId++;
 				unsigned char msgNum = (unsigned char) sendMessageId;
@@ -1581,7 +1668,10 @@ void SearchAndRescueBehaviour::ReceiveMessage_PATHDATA(ZebroIdentifier senderId,
 			{
 				searchersToSendDownstream = newSendSearchersNumber;
 			}
-			BOTDEBUG << "use " << useAmountOfSearchers << " searchers.(and 1 node)" << endl;
+			if(debug)
+			{
+				BOTDEBUG << "use " << useAmountOfSearchers << " searchers.(and 1 node)" << endl;
+			}
 
 			sendMessageId++;
 			unsigned char msgNum = (unsigned char) sendMessageId;
@@ -1609,7 +1699,10 @@ void SearchAndRescueBehaviour::ReceiveMessage_CYCLECOMPLETE(ZebroIdentifier send
 	ticksSinceLastPathDataMessage = 0;
 	if(role == ROLE_SEARCHER && iAmTheReporter && myId.Equals(intendedReceiver))
 	{
-		BOTDEBUG << "CYCLE COMPLETE!!!" << endl;
+		if(debug)
+		{
+			BOTDEBUG << "Cycle completed!" << endl;
+		}
 	}
 	else if(role == ROLE_BASEKEEPER && linkToTarget.IsEmpty())
 	{
@@ -1628,7 +1721,10 @@ void SearchAndRescueBehaviour::ReceiveMessage_BECOMEPATHPOINT(ZebroIdentifier se
 			iAmAPathpoint = true;
 			targetFound = true;
 			ticksSinceLastPathDataMessage = 0;
-			BOTDEBUG << "Searcher " << myId.ToString() << " is now a pathpoint for " << basekeeper.ToString() << "!" << endl;
+			if(debug)
+			{
+				BOTDEBUG << "Searcher " << myId.ToString() << " is now a pathpoint for " << basekeeper.ToString() << "!" << endl;
+			}
 			pathpointPositionFromBasekeeper = DecompressPosition(compressedPosition);
 		}
 		else if(!senderId.Equals(myId))
@@ -1808,7 +1904,10 @@ void SearchAndRescueBehaviour::SendMessage_FOUNDTARGET(ZebroIdentifier from, uns
 	
 	if(from.Equals(myId))
 	{
-		BOTDEBUG << " bot " << myId.ToString() << " is sending found target message to " << parent.ToString() <<"." << endl;
+		if(debug)
+		{
+			BOTDEBUG << " bot " << myId.ToString() << " is sending found target message to " << parent.ToString() <<"." << endl;
+		}
 	}
 	
 	SendMessage(cBuf, from, messageNumber);
@@ -1838,7 +1937,10 @@ void SearchAndRescueBehaviour::SendMessage_FOUNDTARGETUPSTREAM(ZebroIdentifier f
 	
 	if(from.Equals(myId))
 	{
-		BOTDEBUG << " bot " << myId.ToString() << " is sending found target upstream message to " << parent.ToString() << ". (totalSearchers is now " << totalSearchers << ")" << endl;
+		if(debug)
+		{
+			BOTDEBUG << " bot " << myId.ToString() << " is sending found target upstream message to " << parent.ToString() << ". (totalSearchers is now " << totalSearchers << ")" << endl;
+		}
 	}
 	
 	SendMessage(cBuf, from, messageNumber);
@@ -1855,7 +1957,10 @@ void SearchAndRescueBehaviour::SendMessage_PATHDATA(ZebroIdentifier from, unsign
 	
 	if(from.Equals(myId))
 	{
-		BOTDEBUG << "Basekeeper " << myId.ToString() << " is sending pathdata message to " << linkToTarget.ToString() << "." << endl;
+		if(debug)
+		{
+			BOTDEBUG << "Basekeeper " << myId.ToString() << " is sending pathdata message to " << linkToTarget.ToString() << "." << endl;
+		}
 	}
 	
 	SendMessage(cBuf, from, messageNumber);
@@ -1873,7 +1978,10 @@ void SearchAndRescueBehaviour::SendMessage_BECOMEPATHPOINT(ZebroIdentifier from,
 	
 	if(from.Equals(myId))
 	{
-		BOTDEBUG << "Basekeeper " << myId.ToString() << " is instructing " << searcherId.ToString() << " to become a path point." << endl;
+		if(debug)
+		{
+			BOTDEBUG << "Basekeeper " << myId.ToString() << " is instructing " << searcherId.ToString() << " to become a path point." << endl;
+		}
 	}
 	
 	SendMessage(cBuf, from, messageNumber);
@@ -1924,7 +2032,10 @@ void SearchAndRescueBehaviour::SendMessage_RELOCATESEARCHER(ZebroIdentifier from
 	
 	if(from.Equals(myId))
 	{
-		BOTDEBUG << "Bot " << myId.ToString() << " is sending a message to relocate searcher " << searcherId.ToString() << " to basekeeper " << basekeeperId.ToString() << "." << endl;
+		if(debug)
+		{
+			BOTDEBUG << "Bot " << myId.ToString() << " is sending a message to relocate searcher " << searcherId.ToString() << " to basekeeper " << basekeeperId.ToString() << "." << endl;
+		}
 	}
 	
 	SendMessage(cBuf, from, messageNumber);
@@ -1981,7 +2092,10 @@ void SearchAndRescueBehaviour::SendMessage_APPOINTNEWBASEKEEPER(ZebroIdentifier 
 	
 	if(from.Equals(myId))
 	{
-		BOTDEBUG << " bot " << myId.ToString() << " is appointing bot " << newBasekeeperId.ToString() << " as new basekeeper" << endl;
+		if(debug)
+		{
+			BOTDEBUG << " bot " << myId.ToString() << " is appointing bot " << newBasekeeperId.ToString() << " as new basekeeper" << endl;
+		}
 	}
 	
 	SendMessage(cBuf, from, messageNumber);
@@ -2012,8 +2126,10 @@ void SearchAndRescueBehaviour::SendMessage_RECRUITNEWBASEKEEPER()
 	unsigned char messageNumber = (unsigned char) sendMessageId;
 	CByteArray cBuf(1);
 	cBuf[0] = MESSAGETYPE_RECRUITNEWBASEKEEPER;
-	
-	BOTDEBUG << " bot " << myId.ToString() << " is recruiting a new basekeeper." << endl;
+	if(debug)
+	{
+		BOTDEBUG << " bot " << myId.ToString() << " is recruiting a new basekeeper." << endl;
+	}
 	
 	SendMessage(cBuf, myId, messageNumber);
 }
@@ -2023,8 +2139,10 @@ void SearchAndRescueBehaviour::getAdoptedBy(ZebroIdentifier basekeeperId)
 {
 	// todo: mainBasekeeper might not be my new basekeeper's mainBasekeeper
 	// todo: what to do if you lose connection to your basekeeper.
-	
-	BOTDEBUG << "Bot " << myId.ToString() << " gets adopted by basekeeper " << basekeeperId.ToString() << endl;
+	if(debug)
+	{
+		BOTDEBUG << "Bot " << myId.ToString() << " gets adopted by basekeeper " << basekeeperId.ToString() << endl;
+	}
 	
 	basekeeper = basekeeperId;
 	ticksSinceStartedApplyingAsBasekeeper = -1;
@@ -2039,8 +2157,10 @@ void SearchAndRescueBehaviour::Disband()
 	
 	sendMessageId++;
 	unsigned char messageNumber = (unsigned char) sendMessageId;
-	
-	BOTDEBUG << "Bot " << myId.ToString() << " is disbanding as a basekeeper." << endl;
+	if(debug)
+	{
+		BOTDEBUG << "Bot " << myId.ToString() << " is disbanding as a basekeeper." << endl;
+	}
 	SendMessage_DISBAND(myId, messageNumber, absoluteParentBasekeeperPosition);
 	
 	// todo: inform all searchers and childrenBasekeepers that we're disbanding
@@ -2055,7 +2175,10 @@ void SearchAndRescueBehaviour::CheckConnectionToParent()
 	lastParentUpdate++;
 	if(lastParentUpdate > 5*50) // 5*500 ticks
 	{
-		BOTDEBUG << "Basekeeper " << myId.ToString() << " lost connection to its parent basekeeper ("<< parentBasekeeper.ToString() << ")." << endl;
+		if(debug)
+		{
+			BOTDEBUG << "Basekeeper " << myId.ToString() << " lost connection to its parent basekeeper ("<< parentBasekeeper.ToString() << ")." << endl;
+		}
 		Disband();
 	}
 }
@@ -2098,7 +2221,10 @@ void SearchAndRescueBehaviour::RelocateSearchersNeededElsewhere()
 		ZebroIdentifier pickedSearcherId = PopMostRecentlyActiveSearcher();
 		if(pickedSearcherId.IsEmpty())
 		{
-			BOTDEBUG << "ERROR! Couldn't relocate any searcher, though bot " << myId.ToString() << " expected to be able to." << endl;	
+			//if(debug)
+			//{
+				BOTDEBUG << "ERROR! Couldn't relocate any searcher, though bot " << myId.ToString() << " expected to be able to." << endl;	
+			//}
 			return;
 		}
 		if(pickedSearcherId.Equals(linkToTarget))
@@ -2117,7 +2243,10 @@ void SearchAndRescueBehaviour::RelocateSearchersNeededElsewhere()
 			to = parentBasekeeper;
 			toPosition = lastMeasuredParentBasekeeperPosition;
 			searchersToSendUpstream--;
-			BOTDEBUG << "Basekeeper " << myId.ToString() << " is sending searcher " << pickedSearcherId.ToString() << " upstream to " << to.ToString() <<  endl;
+			if(debug)
+			{
+				BOTDEBUG << "Basekeeper " << myId.ToString() << " is sending searcher " << pickedSearcherId.ToString() << " upstream to " << to.ToString() <<  endl;
+			}
 		}
 		else if(searchersToSendDownstream > 0)
 		{
@@ -2125,11 +2254,17 @@ void SearchAndRescueBehaviour::RelocateSearchersNeededElsewhere()
 			CVector3 absoluteToPosition = GetVectorToChild(linkToTarget);
 			CVector3 toPosition = absoluteToPosition - myAbsolutePosition;
 			searchersToSendDownstream--;
-			BOTDEBUG << "Basekeeper " << myId.ToString() << " is sending searcher " << pickedSearcherId.ToString() << " downstream to " << to.ToString() <<  endl;
+			if(debug)
+			{
+				BOTDEBUG << "Basekeeper " << myId.ToString() << " is sending searcher " << pickedSearcherId.ToString() << " downstream to " << to.ToString() <<  endl;
+			}
 		}
 		else
 		{
-			BOTDEBUG << "Error: Tried to relocate a searcher but couldn't." << endl;
+			if(debug)
+			{
+				BOTDEBUG << "Error: Tried to relocate a searcher but couldn't." << endl;
+			}
 			return;
 		}
 		SendMessage_RELOCATESEARCHER(myId, messageNumber, pickedSearcherId, to, toPosition);
@@ -2151,7 +2286,10 @@ void SearchAndRescueBehaviour::DonateSearchers(int amountOfDonations)
 	if(childrenBasekeepersTotal > 0)
 	{
 		canRelocateSearchers = true;
-		BOTDEBUG << "Can relocate searchers." << endl;
+		if(debug)
+		{
+			BOTDEBUG << "Can relocate searchers." << endl;
+		}
 	
 	}
 	
@@ -2160,7 +2298,10 @@ void SearchAndRescueBehaviour::DonateSearchers(int amountOfDonations)
 		return; // nothing can be done
 	}
 	
-	BOTDEBUG << "Basekeeper " << myId.ToString() << " has covered " << groundCovered << " ground and is going to donate " << amountOfDonations << "  of its " << mySearchersTotal << " searchers. (children basekeepers: " << childrenBasekeepersTotal <<")" << endl;
+	if(debug)
+	{
+		BOTDEBUG << "Basekeeper " << myId.ToString() << " has covered " << groundCovered << " ground and is going to donate " << amountOfDonations << "  of its " << mySearchersTotal << " searchers. (children basekeepers: " << childrenBasekeepersTotal <<")" << endl;
+	}
 	// first let's share our location so all searchers will know my current location to make relocation easier
 	sendMessageId++;
 	unsigned char msgNum = (unsigned char) sendMessageId;
@@ -2170,7 +2311,10 @@ void SearchAndRescueBehaviour::DonateSearchers(int amountOfDonations)
 	while(amountOfDonations > 0)
 	{
 		int chooseAction = GetRand()%(2-0 + 1) + 0;
-		BOTDEBUG << "Chose random number " << chooseAction << endl;
+		if(debug)
+		{
+			BOTDEBUG << "Chose random number " << chooseAction << endl;
+		}
 		if(canCreateNewBasekeeper && (!canRelocateSearchers || chooseAction != 1))
 		{
 			// if both actions are possible, this option has a chance of 67%
@@ -2180,7 +2324,10 @@ void SearchAndRescueBehaviour::DonateSearchers(int amountOfDonations)
 			bestApplicantDistance = 0;
 			bestApplicantPosition = CVector3();
 			bestApplicant = ZebroIdentifier();
-			BOTDEBUG << "Bot " << myId.ToString() << " is going to start looking for a new basekeeper." << endl;
+			if(debug)
+			{
+				BOTDEBUG << "Bot " << myId.ToString() << " is going to start looking for a new basekeeper." << endl;
+			}
 			SendMessage_RECRUITNEWBASEKEEPER();
 			canCreateNewBasekeeper = false;
 		}
@@ -2228,7 +2375,10 @@ void SearchAndRescueBehaviour::RelocateRandomSearcherToChildBasekeeper(ZebroIden
 
 void SearchAndRescueBehaviour::BecomeCandidate()
 {
-	BOTDEBUG << "NEW CAND: " << "I (id " << myId.ToString() << "), am becoming leader candidate!" << endl;
+	if(debug)
+	{
+		BOTDEBUG << "NEW CAND: " << "I (id " << myId.ToString() << "), am becoming leader candidate!" << endl;
+	}
 	
 	ResetCapturedNodes(); // to do: implement this in the init
 	
@@ -2260,7 +2410,10 @@ void SearchAndRescueBehaviour::BecomeBasekeeper()
 	ticksSinceLastBasekeeperAppointment = 0;
 	amountOfRemainingSearchersToInstruct = 0;
 	myTotalPathPoints = 1;
-	BOTDEBUG << "I (id " << myId.ToString() << ") am becoming a basekeeper" << endl;
+	if(debug)
+	{
+		BOTDEBUG << "I (id " << myId.ToString() << ") am becoming a basekeeper" << endl;
+	}
 	SharpRightTurn();
 }
 
@@ -2278,7 +2431,10 @@ void SearchAndRescueBehaviour::TryToInstructSearchers()
 		}
 		if(pickedSearcherId.Equals(linkToTarget))
 		{
-			BOTDEBUG << "Do not instruct " << pickedSearcherId.ToString() << "!" << endl;
+			if(debug)
+			{
+				BOTDEBUG << "Do not instruct " << pickedSearcherId.ToString() << "!" << endl;
+			}
 			continue; // don't make a pathpoint out of the node that found the target	
 		}
 		AddToIgnoreSearchers(pickedSearcherId); // to do: this can be done better... the whole iAmAPathpoint thing
@@ -2295,18 +2451,12 @@ void SearchAndRescueBehaviour::TryToInstructSearchers()
 
 void SearchAndRescueBehaviour::LostConnectionToChildBasekeeper(ZebroIdentifier lostChildId)
 {
-	BOTDEBUG << "Basekeeper " << myId.ToString() << " lost connection to child basekeeper " << lostChildId.ToString() << "." << endl;
+	if(debug)
+	{
+		BOTDEBUG << "Basekeeper " << myId.ToString() << " lost connection to child basekeeper " << lostChildId.ToString() << "." << endl;
+	}
 	failedNewBasekeeperAttempts = 0;	
 }
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2379,7 +2529,10 @@ void SearchAndRescueBehaviour::AddToMySearchers(ZebroIdentifier nodeId)
 		return;
 	}
 	
-	BOTDEBUG << "Added " << nodeId.ToString() << " to my searchers." << endl;
+	if(debug)
+	{
+		BOTDEBUG << "Added " << nodeId.ToString() << " to my searchers." << endl;
+	}
 	WriteIdToArray(mySearchers, pointer, nodeId);
 	mySearchers[pointer+idsize] = 0x00;
 }
@@ -2392,14 +2545,20 @@ void SearchAndRescueBehaviour::RemoveFromMySearchers(ZebroIdentifier nodeId)
 		ZebroIdentifier checkId = GetIdFromArray(mySearchers, i*(idsize+1));
 		if(nodeId.Equals(checkId))
 		{
-			BOTDEBUG << "Removed " << nodeId.ToString() << " from my searchers." << endl;
+			if(debug)
+			{
+				BOTDEBUG << "Removed " << nodeId.ToString() << " from my searchers." << endl;
+			}
 			UnsetIdInArray(mySearchers, i*(idsize+1));
 			mySearchers[i*(idsize+1)+idsize] = 0x00;
 			if(!nodeId.IsEmpty())
 			{
 				if(deleted)
 				{
-					BOTDEBUG << "ERROR! deleted same node from mySearchers multiple times!" << endl;
+					//if(debug)
+					//{
+						BOTDEBUG << "ERROR! deleted same node from mySearchers multiple times!" << endl;
+					//}
 				}
 				AddToIgnoreSearchers(nodeId);
 				mySearchersTotal--;
@@ -2476,11 +2635,6 @@ void SearchAndRescueBehaviour::AddToChildrenBasekeepers(ZebroIdentifier nodeId, 
 			childrenBasekeepers[i*(idsize+5)+idsize+3] = newCompressedPosition[3];
 			childrenBasekeepers[i*(idsize+5)+idsize+4] = 0x00;
 			
-			if(myId.Equals((unsigned char) 81))
-			{
-				CVector3 nvtt = DecompressPosition(newCompressedPosition);
-				BOTDEBUG << "nvtt2 " << nodeId.ToString() << ": ("<<nvtt.GetX()<<","<<nvtt.GetY()<<")"<<endl;
-			}
 			return;
 		}
 		if(checkId.IsEmpty())
@@ -2516,11 +2670,6 @@ void SearchAndRescueBehaviour::AddToChildrenBasekeepers(ZebroIdentifier nodeId, 
 	childrenBasekeepers[pointer+idsize+3] = newCompressedPosition[3];
 	childrenBasekeepers[pointer+idsize+4] = 0x00;
 	
-	if(myId.Equals(ZebroIdentifier((unsigned char) 81)))
-	{
-		CVector3 nvtt = DecompressPosition(newCompressedPosition);
-		BOTDEBUG << "nvtt1 " << nodeId.ToString() << ": ("<<nvtt.GetX()<<","<<nvtt.GetY()<<")"<<endl;
-	}
 }
 
 void SearchAndRescueBehaviour::UpdateChildrenBasekeepersTicks()
@@ -2566,7 +2715,10 @@ void SearchAndRescueBehaviour::RemoveFromChildrenBasekeepers(ZebroIdentifier nod
 		if(nodeId.Equals(checkId))
 		{
 			ZebroIdentifier lostChildId = checkId.Copy();
-			BOTDEBUG << "Removed " << nodeId.ToString() << " from my children basekeepers." << endl;
+			if(debug)
+			{
+				BOTDEBUG << "Removed " << nodeId.ToString() << " from my children basekeepers." << endl;
+			}
 			UnsetIdInArray(childrenBasekeepers, i*(idsize+5));
 			childrenBasekeepers[i*(idsize+5)+idsize] = 0x00;
 			childrenBasekeepers[i*(idsize+5)+idsize+1] = 0x00;
@@ -2578,7 +2730,10 @@ void SearchAndRescueBehaviour::RemoveFromChildrenBasekeepers(ZebroIdentifier nod
 			{
 				if(deleted)
 				{
-					BOTDEBUG << "ERROR! deleted same node from childrenBasekeepers multiple times!" << endl;
+					// if(debug)
+					// {
+						BOTDEBUG << "ERROR! deleted same node from childrenBasekeepers multiple times!" << endl;
+					// }
 				}
 				childrenBasekeepersTotal--;
 			}

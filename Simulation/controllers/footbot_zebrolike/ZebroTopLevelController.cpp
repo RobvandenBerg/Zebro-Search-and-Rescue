@@ -113,6 +113,7 @@ void ZebroTopLevelController::Init(TConfigurationNode& t_node) {
    leftLegsVelocity = 0.0f;
    rightLegsVelocity = 0.0f;
    
+	debug = true;
    
    
    /*
@@ -142,8 +143,15 @@ void ZebroTopLevelController::Init(TConfigurationNode& t_node) {
    GetNodeAttributeOrDefault(t_node, "delta", m_fDelta, m_fDelta);
    GetNodeAttributeOrDefault(t_node, "velocity", m_fWheelVelocity, m_fWheelVelocity);
 
-	
-	BOTDEBUG << "Inited ZebroTopLevelController" << endl;
+	if(debug)
+	{
+		BOTDEBUG << "Inited ZebroTopLevelController" << endl;
+	}
+}
+
+void ZebroTopLevelController::SetDebug(bool d)
+{
+	debug = d;	
 }
 
 void ZebroTopLevelController::PickId(int id)
@@ -462,7 +470,10 @@ void ZebroTopLevelController::ReceiveMessage_CYCLECOMPLETE(ZebroIdentifier sende
 
 void ZebroTopLevelController::ReceiveMessage(CByteArray message)
 {
+	if(debug)
+	{
 		BOTDEBUG << "Receiving message in ZebroTopLevelController"  << endl;
+	}
 }
 
 /* to replace*/
@@ -490,7 +501,10 @@ void ZebroTopLevelController::LostConnectionToChildBasekeeper(ZebroIdentifier lo
 
 void ZebroTopLevelController::TryToDeliverMessage(CByteArray message)
 {
-	BOTDEBUG << "Deliver check starting." << endl;
+	if(debug)
+	{
+		BOTDEBUG << "Deliver check starting." << endl;
+	}
 	CByteArray senderIdArray(idsize);
 	for(int i = 0; i < idsize; i++)
 	{
@@ -556,13 +570,19 @@ void ZebroTopLevelController::TryToDeliverMessage(CByteArray message)
 	{
 	  // The other bot has an overlapping id with you... Choose a new random id
 	  // myId = (unsigned char)(rand()%(255-0 + 1) + 0); // Random byte
-		BOTDEBUG << "Ignoring message from myself..." << endl;
+		if(debug)
+		{
+			BOTDEBUG << "Ignoring message from myself..." << endl;
+		}
 		return;
 	}
 	if((receiverId.Equals(myId) || receiverId.IsEmpty()) && (newMessageId != 0 || !newMessageSender.IsEmpty()))
 	{
-		BOTDEBUG << "Delivering message" << endl;
-	  ReceiveMessage(message);
+		if(debug)
+		{
+			BOTDEBUG << "Delivering message" << endl;
+		}
+		ReceiveMessage(message);
 	}
 }
 

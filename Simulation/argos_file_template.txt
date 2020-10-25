@@ -106,6 +106,7 @@
   <loop_functions library="build/loop_functions/zone_loop_functions/libzone_loop_functions"
                   label="estimatedtrajectory_loop_functions">
 	  $TARGET
+	  <debug value="$DEBUG"/>
 	</loop_functions>
 
   <!-- *********************** -->

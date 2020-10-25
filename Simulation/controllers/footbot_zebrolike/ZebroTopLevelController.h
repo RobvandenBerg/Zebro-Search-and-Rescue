@@ -160,6 +160,7 @@ public:
 	CByteArray CompressPosition(CVector3 position);
 	CVector3 DecompressPosition(CByteArray compressedPosition);
 	CVector3 DecompressPosition(unsigned char rotationByte1, unsigned char rotationByte2, unsigned char lengthByte1, unsigned char lengthByte2);
+	void SetDebug(bool d);
 
 	
 	bool targetFound;
@@ -256,6 +257,8 @@ protected:
 	int returnToBasekeeperFirstTurnPreference;
 
 	int minDistance;
+	
+	bool debug;
 
 };
 
