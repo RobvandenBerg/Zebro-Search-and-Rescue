@@ -92,6 +92,8 @@ void SearchAndRescueBehaviour::Init() {
 	avoidingObstacleTicksLeft = 0;
 	ignoringTargetTicks = 0;
 	
+	canFindTarget = false;
+	
 	searchersToSendDownstream = 0;
 	searchersToSendUpstream = 0;
 	
@@ -125,7 +127,7 @@ void SearchAndRescueBehaviour::FindTarget(CVector3 targetPosition, Real maxDista
 	{
 		return;
 	}
-	if((myAbsolutePosition - targetPosition).Length() <= maxDistance && ignoringTargetTicks == 0 && basekeeperPositionKnown && role == ROLE_SEARCHER)
+	if((myAbsolutePosition - targetPosition).Length() <= maxDistance && ignoringTargetTicks == 0 && basekeeperPositionKnown && role == ROLE_SEARCHER && canFindTarget)
 	{
 		// todo: what happens if role is ROLE_BASEKEEPER?
 		targetFound = true;
@@ -556,6 +558,11 @@ void SearchAndRescueBehaviour::Loop()
 						break;
 					}
 					returningToBasekeeper = false;
+					canFindTarget = true;
+				}
+				if(distanceToBasekeeper >= 3.0)
+				{
+					canFindTarget = false; // You went outside of the communication range. If you find the target now, there is no more guarantee that the target is reachable by staying within the baskeeper's communication range	
 				}
 				if(distanceToBasekeeper > 2.5)
 				{
@@ -1220,6 +1227,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_DISBAND(ZebroIdentifier senderId, 
 
 			basekeeper = ZebroIdentifier();
 			basekeeperPositionKnown = false;
+			canFindTarget = false;
 
 			CVector3 absoluteResponsePosition = DecompressPosition(compressedPosition);
 			CVector3 relativeResponsePosition = absoluteResponsePosition - myAbsolutePosition;
@@ -1242,6 +1250,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_DISBAND(ZebroIdentifier senderId, 
 
 		basekeeper = ZebroIdentifier();
 		basekeeperPositionKnown = false;
+		canFindTarget = false;
 		role = ROLE_SEARCHER;
 		ticksSinceStartedApplyingAsBasekeeper = -1;
 

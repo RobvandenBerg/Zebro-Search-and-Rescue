@@ -270,6 +270,8 @@ private:
 	int ticksSinceLastPathDataMessage;
 	
 	int ticksPassed;
+	
+	bool canFindTarget;
 };
 
 //todo: better documentation
