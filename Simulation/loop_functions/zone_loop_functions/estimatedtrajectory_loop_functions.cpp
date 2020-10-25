@@ -111,6 +111,7 @@ void CEstimatedTrajectoryLoopFunctions::PostStep() {
       CFootBotEntity* pcFB = any_cast<CFootBotEntity*>(it->second);
 	  SearchAndRescueBehaviour& cController = dynamic_cast<SearchAndRescueBehaviour&>(pcFB->GetControllableEntity().GetController());
 	  CVector3 pos = cController.GetMyPosition();
+	  //CVector3 pos = cController.GetMyAbsolutePosition();
       /* Add the current position of the foot-bot if it's sufficiently far from the last */
       if(SquareDistance(pos,
                         m_tWaypoints[pcFB].back()) > MIN_DISTANCE_SQUARED) {

@@ -333,6 +333,11 @@ CVector3 ZebroTopLevelController::GetMyPosition()
 	//return myTrackedPosition + 
 }
 
+CVector3 ZebroTopLevelController::GetMyAbsolutePosition()
+{
+	return myAbsolutePosition;	
+}
+
 
 unsigned char ZebroTopLevelController::GetObstacleAvoidanceData()
 {

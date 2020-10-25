@@ -166,6 +166,7 @@ public:
 	bool sentFoundTargetMessage;
 	
 	CVector3 GetMyPosition();
+	CVector3 GetMyAbsolutePosition();
 	
 	CVector3 relativeSafePosition;
 	

@@ -181,6 +181,7 @@ public:
 	void updateMySearchersTicks();
 	Real GetFarthestChildBasekeeperDistance();
 	void AddToChildrenBasekeepers(ZebroIdentifier nodeId, CVector3 position);
+	void RemoveFromChildrenBasekeepers(ZebroIdentifier nodeId);
 	void UpdateChildrenBasekeepersTicks();
 	bool IsChildBasekeeper(ZebroIdentifier nodeId);
 	void AddToIgnoreSearchers(ZebroIdentifier nodeId);

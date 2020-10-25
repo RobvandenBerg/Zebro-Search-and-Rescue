@@ -354,7 +354,7 @@ void SearchAndRescueBehaviour::Loop()
 							sendMessageId++;
 							unsigned char msgNum = (unsigned char) sendMessageId;
 							SendMessage_APPOINTNEWBASEKEEPER(myId, msgNum, bestApplicant, basekeeperLevel + 1);
-							RemoveFromMySearchers(bestApplicant);
+							// RemoveFromMySearchers(bestApplicant); This is now automatically done within the AddToChildrenBasekeepers function
 							BOTDEBUG << "LFT2: " << myId.ToString() << " added " << bestApplicant.ToString() << " to its children basekeepers." << endl;
 							AddToChildrenBasekeepers(bestApplicant, bestApplicantPosition);
 							RelocateRandomSearcherToChildBasekeeper(bestApplicant, bestApplicantPosition);
@@ -1129,7 +1129,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_SHAREPOSITION(ZebroIdentifier send
 {
 	if(role == ROLE_PASSIVE || role == ROLE_SEARCHER || role == ROLE_BASEKEEPER)
 	{
-		if(role == ROLE_SEARCHER && basekeeper.IsEmpty())
+		if(role == ROLE_SEARCHER && basekeeper.IsEmpty() && !senderId.Equals(myId))
 		{
 			getAdoptedBy(senderId);
 		}
@@ -1365,13 +1365,13 @@ void SearchAndRescueBehaviour::ReceiveMessage_RELOCATESEARCHER(ZebroIdentifier s
 		{
 			
 		}
-		else
+		else if(role == ROLE_SEARCHER && !basekeeperId.Equals(myId))
 		{
 			if(searcherId.Equals(myId))
 			{
 				// This message is meant for me! Switch basekeeper!
 				BOTDEBUG << "Bot " << myId.ToString() << " is relocating from basekeeper " << basekeeper.ToString() << " to " << basekeeperId.ToString() << endl;
-				basekeeper = basekeeperId;
+				basekeeper = basekeeperId.Copy();
 
 				// to do: rewrite this to keep in mind relative positioning
 				absoluteBasekeeperPosition = DecompressPosition(compressedPosition);
@@ -2333,6 +2333,7 @@ void SearchAndRescueBehaviour::UnsetIdInArray(CByteArray& arr, int startIndex)
 
 void SearchAndRescueBehaviour::AddToMySearchers(ZebroIdentifier nodeId)
 {
+	RemoveFromChildrenBasekeepers(nodeId);
 	int latestTickEntry = -1;
 	unsigned char latestTick = 0x00;
 	
@@ -2448,6 +2449,8 @@ Real SearchAndRescueBehaviour::GetFarthestChildBasekeeperDistance()
 
 void SearchAndRescueBehaviour::AddToChildrenBasekeepers(ZebroIdentifier nodeId, CVector3 position)
 {
+	RemoveFromMySearchers(nodeId);
+	
 	int latestTickEntry = -1;
 	unsigned char latestTick = 0x00;
 	int emptySpotPointer = -1;
@@ -2526,7 +2529,7 @@ void SearchAndRescueBehaviour::UpdateChildrenBasekeepersTicks()
 			{
 				
 				ZebroIdentifier lostChildId = checkId.Copy();
-				UnsetIdInArray(childrenBasekeepers, i*6);
+				UnsetIdInArray(childrenBasekeepers, i*(idsize+5));
 				childrenBasekeepers[i*(idsize+5)+idsize] = 0x00;
 				childrenBasekeepers[i*(idsize+5)+idsize+1] = 0x00;
 				childrenBasekeepers[i*(idsize+5)+idsize+2] = 0x00;
@@ -2544,6 +2547,36 @@ void SearchAndRescueBehaviour::UpdateChildrenBasekeepersTicks()
 	if(childrenBasekeepersTotal >= 4)
 	{
 		satisfied = true;
+	}
+}
+
+void SearchAndRescueBehaviour::RemoveFromChildrenBasekeepers(ZebroIdentifier nodeId)
+{
+	bool deleted = false;
+	for(int i = 0; i < 4; i++)
+	{
+		ZebroIdentifier checkId = GetIdFromArray(childrenBasekeepers, i*(idsize+5));
+		if(nodeId.Equals(checkId))
+		{
+			ZebroIdentifier lostChildId = checkId.Copy();
+			BOTDEBUG << "Removed " << nodeId.ToString() << " from my children basekeepers." << endl;
+			UnsetIdInArray(childrenBasekeepers, i*(idsize+5));
+			childrenBasekeepers[i*(idsize+5)+idsize] = 0x00;
+			childrenBasekeepers[i*(idsize+5)+idsize+1] = 0x00;
+			childrenBasekeepers[i*(idsize+5)+idsize+2] = 0x00;
+			childrenBasekeepers[i*(idsize+5)+idsize+3] = 0x00;
+			childrenBasekeepers[i*(idsize+5)+idsize+4] = 0x00;
+			LostConnectionToChildBasekeeper(lostChildId);
+			if(!nodeId.IsEmpty())
+			{
+				if(deleted)
+				{
+					BOTDEBUG << "ERROR! deleted same node from childrenBasekeepers multiple times!" << endl;
+				}
+				childrenBasekeepersTotal--;
+			}
+			deleted = true;
+		}
 	}
 }
 
