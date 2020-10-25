@@ -7,6 +7,7 @@ CHECK_OCCLUSIONS=""
 VERBOSE=false
 PACKET_DROP_PROB=0.0
 DEBUG=false
+TARGET_DISTANCE="4"
 
 
 POSITIONAL=()
@@ -42,6 +43,11 @@ case $key in
     ;;
 	-s|--seed)
     SEED="$2"
+    shift # past argument
+    shift # past value
+    ;;
+	-t|--target_distance)
+    TARGET_DISTANCE="$2"
     shift # past argument
     shift # past value
     ;;
@@ -96,6 +102,9 @@ STARTY="1.0"
 TARGETX="0.0"
 TARGETY="0.0"
 
+ARENA_SIZE_X=8
+ARENA_SIZE_Y=8
+
 WALLS=""
 
 CORRECT_ARENA=0
@@ -137,6 +146,21 @@ then
 	WALLS="<box id=\"wall_north\" size=\"2,0.1,0.5\" movable=\"false\"><body position=\"0,1,0\" orientation=\"0,0,0\" /></box><box id=\"wall_south\" size=\"2,0.1,0.5\" movable=\"false\"><body position=\"0,-1,0\" orientation=\"0,0,0\" /></box><box id=\"wall_east\" size=\"0.1,2,0.5\" movable=\"false\"><body position=\"1,0,0\" orientation=\"0,0,0\" /></box><box id=\"wall_west\" size=\"0.1,2,0.5\" movable=\"false\"><body position=\"-1,0,0\" orientation=\"0,0,0\" /></box><box id=\"wall_north2\" size=\"8,0.1,0.5\" movable=\"false\"><body position=\"0,4,0\" orientation=\"0,0,0\" /></box><box id=\"wall_south2\" size=\"8,0.1,0.5\" movable=\"false\"><body position=\"0,-4,0\" orientation=\"0,0,0\" /></box><box id=\"wall_east2\" size=\"0.1,8,0.5\" movable=\"false\"><body position=\"4,0,0\" orientation=\"0,0,0\" /></box><box id=\"wall_west2\" size=\"0.1,8,0.5\" movable=\"false\"><body position=\"-4,0,0\" orientation=\"0,0,0\" /></box>"
 	TARGETX="-3"
 	TARGETY="-3"
+fi
+if [ $ARENA = 4 ]
+then
+	CORRECT_ARENA=4
+	if [ $VERBOSE = true ]
+	then
+		echo "You chose arena number 4."
+	fi
+	ARENA_SIZE_X=60
+	ARENA_SIZE_Y=60
+	WALLS="<box id=\"wall_north\" size=\"60,0.1,0.5\" movable=\"false\"><body position=\"0,30,0\" orientation=\"0,0,0\" /></box><box id=\"wall_south\" size=\"60,0.1,0.5\" movable=\"false\"><body position=\"0,-30,0\" orientation=\"0,0,0\" /></box><box id=\"wall_east\" size=\"0.1,60,0.5\" movable=\"false\"><body position=\"30,0,0\" orientation=\"0,0,0\" /></box><box id=\"wall_west\" size=\"0.1,60,0.5\" movable=\"false\"><body position=\"-30,0,0\" orientation=\"0,0,0\" /></box>"
+	STARTX="0.0"
+	STARTY="0.0"
+	TARGETX=$TARGET_DISTANCE
+	TARGETY="0"
 fi
 if [ $CORRECT_ARENA = 0 ]
 then
@@ -187,7 +211,7 @@ then
 	echo "Max simulation duration: $LENGTH seconds."
 fi
 
-sed "s~\$TARGET~$TARGET~g; s~\$WALLS~$WALLS~g; s~\$BOTS~$BOTS~g; s~\$LENGTH~$LENGTH~g; s~\$VISUALIZATION~$VISUALIZATION~g; s~\$SEED~$SEED~g; s~\$CHECK_OCCLUSIONS~$CHECK_OCCLUSIONS~g; s~\$PACKET_DROP_PROB~$PACKET_DROP_PROB~g; s~\$DEBUG~$DEBUG~g" argos_file_template.txt > generated.argos
+sed "s~\$TARGET~$TARGET~g; s~\$WALLS~$WALLS~g; s~\$BOTS~$BOTS~g; s~\$LENGTH~$LENGTH~g; s~\$VISUALIZATION~$VISUALIZATION~g; s~\$SEED~$SEED~g; s~\$CHECK_OCCLUSIONS~$CHECK_OCCLUSIONS~g; s~\$PACKET_DROP_PROB~$PACKET_DROP_PROB~g; s~\$DEBUG~$DEBUG~g; s~\$ARENA_SIZE_X~$ARENA_SIZE_X~g; s~\$ARENA_SIZE_Y~$ARENA_SIZE_Y~g" argos_file_template.txt > generated.argos
 
 
 #output=$(sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" <<< $output)

@@ -103,6 +103,7 @@ void SearchAndRescueBehaviour::Init() {
 	m_pcRNG = CRandom::CreateRNG("argos");
 	
 	ticksPassed = 0;
+	actionStepCounter = 15; // must be divisible by 5
 	
 	if(debug)
 	{
@@ -348,13 +349,13 @@ void SearchAndRescueBehaviour::Loop()
 				{
 					ticksSinceStartedLookingForNewBasekeeper++;
 					// this basekeeper is in the process of looking for new basekeepers
-					if(ticksSinceStartedLookingForNewBasekeeper > 0 && ticksSinceStartedLookingForNewBasekeeper < 500 && ticksSinceStartedLookingForNewBasekeeper % 100 == 0)
+					if(ticksSinceStartedLookingForNewBasekeeper > 0 && ticksSinceStartedLookingForNewBasekeeper < 5*actionStepCounter && ticksSinceStartedLookingForNewBasekeeper % actionStepCounter == 0)
 					{
 						// Let the searchers know I'm looking for new basekeepers again, in case the previous message didn't reach them
 						SendMessage_RECRUITNEWBASEKEEPER();
 					}
 					
-					if(ticksSinceStartedLookingForNewBasekeeper == 1100)
+					if(ticksSinceStartedLookingForNewBasekeeper == 11*actionStepCounter)
 					{
 						// ok, we're done waiting for replies. Let's pick the best candidate as new basekeeper.
 						if(!bestApplicant.IsEmpty())
@@ -388,7 +389,7 @@ void SearchAndRescueBehaviour::Loop()
 						}
 					}
 					
-					if(ticksSinceStartedLookingForNewBasekeeper == 3100)
+					if(ticksSinceStartedLookingForNewBasekeeper == 31*actionStepCounter)
 					{
 						// we waited 2000 extra ticks as extra padding before starting to search for a new basekeeper again
 						ticksSinceStartedLookingForNewBasekeeper = -1;
@@ -487,10 +488,10 @@ void SearchAndRescueBehaviour::Loop()
 					
 					ticksSinceStartedApplyingAsBasekeeper++;
 					
-					if(ticksSinceStartedApplyingAsBasekeeper> 0 && ticksSinceStartedApplyingAsBasekeeper < 500)
+					if(ticksSinceStartedApplyingAsBasekeeper> 0 && ticksSinceStartedApplyingAsBasekeeper < 5*actionStepCounter)
 					{
 						// I am in the process of collecting ping replies
-						if(ticksSinceStartedApplyingAsBasekeeper % 100 == 0)
+						if(ticksSinceStartedApplyingAsBasekeeper % (1*actionStepCounter) == 0)
 						{
 							// send new ping request to all basekeepers in case our last request didn't reach or their reply didn't reach.
 							SendMessage_PINGALLBASEKEEPERS();
@@ -498,7 +499,7 @@ void SearchAndRescueBehaviour::Loop()
 						}
 					}
 					
-					if(ticksSinceStartedApplyingAsBasekeeper == 500)
+					if(ticksSinceStartedApplyingAsBasekeeper == 5*actionStepCounter)
 					{
 						if(!closestBasekeeper.Equals(basekeeper) || closestBasekeeperDistance < 1)
 						{
@@ -509,12 +510,12 @@ void SearchAndRescueBehaviour::Loop()
 						}
 						// This searcher can become a new basekeeper! So let's apply as a new basekeeper
 					}
-					if(ticksSinceStartedApplyingAsBasekeeper >= 500 && ticksSinceStartedApplyingAsBasekeeper < 600 && ticksSinceStartedApplyingAsBasekeeper % 20 == 0)
+					if(ticksSinceStartedApplyingAsBasekeeper >= 5*actionStepCounter && ticksSinceStartedApplyingAsBasekeeper < 6*actionStepCounter && ticksSinceStartedApplyingAsBasekeeper % (actionStepCounter/5) == 0)
 					{
 						// I am in the process of awaiting accept/reject from my basekeeper
 						SendMessage_APPLYASBASEKEEPER(basekeeper);
 					}
-					if(ticksSinceStartedApplyingAsBasekeeper > 1200)
+					if(ticksSinceStartedApplyingAsBasekeeper > 12*actionStepCounter)
 					{
 						// Apparently this searcher did not become the new basekeeper.
 						if(debug)
@@ -531,7 +532,11 @@ void SearchAndRescueBehaviour::Loop()
 				if(relativeSafePosition.GetX() != 0 || relativeSafePosition.GetY() != 0)
 				{
 					// go to safe position 
-					MoveTowardsPosition(relativeSafePosition, 0.8);
+					bool reached = MoveTowardsPosition(relativeSafePosition, 0.8);
+					if(reached)
+					{
+						relativeSafePosition = CVector3();
+					}
 				}
 				else
 				{
@@ -655,7 +660,8 @@ void SearchAndRescueBehaviour::AvoidObstaclesAutomatically()
 	  avoidTurnDirection = 0;
    }
    else {
-	   avoidingObstacleTicksLeft = 40;
+	   //avoidingObstacleTicksLeft = 40;
+	   avoidingObstacleTicksLeft = actionNum = GetRand()%40 + 20;
  
       if((suggestedTurnDirection == 2 || avoidTurnDirection == 2 || returnToBasekeeperFirstTurnPreference == 2) && returnToBasekeeperFirstTurnPreference != 1) {
 		 SharpRightTurn();
@@ -1191,6 +1197,10 @@ void SearchAndRescueBehaviour::ReceiveMessage_SHAREPOSITION(ZebroIdentifier send
 {
 	if(role == ROLE_PASSIVE || role == ROLE_SEARCHER || role == ROLE_BASEKEEPER)
 	{
+		if(senderId.Equals(mainBasekeeper))
+		{
+			relativeSafePosition = DecompressPosition(compressedPosition);
+		}
 		if(role == ROLE_SEARCHER && basekeeper.IsEmpty() && !senderId.Equals(myId))
 		{
 			getAdoptedBy(senderId);
@@ -1773,7 +1783,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_APPLYASBASEKEEPER(ZebroIdentifier 
 {
 	if(role == ROLE_CANDIDATE || role == ROLE_BASEKEEPER)
 	{
-		if(ticksSinceStartedLookingForNewBasekeeper < 0 || ticksSinceStartedLookingForNewBasekeeper >= 1100)
+		if(ticksSinceStartedLookingForNewBasekeeper < 0 || ticksSinceStartedLookingForNewBasekeeper >= 11*actionStepCounter)
 		{
 			return; // we can only accept applications while recruiting new basekeepers.
 		}

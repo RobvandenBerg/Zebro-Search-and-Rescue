@@ -272,6 +272,8 @@ private:
 	int ticksPassed;
 	
 	bool canFindTarget;
+	
+	int actionStepCounter;
 };
 
 //todo: better documentation

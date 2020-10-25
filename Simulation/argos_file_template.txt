@@ -127,7 +127,7 @@
 
       $ argos3 -q box
   -->
-  <arena size="8, 8, 1" center="0,0,0.5">
+  <arena size="$ARENA_SIZE_X, $ARENA_SIZE_Y, 1" center="0,0,0.5">
 	$WALLS
 	$BOTS
     
