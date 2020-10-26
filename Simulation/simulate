@@ -166,9 +166,9 @@ then
 	then
 		echo "You chose arena number 4."
 	fi
-	ARENA_SIZE_X=60
-	ARENA_SIZE_Y=60
-	WALLS="<box id=\"wall_north\" size=\"60,0.1,0.5\" movable=\"false\"><body position=\"0,30,0\" orientation=\"0,0,0\" /></box><box id=\"wall_south\" size=\"60,0.1,0.5\" movable=\"false\"><body position=\"0,-30,0\" orientation=\"0,0,0\" /></box><box id=\"wall_east\" size=\"0.1,60,0.5\" movable=\"false\"><body position=\"30,0,0\" orientation=\"0,0,0\" /></box><box id=\"wall_west\" size=\"0.1,60,0.5\" movable=\"false\"><body position=\"-30,0,0\" orientation=\"0,0,0\" /></box>"
+	ARENA_SIZE_X=16
+	ARENA_SIZE_Y=16
+	WALLS="<box id=\"wall_north\" size=\"16,0.1,0.5\" movable=\"false\"><body position=\"0,8,0\" orientation=\"0,0,0\" /></box><box id=\"wall_south\" size=\"16,0.1,0.5\" movable=\"false\"><body position=\"0,-8,0\" orientation=\"0,0,0\" /></box><box id=\"wall_east\" size=\"0.1,16,0.5\" movable=\"false\"><body position=\"8,0,0\" orientation=\"0,0,0\" /></box><box id=\"wall_west\" size=\"0.1,16,0.5\" movable=\"false\"><body position=\"-8,0,0\" orientation=\"0,0,0\" /></box>"
 	STARTX="0.0"
 	STARTY="0.0"
 	TARGETX=$TARGET_DISTANCE
