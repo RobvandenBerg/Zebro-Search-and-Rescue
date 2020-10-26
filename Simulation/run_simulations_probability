@@ -1,5 +1,5 @@
 
-NUMBOTS=25
+NUMBOTS=10
 MINVAR=0.0
 VARSTEP=0.1
 STARTSEED=1
@@ -8,6 +8,8 @@ TOTALSTEPS=8
 TRIES=10
 
 ENDSEED=$(echo "$STARTSEED + $TRIES - 1" | bc)
+
+echo "Going to run probability simulations for $NUMBOTS bots"
 
 for i in $(seq $STARTSEED $ENDSEED)
 do
