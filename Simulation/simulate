@@ -20,6 +20,7 @@ VERBOSE=false
 PACKET_DROP_PROB=0.0
 DEBUG=false
 TARGET_DISTANCE="4"
+DONATION_RATE="10.0"
 
 
 POSITIONAL=()
@@ -53,6 +54,11 @@ case $key in
     shift # past argument
     shift # past value
     ;;
+    -r|--donation_rate)
+    DONATION_RATE="$2"
+    shift # past argument
+    shift # past value
+    ;;
 	-s|--seed)
     SEED="$2"
     shift # past argument
@@ -82,6 +88,8 @@ case $key in
 	echo "[-g || -gui]: run the simulation with visualisation in the Argos GUI"
 	echo "[-c || --check-occlusions]: restrict communication to line-of-sight only"
 	echo "[-p || --packet_drop_prob] *probability*: set the probability that a packet gets dropped"
+	echo "[-r || --donation_rate] *rate*: set the donation rate of base keepers"
+	echo "[-t || --target_distance] *distance*: set the target distance (only applicable in arena 4)"
 	echo "[-v || --verbose]: Verbose output"
 	echo ""
 	echo "Author: Rob van den Berg. Email: robvandenberg@letsinspire.com"
@@ -223,7 +231,7 @@ then
 	echo "Max simulation duration: $LENGTH seconds."
 fi
 
-sed "s~\$TARGET~$TARGET~g; s~\$WALLS~$WALLS~g; s~\$BOTS~$BOTS~g; s~\$LENGTH~$LENGTH~g; s~\$VISUALIZATION~$VISUALIZATION~g; s~\$SEED~$SEED~g; s~\$CHECK_OCCLUSIONS~$CHECK_OCCLUSIONS~g; s~\$PACKET_DROP_PROB~$PACKET_DROP_PROB~g; s~\$DEBUG~$DEBUG~g; s~\$ARENA_SIZE_X~$ARENA_SIZE_X~g; s~\$ARENA_SIZE_Y~$ARENA_SIZE_Y~g" argos_file_template.txt > generated.argos
+sed "s~\$TARGET~$TARGET~g; s~\$WALLS~$WALLS~g; s~\$BOTS~$BOTS~g; s~\$LENGTH~$LENGTH~g; s~\$VISUALIZATION~$VISUALIZATION~g; s~\$SEED~$SEED~g; s~\$CHECK_OCCLUSIONS~$CHECK_OCCLUSIONS~g; s~\$PACKET_DROP_PROB~$PACKET_DROP_PROB~g; s~\$DEBUG~$DEBUG~g; s~\$ARENA_SIZE_X~$ARENA_SIZE_X~g; s~\$ARENA_SIZE_Y~$ARENA_SIZE_Y~g; s~\$DONATION_RATE~$DONATION_RATE~g" argos_file_template.txt > generated.argos
 
 
 #output=$(sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" <<< $output)

@@ -202,6 +202,8 @@ public:
 	ZebroIdentifier PopMostRecentlyActiveSearcher();
 	ZebroIdentifier PickRandomChildBasekeeper();
 	
+	void SetDonationRate(Real rate);
+	
 	
 	virtual string MessageTypeToString(unsigned int messageType) override;
 	
@@ -274,6 +276,7 @@ private:
 	bool canFindTarget;
 	
 	int actionStepCounter;
+	int donationRate;
 };
 
 //todo: better documentation

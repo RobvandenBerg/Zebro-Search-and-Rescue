@@ -85,7 +85,7 @@
       <sensors>
 		<positioning implementation="default"/>
         <footbot_proximity implementation="default" show_rays="true" />
-		<range_and_bearing implementation="medium" medium="rab" show_rays="true" packet_drop_prob="$PACKET_DROP_PROB" />
+		<range_and_bearing implementation="medium" medium="rab" show_rays="false" packet_drop_prob="$PACKET_DROP_PROB" />
       </sensors>
       <!--
           The <params> section is passed as-is to the controller's Init()
@@ -107,6 +107,7 @@
                   label="estimatedtrajectory_loop_functions">
 	  $TARGET
 	  <debug value="$DEBUG"/>
+	  <donation_rate value="$DONATION_RATE"/>
 	</loop_functions>
 
   <!-- *********************** -->

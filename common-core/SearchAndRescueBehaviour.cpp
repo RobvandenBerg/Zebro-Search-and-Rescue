@@ -81,7 +81,7 @@ void SearchAndRescueBehaviour::Init() {
 	ticksSinceStartedApplyingAsBasekeeper = -1;
 	iAmTheReporter = false;
 	owner = ZebroIdentifier();
-   father = ZebroIdentifier(); // todo: can't this just be replaced with mainBasekeeper?
+	father = ZebroIdentifier(); // todo: can't this just be replaced with mainBasekeeper?
 	hopsToFather = 0x00;
 	basekeeperLevel = 0x01; // todo: when should this be reset?
 	lastMeasuredBasekeeperPosition = CVector3();
@@ -94,6 +94,11 @@ void SearchAndRescueBehaviour::Init() {
 	killed = false;
 	avoidingObstacleTicksLeft = 0;
 	ignoringTargetTicks = 0;
+	
+	if(!donationRate)
+	{
+		donationRate = 10.0; // This defines the rate at which the basekeeper will donate searchers
+	}
 	
 	canFindTarget = false;
 	
@@ -122,6 +127,11 @@ void SearchAndRescueBehaviour::ControlStep() {
 	
 	TrackOwnPosition();
 	SendMessageFromQueue();
+}
+
+void SearchAndRescueBehaviour::SetDonationRate(Real rate)
+{
+	donationRate = rate;
 }
 
 void SearchAndRescueBehaviour::FindTarget(CVector3 targetPosition, Real maxDistance)
@@ -397,8 +407,8 @@ void SearchAndRescueBehaviour::Loop()
 				}
 				
 				
-				double A = 10.0; // This defines the rate at which the basekeeper will donate searchers
-				int botsToKeep = (int) ceil((double) (10.0 - (A * (groundCovered/100.0)))/2)*2;
+				
+				int botsToKeep = (int) ceil((double) (10.0 - (donationRate * (groundCovered/100.0)))/2)*2;
 				
 				if(botsToKeep < 0)
 				{

@@ -25,6 +25,7 @@ void CEstimatedTrajectoryLoopFunctions::Init(TConfigurationNode& t_tree) {
     */
 	botId = 0;
 	debug = false;
+	Real donationRate = 10.0;
 	try {
 		TConfigurationNode & debugSettings = GetNode(t_tree, "debug");
 		string debugString;
@@ -35,8 +36,15 @@ void CEstimatedTrajectoryLoopFunctions::Init(TConfigurationNode& t_tree) {
 		}
 	}
 	catch(CARGoSException& ex) {
-      THROW_ARGOSEXCEPTION_NESTED("Error getting debug paramter", ex);
+      //THROW_ARGOSEXCEPTION_NESTED("Error getting debug paramter", ex);
    }
+   	try {
+   		TConfigurationNode & donationRateSettings = GetNode(t_tree, "donation_rate");
+   		GetNodeAttribute(donationRateSettings, "value", donationRate);
+   	}
+   	catch(CARGoSException& ex) {
+   		THROW_ARGOSEXCEPTION_NESTED("Error getting donation rate paramter", ex);
+   	}
 	try {
       TConfigurationNode& tTarget = GetNode(t_tree, "target");
 		GetNodeAttribute(tTarget, "x", targetX);
@@ -64,6 +72,7 @@ void CEstimatedTrajectoryLoopFunctions::Init(TConfigurationNode& t_tree) {
 	    SearchAndRescueBehaviour& cController = dynamic_cast<SearchAndRescueBehaviour&>(pcFB->GetControllableEntity().GetController());
 	   
 	   cController.SetDebug(debug);
+	   cController.SetDonationRate(donationRate);
 	   
 	   botId++;
 	   cController.PickId(botId);
