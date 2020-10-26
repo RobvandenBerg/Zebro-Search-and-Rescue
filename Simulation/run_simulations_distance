@@ -1,9 +1,9 @@
 
 NUMBOTS=40
-MINVAR=2.5
+MINVAR=3.5
 VARSTEP=0.5
 STARTSEED=1
-TOTALSTEPS=8
+TOTALSTEPS=6
 
 TRIES=10
 
@@ -16,6 +16,6 @@ do
 	do
 		VAR=$(echo "$MINVAR + $VARSTEP * $j" | bc)
 		echo "USING $VAR VAR and SEED $SEED"
-		./simulate -a 4 -s $i -b $NUMBOTS -t $VAR
+		./simulate -a 4 -s $i -b $NUMBOTS -t $VAR -d 500000
 	done
 done
