@@ -471,8 +471,11 @@ void SearchAndRescueBehaviour::Loop()
 				basekeeper = ZebroIdentifier();
 				ticksSinceStartedApplyingAsBasekeeper = -1;
 				basekeeperPositionKnown = false;
-				targetFound = true;
-				iAmTheReporter = true;
+				if(targetFound && iAmTheReporter)
+				{
+					targetFound = false;
+					iAmTheReporter = false;
+				}
 				// todo: implement wandering behaviour
 			}
 			ticksSinceLastHeartbeat++;
