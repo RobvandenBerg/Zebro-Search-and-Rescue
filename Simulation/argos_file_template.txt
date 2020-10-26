@@ -108,6 +108,7 @@
 	  $TARGET
 	  <debug value="$DEBUG"/>
 	  <donation_rate value="$DONATION_RATE"/>
+	  <die_chance value="$KILL_CHANCE"/>
 	</loop_functions>
 
   <!-- *********************** -->

@@ -99,6 +99,10 @@ void SearchAndRescueBehaviour::Init() {
 	{
 		donationRate = 10.0; // This defines the rate at which the basekeeper will donate searchers
 	}
+	if(!dieChance)
+	{
+		dieChance = 0;
+	}
 	
 	canFindTarget = false;
 	
@@ -109,6 +113,8 @@ void SearchAndRescueBehaviour::Init() {
 	
 	ticksPassed = 0;
 	actionStepCounter = 15; // must be divisible by 5
+	
+	dead = false;
 	
 	if(debug)
 	{
@@ -132,6 +138,11 @@ void SearchAndRescueBehaviour::ControlStep() {
 void SearchAndRescueBehaviour::SetDonationRate(Real rate)
 {
 	donationRate = rate;
+}
+
+void SearchAndRescueBehaviour::SetDieChance(int chance)
+{
+	dieChance = chance;
 }
 
 void SearchAndRescueBehaviour::FindTarget(CVector3 targetPosition, Real maxDistance)
@@ -257,8 +268,40 @@ bool SearchAndRescueBehaviour::isBasekeeper()
 	return role == ROLE_BASEKEEPER;
 }
 
+bool SearchAndRescueBehaviour::IsDead()
+{
+	return dead;
+}
+
+void SearchAndRescueBehaviour::Die()
+{
+	dead = true;
+	Stop();
+	UpdateLegVelocities();
+	if(debug)
+	{
+		BOTDEBUG << "Bot " << myId.ToString() << " died." << endl;
+	}
+}
+
+void SearchAndRescueBehaviour::DieWithChance(int chance)
+{
+	int max = chance;
+	int min = 0;
+	int randNum = GetRand()%(max-min + 1) + min;
+	if(randNum == min)
+	{
+		Die();
+	}
+}
+
 void SearchAndRescueBehaviour::Loop()
 {
+	if(!dead && dieChance != 0 && !mainBasekeeper.Equals(myId))
+	{
+		DieWithChance(dieChance);
+	}
+	if(dead) { return; }
 #ifndef IS_SIMULATION
 	logPositionCounter++;
 	if(logPositionCounter == 100)
@@ -804,7 +847,7 @@ std::string SearchAndRescueBehaviour::GetId()
 
 void SearchAndRescueBehaviour::ReceiveMessage(CByteArray message)
 {
-	
+	if(dead) { return; }
 	ZebroIdentifier senderId = GetIdFromArray(message, 0);
 	unsigned char messageNumber = message[idsize];
 	ZebroIdentifier intendedReceiver = GetIdFromArray(message, idsize+1);

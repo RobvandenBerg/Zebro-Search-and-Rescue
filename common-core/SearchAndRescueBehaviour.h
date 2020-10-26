@@ -203,6 +203,10 @@ public:
 	ZebroIdentifier PickRandomChildBasekeeper();
 	
 	void SetDonationRate(Real rate);
+	void SetDieChance(int chance);
+	void Die();
+	void DieWithChance(int chance);
+	bool IsDead();
 	
 	
 	virtual string MessageTypeToString(unsigned int messageType) override;
@@ -277,6 +281,8 @@ private:
 	
 	int actionStepCounter;
 	int donationRate;
+	bool dead;
+	int dieChance;
 };
 
 //todo: better documentation

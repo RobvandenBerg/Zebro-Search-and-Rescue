@@ -23,9 +23,11 @@ void CEstimatedTrajectoryLoopFunctions::Init(TConfigurationNode& t_tree) {
     * Go through all the robots in the environment
     * and create an entry in the waypoint map for each of them
     */
+    	threwMissionFailError = false;
 	botId = 0;
 	debug = false;
 	Real donationRate = 10.0;
+	dieChance = 0;
 	try {
 		TConfigurationNode & debugSettings = GetNode(t_tree, "debug");
 		string debugString;
@@ -41,6 +43,13 @@ void CEstimatedTrajectoryLoopFunctions::Init(TConfigurationNode& t_tree) {
    	try {
    		TConfigurationNode & donationRateSettings = GetNode(t_tree, "donation_rate");
    		GetNodeAttribute(donationRateSettings, "value", donationRate);
+   	}
+   	catch(CARGoSException& ex) {
+   		THROW_ARGOSEXCEPTION_NESTED("Error getting donation rate paramter", ex);
+   	}
+   	try {
+   		TConfigurationNode & dieChanceSettings = GetNode(t_tree, "die_chance");
+   		GetNodeAttribute(dieChanceSettings, "value", dieChance);
    	}
    	catch(CARGoSException& ex) {
    		THROW_ARGOSEXCEPTION_NESTED("Error getting donation rate paramter", ex);
@@ -64,6 +73,7 @@ void CEstimatedTrajectoryLoopFunctions::Init(TConfigurationNode& t_tree) {
    /* Get the map of all foot-bots from the space */
    CSpace::TMapPerType& tFBMap = GetSpace().GetEntitiesByType("foot-bot");
    /* Go through them */
+   
    for(CSpace::TMapPerType::iterator it = tFBMap.begin();
        it != tFBMap.end();
        ++it) {
@@ -73,6 +83,8 @@ void CEstimatedTrajectoryLoopFunctions::Init(TConfigurationNode& t_tree) {
 	   
 	   cController.SetDebug(debug);
 	   cController.SetDonationRate(donationRate);
+	   cController.SetDieChance(dieChance);
+	   
 	   
 	   botId++;
 	   cController.PickId(botId);
@@ -89,6 +101,7 @@ void CEstimatedTrajectoryLoopFunctions::Init(TConfigurationNode& t_tree) {
       m_tWaypoints[pcFB].push_back(pcFB->GetEmbodiedEntity().GetOriginAnchor().Position);
 	  //m_tWaypoints[pcFB].push_back(cController.GetMyPosition());
    }
+   	
 	
 	ticksPassed = 0;
 }
@@ -101,6 +114,7 @@ void CEstimatedTrajectoryLoopFunctions::Reset() {
     * Clear all the waypoint vectors
     */
    /* Get the map of all foot-bots from the space */
+   threwMissionFailError = false;
    CSpace::TMapPerType& tFBMap = GetSpace().GetEntitiesByType("foot-bot");
    /* Go through them */
    for(CSpace::TMapPerType::iterator it = tFBMap.begin();
@@ -123,6 +137,8 @@ void CEstimatedTrajectoryLoopFunctions::Reset() {
 
 
 void CEstimatedTrajectoryLoopFunctions::PostStep() {
+	int deadBots = 0;
+   int totalBots = 0;
    /* Get the map of all foot-bots from the space */
    CSpace::TMapPerType& tFBMap = GetSpace().GetEntitiesByType("foot-bot");
 	ticksPassed++;
@@ -140,9 +156,20 @@ void CEstimatedTrajectoryLoopFunctions::PostStep() {
                         m_tWaypoints[pcFB].back()) > MIN_DISTANCE_SQUARED) {
          m_tWaypoints[pcFB].push_back(pos);
       }
+      if(cController.IsDead())
+	   {
+	   	deadBots++;
+	   }
+	   totalBots++;
 	   
 	  cController.FindTarget(target, 0.24);
    }
+   if(deadBots == totalBots - 1 && dieChance != 0 && !threwMissionFailError)
+	{
+		// all bots have died
+		threwMissionFailError = true;
+		LOG << "Mission failed! All bots have died after " << ticksPassed << " ticks!" << endl;
+	}
 }
 
 /****************************************/

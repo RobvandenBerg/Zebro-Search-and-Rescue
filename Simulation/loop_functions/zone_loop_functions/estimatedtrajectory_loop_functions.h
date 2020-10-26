@@ -35,6 +35,8 @@ public:
 	int ticksPassed;
 	int botId;
 	bool debug;
+	int dieChance;
+	bool threwMissionFailError;
 
 private:
 	Real targetX;

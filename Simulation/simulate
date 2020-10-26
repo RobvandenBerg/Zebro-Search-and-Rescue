@@ -21,6 +21,7 @@ PACKET_DROP_PROB=0.0
 DEBUG=false
 TARGET_DISTANCE="4"
 DONATION_RATE="10.0"
+KILL_CHANCE=0
 
 
 POSITIONAL=()
@@ -69,6 +70,11 @@ case $key in
     shift # past argument
     shift # past value
     ;;
+    -k|--kill_chance)
+    KILL_CHANCE="$2"
+    shift # past argument
+    shift # past value
+    ;;
 	-c|--check-occlusions)
 	CHECK_OCCLUSIONS="check_occlusions=\"false\""
 	shift # past argument
@@ -90,6 +96,7 @@ case $key in
 	echo "[-p || --packet_drop_prob] *probability*: set the probability that a packet gets dropped"
 	echo "[-r || --donation_rate] *rate*: set the donation rate of base keepers"
 	echo "[-t || --target_distance] *distance*: set the target distance (only applicable in arena 4)"
+	echo "[-k || --kill_chance] *chance*: set the chance that a bot randomly dies every tick to 1 in *chance* (use 0 for a chance of 0)"
 	echo "[-v || --verbose]: Verbose output"
 	echo ""
 	echo "Author: Rob van den Berg. Email: robvandenberg@letsinspire.com"
@@ -231,7 +238,7 @@ then
 	echo "Max simulation duration: $LENGTH seconds."
 fi
 
-sed "s~\$TARGET~$TARGET~g; s~\$WALLS~$WALLS~g; s~\$BOTS~$BOTS~g; s~\$LENGTH~$LENGTH~g; s~\$VISUALIZATION~$VISUALIZATION~g; s~\$SEED~$SEED~g; s~\$CHECK_OCCLUSIONS~$CHECK_OCCLUSIONS~g; s~\$PACKET_DROP_PROB~$PACKET_DROP_PROB~g; s~\$DEBUG~$DEBUG~g; s~\$ARENA_SIZE_X~$ARENA_SIZE_X~g; s~\$ARENA_SIZE_Y~$ARENA_SIZE_Y~g; s~\$DONATION_RATE~$DONATION_RATE~g" argos_file_template.txt > generated.argos
+sed "s~\$TARGET~$TARGET~g; s~\$WALLS~$WALLS~g; s~\$BOTS~$BOTS~g; s~\$LENGTH~$LENGTH~g; s~\$VISUALIZATION~$VISUALIZATION~g; s~\$SEED~$SEED~g; s~\$CHECK_OCCLUSIONS~$CHECK_OCCLUSIONS~g; s~\$PACKET_DROP_PROB~$PACKET_DROP_PROB~g; s~\$DEBUG~$DEBUG~g; s~\$ARENA_SIZE_X~$ARENA_SIZE_X~g; s~\$ARENA_SIZE_Y~$ARENA_SIZE_Y~g; s~\$DONATION_RATE~$DONATION_RATE~g; s~\$KILL_CHANCE~$KILL_CHANCE~g" argos_file_template.txt > generated.argos
 
 
 #output=$(sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" <<< $output)
@@ -252,6 +259,7 @@ echo "Running the Argos3 simulation started with a process ID of $pid..."
 
 
 target_found=false
+mission_failed=false
 while read -r line; do
 	if [ $VERBOSE = true ]
 	then
@@ -266,13 +274,21 @@ while read -r line; do
 		#echo "Target was found: $line"
 		kill $pid
 		#break;
-		target_found=true
 		line=$(sed -r 's/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g' <<< $line)
 		#echo "$line"
 		#TEST=$(sed -e 's/[^0-9]/ /g' <<< $line)
 		NUMBERS=$(echo "$line" | sed -e 's/[^0-9]/ /g' -e 's/^ *//g' -e 's/ *$//g' | tr -s ' ' | sed 's/ /\n/g')
 		TICKS_PASSED=$(echo $NUMBERS | awk '{print $2}')
 		echo -e "\e[32mThe target was found after $TICKS_PASSED ticks.\e[0m"
+		break
+	fi
+	if [[ $line == *"Mission failed"* ]];
+	then
+		target_found=false
+		mission_failed=true
+		kill $pid
+		line=$(sed -r 's/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g' <<< $line)
+		echo -e "\e[31m$line\e[0m"
 		break
 	fi
 	if [[ $line == "" ]];
@@ -282,9 +298,12 @@ while read -r line; do
 	fi
 done <&${simulationprocess[0]} # redirect in from coprocess output
 
-if [ $target_found = false ]
+if [ $mission_failed = false ]
 then
-	echo -e "\e[31mThe time limit of $LENGTH seconds was reached and the target was not found.\e[0m"
+	if [ $target_found = false ]
+	then
+		echo -e "\e[31mThe time limit of $LENGTH seconds was reached and the target was not found.\e[0m"
+	fi
 fi
 
 status=$?
