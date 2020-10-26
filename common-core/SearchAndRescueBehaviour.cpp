@@ -1422,6 +1422,10 @@ void SearchAndRescueBehaviour::ReceiveMessage_RECRUITNEWBASEKEEPER(ZebroIdentifi
 		{
 			return; // this searcher is already applying as a new basekeeper
 		}
+		if(!canFindTarget)
+		{
+			return; // This bot is not guaranteed to be reachable from its base keeper, therefore it cannot currently apply as base keeper
+		}
 
 		// start applying as basekeeper
 		ticksSinceStartedApplyingAsBasekeeper = 0;
