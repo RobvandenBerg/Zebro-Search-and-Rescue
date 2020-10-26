@@ -1,0 +1,361 @@
+USING 0 VAR and SEED 1
+Running the Argos3 simulation started with a process ID of 11005...
+^[[A
+The target was found after 27469 ticks.
+Time Elapsed : 4 minutes and 21 seconds.
+USING .1 VAR and SEED 1
+Running the Argos3 simulation started with a process ID of 11350...
+The target was found after 56669 ticks.
+Time Elapsed : 9 minutes and 0 seconds.
+USING .2 VAR and SEED 1
+Running the Argos3 simulation started with a process ID of 11507...
+The target was found after 88817 ticks.
+Time Elapsed : 12 minutes and 11 seconds.
+USING .3 VAR and SEED 1
+Running the Argos3 simulation started with a process ID of 11671...
+The target was found after 33985 ticks.
+Time Elapsed : 3 minutes and 50 seconds.
+USING .4 VAR and SEED 1
+Running the Argos3 simulation started with a process ID of 11808...
+The target was found after 23943 ticks.
+Time Elapsed : 2 minutes and 29 seconds.
+USING .5 VAR and SEED 1
+Running the Argos3 simulation started with a process ID of 11947...
+The target was found after 51093 ticks.
+Time Elapsed : 4 minutes and 24 seconds.
+USING .6 VAR and SEED 1
+Running the Argos3 simulation started with a process ID of 12093...
+The time limit of 100000 seconds was reached and the target was not found.
+Time Elapsed : 101 minutes and 55 seconds.
+USING .7 VAR and SEED 1
+Running the Argos3 simulation started with a process ID of 12401...
+The target was found after 148323 ticks.
+Time Elapsed : 9 minutes and 43 seconds.
+USING .8 VAR and SEED 1
+Running the Argos3 simulation started with a process ID of 12684...
+The target was found after 32696 ticks.
+Time Elapsed : 1 minutes and 34 seconds.
+USING 0 VAR and SEED 2
+Running the Argos3 simulation started with a process ID of 12822...
+The target was found after 46309 ticks.
+Time Elapsed : 7 minutes and 27 seconds.
+USING .1 VAR and SEED 2
+Running the Argos3 simulation started with a process ID of 12987...
+The target was found after 54406 ticks.
+Time Elapsed : 8 minutes and 47 seconds.
+USING .2 VAR and SEED 2
+Running the Argos3 simulation started with a process ID of 13131...
+The target was found after 85446 ticks.
+Time Elapsed : 11 minutes and 13 seconds.
+USING .3 VAR and SEED 2
+Running the Argos3 simulation started with a process ID of 13288...
+The target was found after 73289 ticks.
+Time Elapsed : 9 minutes and 37 seconds.
+USING .4 VAR and SEED 2
+Running the Argos3 simulation started with a process ID of 13437...
+The target was found after 107308 ticks.
+Time Elapsed : 12 minutes and 16 seconds.
+USING .5 VAR and SEED 2
+Running the Argos3 simulation started with a process ID of 13594...
+The target was found after 32650 ticks.
+Time Elapsed : 2 minutes and 36 seconds.
+USING .6 VAR and SEED 2
+Running the Argos3 simulation started with a process ID of 13731...
+The target was found after 163736 ticks.
+Time Elapsed : 12 minutes and 50 seconds.
+USING .7 VAR and SEED 2
+Running the Argos3 simulation started with a process ID of 13877...
+The target was found after 40187 ticks.
+Time Elapsed : 2 minutes and 34 seconds.
+USING .8 VAR and SEED 2
+Running the Argos3 simulation started with a process ID of 14019...
+The target was found after 35643 ticks.
+Time Elapsed : 1 minutes and 44 seconds.
+USING 0 VAR and SEED 3
+Running the Argos3 simulation started with a process ID of 14155...
+The target was found after 31954 ticks.
+Time Elapsed : 5 minutes and 31 seconds.
+USING .1 VAR and SEED 3
+Running the Argos3 simulation started with a process ID of 14308...
+The target was found after 22359 ticks.
+Time Elapsed : 3 minutes and 20 seconds.
+USING .2 VAR and SEED 3
+Running the Argos3 simulation started with a process ID of 14445...
+The target was found after 54895 ticks.
+Time Elapsed : 8 minutes and 8 seconds.
+USING .3 VAR and SEED 3
+Running the Argos3 simulation started with a process ID of 14586...
+The target was found after 15732 ticks.
+Time Elapsed : 1 minutes and 37 seconds.
+USING .4 VAR and SEED 3
+Running the Argos3 simulation started with a process ID of 14721...
+The target was found after 32745 ticks.
+Time Elapsed : 3 minutes and 17 seconds.
+USING .5 VAR and SEED 3
+Running the Argos3 simulation started with a process ID of 14858...
+The target was found after 174007 ticks.
+Time Elapsed : 16 minutes and 58 seconds.
+USING .6 VAR and SEED 3
+Running the Argos3 simulation started with a process ID of 15036...
+The target was found after 127670 ticks.
+Time Elapsed : 10 minutes and 18 seconds.
+USING .7 VAR and SEED 3
+Running the Argos3 simulation started with a process ID of 15181...
+The target was found after 77328 ticks.
+Time Elapsed : 4 minutes and 51 seconds.
+USING .8 VAR and SEED 3
+Running the Argos3 simulation started with a process ID of 15337...
+The target was found after 76003 ticks.
+Time Elapsed : 4 minutes and 1 seconds.
+USING 0 VAR and SEED 4
+Running the Argos3 simulation started with a process ID of 15487...
+The target was found after 70481 ticks.
+Time Elapsed : 11 minutes and 41 seconds.
+USING .1 VAR and SEED 4
+Running the Argos3 simulation started with a process ID of 15631...
+The target was found after 29792 ticks.
+Time Elapsed : 4 minutes and 38 seconds.
+USING .2 VAR and SEED 4
+Running the Argos3 simulation started with a process ID of 15768...
+The target was found after 36766 ticks.
+Time Elapsed : 4 minutes and 26 seconds.
+USING .3 VAR and SEED 4
+Running the Argos3 simulation started with a process ID of 15916...
+The target was found after 41997 ticks.
+Time Elapsed : 4 minutes and 52 seconds.
+USING .4 VAR and SEED 4
+Running the Argos3 simulation started with a process ID of 16055...
+The target was found after 63980 ticks.
+Time Elapsed : 6 minutes and 49 seconds.
+USING .5 VAR and SEED 4
+Running the Argos3 simulation started with a process ID of 16206...
+The target was found after 53806 ticks.
+Time Elapsed : 5 minutes and 45 seconds.
+USING .6 VAR and SEED 4
+Running the Argos3 simulation started with a process ID of 16347...
+The target was found after 23741 ticks.
+Time Elapsed : 1 minutes and 50 seconds.
+USING .7 VAR and SEED 4
+Running the Argos3 simulation started with a process ID of 16488...
+The target was found after 147072 ticks.
+Time Elapsed : 9 minutes and 49 seconds.
+USING .8 VAR and SEED 4
+Running the Argos3 simulation started with a process ID of 16642...
+The target was found after 42362 ticks.
+Time Elapsed : 2 minutes and 5 seconds.
+USING 0 VAR and SEED 5
+Running the Argos3 simulation started with a process ID of 16778...
+The target was found after 62560 ticks.
+Time Elapsed : 10 minutes and 6 seconds.
+USING .1 VAR and SEED 5
+Running the Argos3 simulation started with a process ID of 16928...
+The target was found after 77857 ticks.
+Time Elapsed : 12 minutes and 23 seconds.
+USING .2 VAR and SEED 5
+Running the Argos3 simulation started with a process ID of 17086...
+The target was found after 37194 ticks.
+Time Elapsed : 4 minutes and 47 seconds.
+USING .3 VAR and SEED 5
+Running the Argos3 simulation started with a process ID of 17225...
+The target was found after 39862 ticks.
+Time Elapsed : 4 minutes and 48 seconds.
+USING .4 VAR and SEED 5
+Running the Argos3 simulation started with a process ID of 17363...
+The target was found after 59095 ticks.
+Time Elapsed : 5 minutes and 53 seconds.
+USING .5 VAR and SEED 5
+Running the Argos3 simulation started with a process ID of 17518...
+The target was found after 69699 ticks.
+Time Elapsed : 6 minutes and 7 seconds.
+USING .6 VAR and SEED 5
+Running the Argos3 simulation started with a process ID of 17657...
+The target was found after 12966 ticks.
+Time Elapsed : 0 minutes and 50 seconds.
+USING .7 VAR and SEED 5
+Running the Argos3 simulation started with a process ID of 17784...
+The target was found after 80244 ticks.
+Time Elapsed : 5 minutes and 12 seconds.
+USING .8 VAR and SEED 5
+Running the Argos3 simulation started with a process ID of 17925...
+The target was found after 75804 ticks.
+Time Elapsed : 4 minutes and 2 seconds.
+USING 0 VAR and SEED 6
+Running the Argos3 simulation started with a process ID of 18064...
+The target was found after 72002 ticks.
+Time Elapsed : 11 minutes and 19 seconds.
+USING .1 VAR and SEED 6
+Running the Argos3 simulation started with a process ID of 18221...
+The target was found after 45388 ticks.
+Time Elapsed : 7 minutes and 55 seconds.
+USING .2 VAR and SEED 6
+Running the Argos3 simulation started with a process ID of 18366...
+The target was found after 36226 ticks.
+Time Elapsed : 4 minutes and 35 seconds.
+USING .3 VAR and SEED 6
+Running the Argos3 simulation started with a process ID of 18510...
+The target was found after 32473 ticks.
+Time Elapsed : 3 minutes and 35 seconds.
+USING .4 VAR and SEED 6
+Running the Argos3 simulation started with a process ID of 18648...
+The target was found after 23591 ticks.
+Time Elapsed : 2 minutes and 33 seconds.
+USING .5 VAR and SEED 6
+Running the Argos3 simulation started with a process ID of 18784...
+The target was found after 34899 ticks.
+Time Elapsed : 3 minutes and 12 seconds.
+USING .6 VAR and SEED 6
+Running the Argos3 simulation started with a process ID of 18922...
+The target was found after 37402 ticks.
+Time Elapsed : 2 minutes and 41 seconds.
+USING .7 VAR and SEED 6
+Running the Argos3 simulation started with a process ID of 19067...
+The target was found after 71407 ticks.
+Time Elapsed : 4 minutes and 26 seconds.
+USING .8 VAR and SEED 6
+Running the Argos3 simulation started with a process ID of 19206...
+The target was found after 124267 ticks.
+Time Elapsed : 6 minutes and 34 seconds.
+USING 0 VAR and SEED 7
+Running the Argos3 simulation started with a process ID of 19357...
+The target was found after 54943 ticks.
+Time Elapsed : 7 minutes and 59 seconds.
+USING .1 VAR and SEED 7
+Running the Argos3 simulation started with a process ID of 19501...
+The target was found after 38460 ticks.
+Time Elapsed : 6 minutes and 5 seconds.
+USING .2 VAR and SEED 7
+Running the Argos3 simulation started with a process ID of 19649...
+The target was found after 22123 ticks.
+Time Elapsed : 2 minutes and 42 seconds.
+USING .3 VAR and SEED 7
+Running the Argos3 simulation started with a process ID of 19788...
+The target was found after 91219 ticks.
+Time Elapsed : 11 minutes and 51 seconds.
+USING .4 VAR and SEED 7
+Running the Argos3 simulation started with a process ID of 19949...
+The target was found after 40784 ticks.
+Time Elapsed : 4 minutes and 41 seconds.
+USING .5 VAR and SEED 7
+Running the Argos3 simulation started with a process ID of 20090...
+The target was found after 53949 ticks.
+Time Elapsed : 5 minutes and 22 seconds.
+USING .6 VAR and SEED 7
+Running the Argos3 simulation started with a process ID of 20239...
+The target was found after 37112 ticks.
+Time Elapsed : 2 minutes and 47 seconds.
+USING .7 VAR and SEED 7
+Running the Argos3 simulation started with a process ID of 20383...
+The target was found after 80888 ticks.
+Time Elapsed : 5 minutes and 18 seconds.
+USING .8 VAR and SEED 7
+Running the Argos3 simulation started with a process ID of 20527...
+The target was found after 43215 ticks.
+Time Elapsed : 2 minutes and 7 seconds.
+USING 0 VAR and SEED 8
+Running the Argos3 simulation started with a process ID of 20663...
+The target was found after 52571 ticks.
+Time Elapsed : 8 minutes and 21 seconds.
+USING .1 VAR and SEED 8
+Running the Argos3 simulation started with a process ID of 20815...
+The target was found after 29213 ticks.
+Time Elapsed : 4 minutes and 15 seconds.
+USING .2 VAR and SEED 8
+Running the Argos3 simulation started with a process ID of 20962...
+The target was found after 64903 ticks.
+Time Elapsed : 8 minutes and 50 seconds.
+USING .3 VAR and SEED 8
+Running the Argos3 simulation started with a process ID of 21110...
+The target was found after 69669 ticks.
+Time Elapsed : 7 minutes and 57 seconds.
+USING .4 VAR and SEED 8
+Running the Argos3 simulation started with a process ID of 21251...
+The target was found after 60141 ticks.
+Time Elapsed : 6 minutes and 35 seconds.
+USING .5 VAR and SEED 8
+Running the Argos3 simulation started with a process ID of 21394...
+The target was found after 65680 ticks.
+Time Elapsed : 5 minutes and 43 seconds.
+USING .6 VAR and SEED 8
+Running the Argos3 simulation started with a process ID of 22197...
+The target was found after 75953 ticks.
+Time Elapsed : 6 minutes and 11 seconds.
+USING .7 VAR and SEED 8
+Running the Argos3 simulation started with a process ID of 22726...
+The target was found after 10372 ticks.
+Time Elapsed : 0 minutes and 35 seconds.
+USING .8 VAR and SEED 8
+Running the Argos3 simulation started with a process ID of 22848...
+The target was found after 374428 ticks.
+Time Elapsed : 19 minutes and 30 seconds.
+USING 0 VAR and SEED 9
+Running the Argos3 simulation started with a process ID of 23016...
+The target was found after 40165 ticks.
+Time Elapsed : 6 minutes and 35 seconds.
+USING .1 VAR and SEED 9
+Running the Argos3 simulation started with a process ID of 23158...
+The target was found after 72661 ticks.
+Time Elapsed : 11 minutes and 14 seconds.
+USING .2 VAR and SEED 9
+Running the Argos3 simulation started with a process ID of 23306...
+The target was found after 82969 ticks.
+Time Elapsed : 12 minutes and 1 seconds.
+USING .3 VAR and SEED 9
+Running the Argos3 simulation started with a process ID of 23463...
+The target was found after 49885 ticks.
+Time Elapsed : 5 minutes and 53 seconds.
+USING .4 VAR and SEED 9
+Running the Argos3 simulation started with a process ID of 23609...
+The target was found after 60290 ticks.
+Time Elapsed : 6 minutes and 2 seconds.
+USING .5 VAR and SEED 9
+Running the Argos3 simulation started with a process ID of 23750...
+The target was found after 24335 ticks.
+Time Elapsed : 2 minutes and 10 seconds.
+USING .6 VAR and SEED 9
+Running the Argos3 simulation started with a process ID of 23888...
+The target was found after 76726 ticks.
+Time Elapsed : 5 minutes and 23 seconds.
+USING .7 VAR and SEED 9
+Running the Argos3 simulation started with a process ID of 24035...
+The target was found after 48676 ticks.
+Time Elapsed : 3 minutes and 16 seconds.
+USING .8 VAR and SEED 9
+Running the Argos3 simulation started with a process ID of 24174...
+The target was found after 67952 ticks.
+Time Elapsed : 3 minutes and 11 seconds.
+USING 0 VAR and SEED 10
+Running the Argos3 simulation started with a process ID of 24312...
+The target was found after 32642 ticks.
+Time Elapsed : 5 minutes and 37 seconds.
+USING .1 VAR and SEED 10
+Running the Argos3 simulation started with a process ID of 24459...
+The target was found after 42934 ticks.
+Time Elapsed : 5 minutes and 46 seconds.
+USING .2 VAR and SEED 10
+Running the Argos3 simulation started with a process ID of 24611...
+The target was found after 36950 ticks.
+Time Elapsed : 4 minutes and 50 seconds.
+USING .3 VAR and SEED 10
+Running the Argos3 simulation started with a process ID of 24763...
+The target was found after 70804 ticks.
+Time Elapsed : 8 minutes and 43 seconds.
+USING .4 VAR and SEED 10
+Running the Argos3 simulation started with a process ID of 24905...
+The target was found after 30118 ticks.
+Time Elapsed : 3 minutes and 14 seconds.
+USING .5 VAR and SEED 10
+Running the Argos3 simulation started with a process ID of 25043...
+The target was found after 47701 ticks.
+Time Elapsed : 4 minutes and 20 seconds.
+USING .6 VAR and SEED 10
+Running the Argos3 simulation started with a process ID of 25185...
+The target was found after 56473 ticks.
+Time Elapsed : 4 minutes and 44 seconds.
+USING .7 VAR and SEED 10
+Running the Argos3 simulation started with a process ID of 25340...
+The target was found after 39843 ticks.
+Time Elapsed : 2 minutes and 33 seconds.
+USING .8 VAR and SEED 10
+Running the Argos3 simulation started with a process ID of 25477...
+The target was found after 176685 ticks.
+Time Elapsed : 9 minutes and 22 seconds.

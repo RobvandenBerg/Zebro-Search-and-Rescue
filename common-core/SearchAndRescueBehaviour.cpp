@@ -586,6 +586,10 @@ void SearchAndRescueBehaviour::Loop()
 				}
 				
 				Real distanceToBasekeeper = (lastMeasuredBasekeeperPosition - myTrackedPosition).Length();
+				if(distanceToBasekeeper >= 3.0)
+				{
+					canFindTarget = false; // You went outside of the communication range. If you find the target now, there is no more guarantee that the target is reachable by staying within the baskeeper's communication range	
+				}
 				if(returningToBasekeeper)
 				{
 					bool reached = MoveTowardsPosition(lastMeasuredBasekeeperPosition, 1.5);
@@ -595,10 +599,6 @@ void SearchAndRescueBehaviour::Loop()
 					}
 					returningToBasekeeper = false;
 					canFindTarget = true;
-				}
-				if(distanceToBasekeeper >= 3.0)
-				{
-					canFindTarget = false; // You went outside of the communication range. If you find the target now, there is no more guarantee that the target is reachable by staying within the baskeeper's communication range	
 				}
 				if(distanceToBasekeeper > 2.5)
 				{
