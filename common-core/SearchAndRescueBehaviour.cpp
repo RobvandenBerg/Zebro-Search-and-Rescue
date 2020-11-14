@@ -116,6 +116,13 @@ void SearchAndRescueBehaviour::Init() {
 	actionStepCounter = 15; // must be divisible by 5
 	
 	dead = false;
+	if(!localisationNoise)
+	{
+		localisationNoise = 0.0;
+	}
+	
+	minBasekeeperDistance = 1;
+	disbandTestingTicksLeft = 0;
 	
 	if(debug)
 	{
@@ -134,6 +141,37 @@ void SearchAndRescueBehaviour::ControlStep() {
 	
 	TrackOwnPosition();
 	SendMessageFromQueue();
+}
+
+CVector3 SearchAndRescueBehaviour::IntroduceNoise(CVector3 input)
+{
+	CVector3 output = CVector3(input.GetX(), input.GetY(), input.GetZ());
+	
+	int max = (int)(localisationNoise*100);
+	int min = 0;
+	int randNum = GetRand()%(max-min + 1) + min;
+	Real noiseLength = ((Real) randNum)/100.0;
+	
+	int noiseDirection = GetRand()%(360);
+	Real noiseAngle = ((Real) noiseDirection)/360.0 * 2 * M_PI;
+	
+	CVector3 noiseVector = CVector3(noiseLength, 0, 0);
+	noiseVector.RotateZ(CRadians(noiseAngle));
+	
+	output = output+noiseVector;
+	
+	/*
+	BOTDEBUG << "input: [" << input.GetX() << ", " << input.GetY() << ", " << input.GetZ() << "]"<<endl;
+	BOTDEBUG << "noiseVec: [" << noiseVector.GetX() << ", " << noiseVector.GetY() << ", " << noiseVector.GetZ() << "] ("<<localisationNoise<<" localisation noise)"<<endl;
+	BOTDEBUG << "output: [" << output.GetX() << ", " << output.GetY() << ", " << output.GetZ() << "]." << endl;
+	*/
+	
+	return output;
+}
+
+void SearchAndRescueBehaviour::SetLocalisationNoise(Real noise)
+{
+	localisationNoise = noise;
 }
 
 void SearchAndRescueBehaviour::SetDonationRate(Real rate)
@@ -388,6 +426,14 @@ void SearchAndRescueBehaviour::Loop()
 				updateIgnoreSearchersTicks();
 				UpdateChildrenBasekeepersTicks();
 				CheckConnectionToParent();
+			}
+			if(disbandTestingTicksLeft > 0)
+			{
+				disbandTestingTicksLeft--;
+				if(disbandTestingTicksLeft == 0)
+				{
+					disbandTestingNode = ZebroIdentifier();	
+				}
 			}
 			RelocateSearchersNeededElsewhere();
 			TryToInstructSearchers();
@@ -1258,11 +1304,12 @@ void SearchAndRescueBehaviour::ReceiveMessage_CAPTUREBROADCAST(ZebroIdentifier s
 
 void SearchAndRescueBehaviour::ReceiveMessage_SHAREPOSITION(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, unsigned char hopsMade, CByteArray compressedPosition, ZebroIdentifier parent)
 {
+	CVector3 receivedPosition = IntroduceNoise(DecompressPosition(compressedPosition));
 	if(role == ROLE_PASSIVE || role == ROLE_SEARCHER || role == ROLE_BASEKEEPER)
 	{
 		if(senderId.Equals(mainBasekeeper))
 		{
-			relativeSafePosition = DecompressPosition(compressedPosition);
+			relativeSafePosition = receivedPosition;
 		}
 		if(role == ROLE_SEARCHER && basekeeper.IsEmpty() && !senderId.Equals(myId))
 		{
@@ -1285,7 +1332,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_SHAREPOSITION(ZebroIdentifier send
 		}
 		else
 		{
-			absoluteBasekeeperPosition = DecompressPosition(compressedPosition);
+			absoluteBasekeeperPosition = receivedPosition;
 			myLastAbsolutePosition = myAbsolutePosition;
 			lastMeasuredBasekeeperPosition = absoluteBasekeeperPosition - myAbsolutePosition;
 			myTrackedPosition = CVector3();
@@ -1308,7 +1355,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_SHAREPOSITION(ZebroIdentifier send
 		{
 			// todo: change parentBasekeeperPosition with weights.
 			lastParentUpdate = 0;
-			absoluteParentBasekeeperPosition = DecompressPosition(compressedPosition);
+			absoluteParentBasekeeperPosition = receivedPosition;
 			myLastAbsolutePosition = myAbsolutePosition;
 			lastMeasuredParentBasekeeperPosition = absoluteParentBasekeeperPosition - myAbsolutePosition;
 			myTrackedPosition = CVector3();
@@ -1326,7 +1373,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_SHAREPOSITION(ZebroIdentifier send
 			{
 				BOTDEBUG << "LFT: " << myId.ToString() << " updated " << senderId.ToString() << " as children basekeeper." << endl;
 			}
-			AddToChildrenBasekeepers(senderId, DecompressPosition(compressedPosition) - myAbsolutePosition);
+			AddToChildrenBasekeepers(senderId, receivedPosition - myAbsolutePosition);
 		}
 		else if(!mainBasekeeper.Equals(myId) && !senderId.Equals(parentBasekeeper))
 		{
@@ -1334,18 +1381,38 @@ void SearchAndRescueBehaviour::ReceiveMessage_SHAREPOSITION(ZebroIdentifier send
 			{
 				// if we're too closer to this basekeeper than to our parent basekeeper, we should disband.
 
-				CVector3 absoluteResponsePosition = DecompressPosition(compressedPosition);
+				CVector3 absoluteResponsePosition = receivedPosition;
 				CVector3 relativeResponsePosition = absoluteResponsePosition - myAbsolutePosition;
 				Real distanceToOtherBasekeeper = relativeResponsePosition.Length();
 				Real distanceToParentBasekeeper = lastMeasuredParentBasekeeperPosition.Length();
-				if(distanceToOtherBasekeeper < distanceToParentBasekeeper && distanceToOtherBasekeeper < minBasekeeperDistance) // todo: Do this over multiple measurements
+
+				if(senderId.Equals(disbandTestingNode))
 				{
-					if(debug)
+					disbandTestingTicksLeft = 600;
+					disbandTestingResults++;
+					disbandTestingTotalDistance += distanceToOtherBasekeeper;
+					if(disbandTestingResults == 5)
 					{
-						BOTDEBUG << "Basekeeper " << myId.ToString() << " wants to disband because basekeeper " << senderId.ToString() << " is closer to it in a direct line than it is to its parent" << endl;
+							Real averageDistanceToOtherBasekeeper = disbandTestingTotalDistance/disbandTestingResults;
+							if(averageDistanceToOtherBasekeeper < minBasekeeperDistance)
+							{
+								if(debug)
+								{
+									BOTDEBUG << "Basekeeper " << myId.ToString() << " wants to disband because basekeeper " << senderId.ToString() << " is closer to it in a direct line than it is to its parent" << std::endl;
+								}
+								Disband();
+								ticksSinceStartedApplyingAsBasekeeper = -1;
+								disbandTestingNode = ZebroIdentifier();
+							}
 					}
-					Disband();
-					ticksSinceStartedApplyingAsBasekeeper = -1;
+				}
+				else if(disbandTestingNode.IsEmpty() && distanceToOtherBasekeeper < minBasekeeperDistance)
+				{
+					// Start testing this bot
+					disbandTestingNode = senderId.Copy();
+					disbandTestingTicksLeft = 600;
+					disbandTestingTotalDistance = 0;
+					disbandTestingResults = 0;
 				}
 			}
 			return;
@@ -1357,6 +1424,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_SHAREPOSITION(ZebroIdentifier send
 
 void SearchAndRescueBehaviour::ReceiveMessage_DISBAND(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, CByteArray compressedPosition)
 {
+	CVector3 receivedPosition = IntroduceNoise(DecompressPosition(compressedPosition));
 	if(role == ROLE_PASSIVE || role == ROLE_SEARCHER || role == ROLE_BASEKEEPER)
 	{
 		if(role != ROLE_SEARCHER || !senderId.Equals(basekeeper))
@@ -1375,7 +1443,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_DISBAND(ZebroIdentifier senderId, 
 			basekeeperPositionKnown = false;
 			canFindTarget = false;
 
-			CVector3 absoluteResponsePosition = DecompressPosition(compressedPosition);
+			CVector3 absoluteResponsePosition = receivedPosition;
 			CVector3 relativeResponsePosition = absoluteResponsePosition - myAbsolutePosition;
 			relativeSafePosition = relativeResponsePosition;
 		}
@@ -1404,7 +1472,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_DISBAND(ZebroIdentifier senderId, 
 			BOTDEBUG << "Bot " << myId.ToString() << " disbanded because its parent basekeeper disbanded!" << endl;
 		}
 
-		CVector3 absoluteResponsePosition = DecompressPosition(compressedPosition);
+		CVector3 absoluteResponsePosition = receivedPosition;
 		CVector3 relativeResponsePosition = absoluteResponsePosition - myAbsolutePosition;
 		relativeSafePosition = relativeResponsePosition;
 
@@ -1440,6 +1508,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_RECRUITNEWBASEKEEPER(ZebroIdentifi
 
 void SearchAndRescueBehaviour::ReceiveMessage_PINGREPLY(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, CByteArray compressedPosition, unsigned char allowAsNewBasekeeper)
 {
+	CVector3 receivedPosition = IntroduceNoise(DecompressPosition(compressedPosition));
 	if(role == ROLE_PASSIVE || role == ROLE_SEARCHER || role == ROLE_BASEKEEPER)
 	{
 		if(role != ROLE_SEARCHER || ticksSinceStartedApplyingAsBasekeeper == -1)
@@ -1464,7 +1533,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_PINGREPLY(ZebroIdentifier senderId
 				return;
 			}
 
-			CVector3 absoluteResponsePosition = DecompressPosition(compressedPosition);
+			CVector3 absoluteResponsePosition = receivedPosition;
 			CVector3 relativeResponsePosition = absoluteResponsePosition - myAbsolutePosition;
 			if(senderId.Equals(basekeeper))
 			{
@@ -1491,6 +1560,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_PINGREPLY(ZebroIdentifier senderId
 
 void SearchAndRescueBehaviour::ReceiveMessage_APPOINTNEWBASEKEEPER(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, ZebroIdentifier newBasekeeperId, CByteArray compressedPosition, unsigned char basekeeperL)
 {
+	CVector3 receivedPosition = IntroduceNoise(DecompressPosition(compressedPosition));
 	if(role == ROLE_PASSIVE || role == ROLE_SEARCHER || role == ROLE_BASEKEEPER)
 	{
 		if(!senderId.Equals(basekeeper))
@@ -1499,7 +1569,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_APPOINTNEWBASEKEEPER(ZebroIdentifi
 		}
 		else
 		{
-			CVector3 absoluteResponsePosition = DecompressPosition(compressedPosition);
+			CVector3 absoluteResponsePosition = receivedPosition;
 			CVector3 relativeResponsePosition = absoluteResponsePosition - myAbsolutePosition;
 
 			if(newBasekeeperId.Equals(myId))
@@ -1528,6 +1598,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_APPOINTNEWBASEKEEPER(ZebroIdentifi
 
 void SearchAndRescueBehaviour::ReceiveMessage_RELOCATESEARCHER(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, ZebroIdentifier searcherId, ZebroIdentifier basekeeperId, CByteArray compressedPosition)
 {
+	CVector3 receivedPosition = IntroduceNoise(DecompressPosition(compressedPosition));
 	if(role == ROLE_PASSIVE || role == ROLE_SEARCHER || role == ROLE_BASEKEEPER)
 	{
 		if(!senderId.Equals(basekeeper))
@@ -1546,7 +1617,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_RELOCATESEARCHER(ZebroIdentifier s
 				basekeeper = basekeeperId.Copy();
 
 				// to do: rewrite this to keep in mind relative positioning
-				absoluteBasekeeperPosition = DecompressPosition(compressedPosition);
+				absoluteBasekeeperPosition = receivedPosition;
 				myLastAbsolutePosition = myAbsolutePosition;
 				lastMeasuredBasekeeperPosition = absoluteBasekeeperPosition - myAbsolutePosition;
 				myTrackedPosition = CVector3();
@@ -1564,6 +1635,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_RELOCATESEARCHER(ZebroIdentifier s
 
 void SearchAndRescueBehaviour::ReceiveMessage_FOUNDTARGET(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, ZebroIdentifier parent, CByteArray compressedPosition)
 {
+	CVector3 receivedPosition = IntroduceNoise(DecompressPosition(compressedPosition));
 	if(role == ROLE_PASSIVE || role == ROLE_SEARCHER || role == ROLE_BASEKEEPER)
 	{
 		targetFound = true;
@@ -1583,7 +1655,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_FOUNDTARGET(ZebroIdentifier sender
 		if(parent.Equals(myId))
 		{
 			linkToTarget = senderId;
-			CVector3 absoluteResponsePosition = DecompressPosition(compressedPosition);
+			CVector3 absoluteResponsePosition = receivedPosition;
 			CVector3 relativeFinderPosition = absoluteResponsePosition - myAbsolutePosition;
 			vectorToTarget = relativeFinderPosition;
 			if(debug)
@@ -1802,6 +1874,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_CYCLECOMPLETE(ZebroIdentifier send
 
 void SearchAndRescueBehaviour::ReceiveMessage_BECOMEPATHPOINT(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, ZebroIdentifier searcherId, CByteArray compressedPosition)
 {
+	CVector3 receivedPosition = IntroduceNoise(DecompressPosition(compressedPosition));
 	ticksSinceLastPathDataMessage = 0;
 	if(role == ROLE_PASSIVE || role == ROLE_SEARCHER || role == ROLE_BASEKEEPER)
 	{
@@ -1814,7 +1887,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_BECOMEPATHPOINT(ZebroIdentifier se
 			{
 				BOTDEBUG << "Searcher " << myId.ToString() << " is now a pathpoint for " << basekeeper.ToString() << "!" << endl;
 			}
-			pathpointPositionFromBasekeeper = DecompressPosition(compressedPosition);
+			pathpointPositionFromBasekeeper = receivedPosition;
 		}
 		else if(!senderId.Equals(myId))
 		{
@@ -1836,9 +1909,10 @@ void SearchAndRescueBehaviour::ReceiveMessage_BECOMEPATHPOINT(ZebroIdentifier se
 
 void SearchAndRescueBehaviour::ReceiveMessage_PINGALLBASEKEEPERS(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, CByteArray compressedPosition)
 {
+	CVector3 receivedPosition = IntroduceNoise(DecompressPosition(compressedPosition));
 	if(role == ROLE_CANDIDATE || role == ROLE_BASEKEEPER)
 	{
-		CVector3 absoluteResponsePosition = DecompressPosition(compressedPosition);
+		CVector3 absoluteResponsePosition = receivedPosition;
 		CVector3 relativeResponsePosition = absoluteResponsePosition - myAbsolutePosition;
 
 		unsigned char allowAsNewBasekeeper = 0x01;
@@ -1860,6 +1934,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_PINGALLBASEKEEPERS(ZebroIdentifier
 
 void SearchAndRescueBehaviour::ReceiveMessage_APPLYASBASEKEEPER(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, CByteArray compressedPosition)
 {
+	CVector3 receivedPosition = IntroduceNoise(DecompressPosition(compressedPosition));
 	if(role == ROLE_CANDIDATE || role == ROLE_BASEKEEPER)
 	{
 		if(ticksSinceStartedLookingForNewBasekeeper < 0 || ticksSinceStartedLookingForNewBasekeeper >= 11*actionStepCounter)
@@ -1869,7 +1944,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_APPLYASBASEKEEPER(ZebroIdentifier 
 		// this application can be accepted!
 
 
-		CVector3 absoluteResponsePosition = DecompressPosition(compressedPosition);
+		CVector3 absoluteResponsePosition = receivedPosition;
 		CVector3 relativeResponsePosition = absoluteResponsePosition - myAbsolutePosition;
 		Real distanceToApplicant = relativeResponsePosition.Length();
 		if(distanceToApplicant > bestApplicantDistance)
@@ -2499,6 +2574,8 @@ void SearchAndRescueBehaviour::BecomeBasekeeper()
 	ticksSinceLastBasekeeperAppointment = 0;
 	amountOfRemainingSearchersToInstruct = 0;
 	myTotalPathPoints = 1;
+	disbandTestingTicksLeft = 0;
+	disbandTestingNode = ZebroIdentifier();
 	if(debug)
 	{
 		BOTDEBUG << "I (id " << myId.ToString() << ") am becoming a basekeeper" << endl;
