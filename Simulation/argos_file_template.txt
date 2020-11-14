@@ -109,6 +109,7 @@
 	  <debug value="$DEBUG"/>
 	  <donation_rate value="$DONATION_RATE"/>
 	  <die_chance value="$KILL_CHANCE"/>
+	  <localisation_noise value="$NOISE"/>
 	</loop_functions>
 
   <!-- *********************** -->

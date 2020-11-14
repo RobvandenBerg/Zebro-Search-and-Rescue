@@ -1,3 +1,23 @@
+OUTPUT_FILE=false
+
+POSITIONAL=()
+while [[ $# -gt 0 ]]
+do
+key="$1"
+
+case $key in
+    -f|--file)
+    OUTPUT_FILE="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    *)    # unknown option
+    POSITIONAL+=("$1") # save it in an array for later
+    shift # past argument
+    ;;
+esac
+done
+set -- "${POSITIONAL[@]}" # restore positional parameters
 
 NUMBOTS=40
 MINVAR=3.5
@@ -9,6 +29,7 @@ TRIES=10
 
 ENDSEED=$(echo "$STARTSEED + $TRIES - 1" | bc)
 
+
 for i in $(seq $STARTSEED $ENDSEED)
 do
 	SEED=$i
@@ -16,11 +37,18 @@ do
 	do
 		VAR=$(echo "$MINVAR + $VARSTEP * $j" | bc)
 		echo "USING $VAR VAR and SEED $SEED"
+		if [ "$OUTPUT_FILE" != "false" ]
+		then
+			echo "USING $VAR VAR and SEED $SEED" >> $OUTPUT_FILE
+		fi
 		./simulate -a 4 -s $i -b $NUMBOTS -t $VAR -d 500000 |
 		while IFS= read -r line
 		do
 			echo "$line"
-			echo "$line" >> results.txt
+			if [ "$OUTPUT_FILE" != "false" ]
+			then
+				echo "$line" >> $OUTPUT_FILE
+			fi
 		done
 	done
 done

@@ -28,6 +28,7 @@ void CEstimatedTrajectoryLoopFunctions::Init(TConfigurationNode& t_tree) {
 	debug = false;
 	Real donationRate = 10.0;
 	dieChance = 0;
+	localisationNoise=0.0;
 	try {
 		TConfigurationNode & debugSettings = GetNode(t_tree, "debug");
 		string debugString;
@@ -39,6 +40,15 @@ void CEstimatedTrajectoryLoopFunctions::Init(TConfigurationNode& t_tree) {
 	}
 	catch(CARGoSException& ex) {
       //THROW_ARGOSEXCEPTION_NESTED("Error getting debug paramter", ex);
+   }
+	try {
+		TConfigurationNode & localisationNoiseSettings = GetNode(t_tree, "localisation_noise");
+		Real localisationNoise_raw;
+		GetNodeAttribute(localisationNoiseSettings, "value", localisationNoise_raw);
+		localisationNoise = localisationNoise_raw/100;
+	}
+	catch(CARGoSException& ex) {
+      THROW_ARGOSEXCEPTION_NESTED("Error getting noise paramter", ex);
    }
    	try {
    		TConfigurationNode & donationRateSettings = GetNode(t_tree, "donation_rate");
@@ -84,6 +94,7 @@ void CEstimatedTrajectoryLoopFunctions::Init(TConfigurationNode& t_tree) {
 	   cController.SetDebug(debug);
 	   cController.SetDonationRate(donationRate);
 	   cController.SetDieChance(dieChance);
+	   cController.SetLocalisationNoise(localisationNoise);
 	   
 	   
 	   botId++;

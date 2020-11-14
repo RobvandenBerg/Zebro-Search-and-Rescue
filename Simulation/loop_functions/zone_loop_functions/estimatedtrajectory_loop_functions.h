@@ -37,6 +37,7 @@ public:
 	bool debug;
 	int dieChance;
 	bool threwMissionFailError;
+	Real localisationNoise;
 
 private:
 	Real targetX;
