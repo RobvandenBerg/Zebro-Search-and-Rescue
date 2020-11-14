@@ -283,6 +283,7 @@ private:
 	int donationRate;
 	bool dead;
 	int dieChance;
+	int minBasekeeperDistance;
 };
 
 //todo: better documentation

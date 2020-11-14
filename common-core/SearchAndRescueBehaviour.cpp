@@ -94,6 +94,7 @@ void SearchAndRescueBehaviour::Init() {
 	killed = false;
 	avoidingObstacleTicksLeft = 0;
 	ignoringTargetTicks = 0;
+	minBasekeeperDistance = 1;
 	
 	if(!donationRate)
 	{
@@ -559,7 +560,7 @@ void SearchAndRescueBehaviour::Loop()
 					
 					if(ticksSinceStartedApplyingAsBasekeeper == 5*actionStepCounter)
 					{
-						if(!closestBasekeeper.Equals(basekeeper) || closestBasekeeperDistance < 1)
+						if(!closestBasekeeper.Equals(basekeeper) || closestBasekeeperDistance < minBasekeeperDistance)
 						{
 							// closestBasekeeper != basekeeper, so... This searcher cannot become a new basekeeper.
 							// or, this bot is too close to its basekeeper.
@@ -1337,7 +1338,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_SHAREPOSITION(ZebroIdentifier send
 				CVector3 relativeResponsePosition = absoluteResponsePosition - myAbsolutePosition;
 				Real distanceToOtherBasekeeper = relativeResponsePosition.Length();
 				Real distanceToParentBasekeeper = lastMeasuredParentBasekeeperPosition.Length();
-				if(distanceToOtherBasekeeper < distanceToParentBasekeeper)
+				if(distanceToOtherBasekeeper < distanceToParentBasekeeper && distanceToOtherBasekeeper < minBasekeeperDistance) // todo: Do this over multiple measurements
 				{
 					if(debug)
 					{
