@@ -16,6 +16,11 @@ do
 	do
 		VAR=$(echo "$MINVAR + $VARSTEP * $j" | bc)
 		echo "USING $VAR VAR and SEED $SEED"
-		./simulate -a 4 -s $i -b $NUMBOTS -t $VAR -d 500000
+		./simulate -a 4 -s $i -b $NUMBOTS -t $VAR -d 500000 |
+		while IFS= read -r line
+		do
+			echo "$line"
+			echo "$line" >> results.txt
+		done
 	done
 done
