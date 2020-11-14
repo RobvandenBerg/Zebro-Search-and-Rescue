@@ -1,5 +1,5 @@
 OUTPUT_FILE=false
-NUMBOTS=40
+NUMBOTS=25
 
 POSITIONAL=()
 while [[ $# -gt 0 ]]
@@ -25,19 +25,21 @@ esac
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
-MINVAR=3.5
-VARSTEP=0.5
-STARTSEED=11
+
+MINVAR=0
+VARSTEP=20
+STARTSEED=1
 TOTALSTEPS=6
 
 TRIES=10
 
 ENDSEED=$(echo "$STARTSEED + $TRIES - 1" | bc)
 
-echo "Going to run target distance simulations for $NUMBOTS bots"
+
+echo "Going to run localisation noise simulations for $NUMBOTS bots"
 if [ "$OUTPUT_FILE" != "false" ]
 then
-	echo "Going to run target distance simulations for $NUMBOTS bots" >> $OUTPUT_FILE
+	echo "Going to run localisation noise simulations for $NUMBOTS bots" >> $OUTPUT_FILE
 fi
 
 
@@ -52,7 +54,7 @@ do
 		then
 			echo "USING $VAR VAR and SEED $SEED" >> $OUTPUT_FILE
 		fi
-		./simulate -a 4 -s $i -b $NUMBOTS -t $VAR -d 500000 |
+		./simulate -a 3 -s $i -b $NUMBOTS -n $VAR -d 100000 |
 		while IFS= read -r line
 		do
 			echo "$line"
@@ -63,3 +65,4 @@ do
 		done
 	done
 done
+

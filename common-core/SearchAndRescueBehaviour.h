@@ -207,6 +207,8 @@ public:
 	void Die();
 	void DieWithChance(int chance);
 	bool IsDead();
+	void SetLocalisationNoise(Real noise);
+	CVector3 IntroduceNoise(CVector3 input);
 	
 	
 	virtual string MessageTypeToString(unsigned int messageType) override;
@@ -283,6 +285,14 @@ private:
 	int donationRate;
 	bool dead;
 	int dieChance;
+
+	Real localisationNoise;
+	
+	int minBasekeeperDistance;
+	ZebroIdentifier disbandTestingNode;
+	unsigned int disbandTestingTicksLeft;
+	Real disbandTestingTotalDistance;
+	unsigned int disbandTestingResults;
 };
 
 //todo: better documentation
