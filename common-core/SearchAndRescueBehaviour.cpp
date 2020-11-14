@@ -116,6 +116,9 @@ void SearchAndRescueBehaviour::Init() {
 	
 	dead = false;
 	
+	minBasekeeperDistance = 1;
+	disbandTestingTicksLeft = 0;
+	
 	if(debug)
 	{
 		BOTDEBUG << "Inited SearchAndRescueBehaviour" << endl;
@@ -388,6 +391,14 @@ void SearchAndRescueBehaviour::Loop()
 				UpdateChildrenBasekeepersTicks();
 				CheckConnectionToParent();
 			}
+			if(disbandTestingTicksLeft > 0)
+			{
+				disbandTestingTicksLeft--;
+				if(disbandTestingTicksLeft == 0)
+				{
+					disbandTestingNode = ZebroIdentifier();	
+				}
+			}
 			RelocateSearchersNeededElsewhere();
 			TryToInstructSearchers();
 			if(!targetFound)
@@ -559,7 +570,7 @@ void SearchAndRescueBehaviour::Loop()
 					
 					if(ticksSinceStartedApplyingAsBasekeeper == 5*actionStepCounter)
 					{
-						if(!closestBasekeeper.Equals(basekeeper) || closestBasekeeperDistance < 1)
+						if(!closestBasekeeper.Equals(basekeeper) || closestBasekeeperDistance < minBasekeeperDistance)
 						{
 							// closestBasekeeper != basekeeper, so... This searcher cannot become a new basekeeper.
 							// or, this bot is too close to its basekeeper.
@@ -1337,14 +1348,33 @@ void SearchAndRescueBehaviour::ReceiveMessage_SHAREPOSITION(ZebroIdentifier send
 				CVector3 relativeResponsePosition = absoluteResponsePosition - myAbsolutePosition;
 				Real distanceToOtherBasekeeper = relativeResponsePosition.Length();
 				Real distanceToParentBasekeeper = lastMeasuredParentBasekeeperPosition.Length();
-				if(distanceToOtherBasekeeper < distanceToParentBasekeeper)
+				if(senderId.Equals(disbandTestingNode))
 				{
-					if(debug)
+					disbandTestingTicksLeft = 600;
+					disbandTestingResults++;
+					disbandTestingTotalDistance += distanceToOtherBasekeeper;
+					if(disbandTestingResults == 5)
 					{
-						BOTDEBUG << "Basekeeper " << myId.ToString() << " wants to disband because basekeeper " << senderId.ToString() << " is closer to it in a direct line than it is to its parent" << endl;
+							Real averageDistanceToOtherBasekeeper = disbandTestingTotalDistance/disbandTestingResults;
+							if(averageDistanceToOtherBasekeeper < minBasekeeperDistance)
+							{
+								if(debug)
+								{
+									BOTDEBUG << "Basekeeper " << myId.ToString() << " wants to disband because basekeeper " << senderId.ToString() << " is closer to it in a direct line than it is to its parent" << std::endl;
+								}
+								Disband();
+								ticksSinceStartedApplyingAsBasekeeper = -1;
+								disbandTestingNode = ZebroIdentifier();
+							}
 					}
-					Disband();
-					ticksSinceStartedApplyingAsBasekeeper = -1;
+				}
+				else if(disbandTestingNode.IsEmpty() && distanceToOtherBasekeeper < minBasekeeperDistance)
+				{
+					// Start testing this bot
+					disbandTestingNode = senderId.Copy();
+					disbandTestingTicksLeft = 600;
+					disbandTestingTotalDistance = 0;
+					disbandTestingResults = 0;
 				}
 			}
 			return;
@@ -2498,6 +2528,8 @@ void SearchAndRescueBehaviour::BecomeBasekeeper()
 	ticksSinceLastBasekeeperAppointment = 0;
 	amountOfRemainingSearchersToInstruct = 0;
 	myTotalPathPoints = 1;
+	disbandTestingTicksLeft = 0;
+	disbandTestingNode = ZebroIdentifier();
 	if(debug)
 	{
 		BOTDEBUG << "I (id " << myId.ToString() << ") am becoming a basekeeper" << endl;

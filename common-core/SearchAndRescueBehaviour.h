@@ -283,6 +283,12 @@ private:
 	int donationRate;
 	bool dead;
 	int dieChance;
+	
+	int minBasekeeperDistance;
+	ZebroIdentifier disbandTestingNode;
+	unsigned int disbandTestingTicksLeft;
+	Real disbandTestingTotalDistance;
+	unsigned int disbandTestingResults;
 };
 
 //todo: better documentation
