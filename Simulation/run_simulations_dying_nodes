@@ -26,14 +26,12 @@ done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
 
-MINVAR=1000
-VARSTEP=100
 STARTSEED=1
-TOTALSTEPS=6
-
 TRIES=10
 
 ENDSEED=$(echo "$STARTSEED + $TRIES - 1" | bc)
+
+VARS=( 259780 122659 76738 53581 39488 29871 22734 17007 )
 
 
 echo "Going to run dying nodes simulations for $NUMBOTS bots"
@@ -46,15 +44,14 @@ fi
 for i in $(seq $STARTSEED $ENDSEED)
 do
 	SEED=$i
-	for j in $(seq 0 $TOTALSTEPS)
+	for VAR in "${VARS[@]}"
 	do
-		VAR=$(echo "$MINVAR + $VARSTEP * $j" | bc)
 		echo "USING $VAR VAR and SEED $SEED"
 		if [ "$OUTPUT_FILE" != "false" ]
 		then
 			echo "USING $VAR VAR and SEED $SEED" >> $OUTPUT_FILE
 		fi
-		./simulate -a 3 -s $i -b $NUMBOTS -k $VAR -d 100000 |
+		./simulate -a 3 -s $i -b $NUMBOTS -k $VAR -d 1 |
 		while IFS= read -r line
 		do
 			echo "$line"
