@@ -285,6 +285,7 @@ private:
 	int donationRate;
 	bool dead;
 	int dieChance;
+
 	Real localisationNoise;
 	
 	int minBasekeeperDistance;

@@ -94,6 +94,7 @@ void SearchAndRescueBehaviour::Init() {
 	killed = false;
 	avoidingObstacleTicksLeft = 0;
 	ignoringTargetTicks = 0;
+	minBasekeeperDistance = 1;
 	
 	if(!donationRate)
 	{
@@ -1384,6 +1385,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_SHAREPOSITION(ZebroIdentifier send
 				CVector3 relativeResponsePosition = absoluteResponsePosition - myAbsolutePosition;
 				Real distanceToOtherBasekeeper = relativeResponsePosition.Length();
 				Real distanceToParentBasekeeper = lastMeasuredParentBasekeeperPosition.Length();
+
 				if(senderId.Equals(disbandTestingNode))
 				{
 					disbandTestingTicksLeft = 600;
