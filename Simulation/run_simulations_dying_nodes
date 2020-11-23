@@ -51,7 +51,7 @@ do
 		then
 			echo "USING $VAR VAR and SEED $SEED" >> $OUTPUT_FILE
 		fi
-		./simulate -a 3 -s $i -b $NUMBOTS -k $VAR -d 1 |
+		./simulate -a 3 -s $i -b $NUMBOTS -k $VAR -d 1000000 |
 		while IFS= read -r line
 		do
 			echo "$line"
