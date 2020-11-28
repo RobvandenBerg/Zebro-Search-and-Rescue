@@ -209,6 +209,7 @@ public:
 	bool IsDead();
 	void SetLocalisationNoise(Real noise);
 	CVector3 IntroduceNoise(CVector3 input);
+	void SetChooseBasekeeperChance(int chance);
 	
 	
 	virtual string MessageTypeToString(unsigned int messageType) override;
@@ -285,6 +286,8 @@ private:
 	int donationRate;
 	bool dead;
 	int dieChance;
+
+	int chooseBasekeeperChance;
 
 	Real localisationNoise;
 	

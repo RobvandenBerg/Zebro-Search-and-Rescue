@@ -29,6 +29,14 @@ void CEstimatedTrajectoryLoopFunctions::Init(TConfigurationNode& t_tree) {
 	Real donationRate = 10.0;
 	dieChance = 0;
 	localisationNoise=0.0;
+	chooseBasekeeperChance = 67;
+	try {
+		TConfigurationNode & chooseBasekeeperChanceSettings = GetNode(t_tree, "choose_basekeeper_chance");
+		GetNodeAttribute(chooseBasekeeperChanceSettings, "value", chooseBasekeeperChance);
+	}
+	catch(CARGoSException& ex) {
+	      THROW_ARGOSEXCEPTION_NESTED("Error getting chooseBasekeeperChance paramter", ex);
+	}
 	try {
 		TConfigurationNode & debugSettings = GetNode(t_tree, "debug");
 		string debugString;
@@ -95,6 +103,7 @@ void CEstimatedTrajectoryLoopFunctions::Init(TConfigurationNode& t_tree) {
 	   cController.SetDonationRate(donationRate);
 	   cController.SetDieChance(dieChance);
 	   cController.SetLocalisationNoise(localisationNoise);
+	   cController.SetChooseBasekeeperChance(chooseBasekeeperChance);
 	   
 	   
 	   botId++;

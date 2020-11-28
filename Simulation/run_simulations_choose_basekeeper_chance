@@ -1,0 +1,77 @@
+OUTPUT_FILE=false
+NUMBOTS=40
+DONATION_RATE=30
+
+TARGET_DISTANCE=5
+
+POSITIONAL=()
+while [[ $# -gt 0 ]]
+do
+key="$1"
+
+case $key in
+    -f|--file)
+    OUTPUT_FILE="$2"
+    shift # past argument
+    shift # past value
+    ;;
+	-b|--bots)
+	NUMBOTS="$2"
+	shift # past argument
+	shift # p
+	;;
+	-r|--donation_rate)
+	DONATION_RATE="$2"
+	shift # past argument
+	shift # p
+	;;
+	-t|--target_distance)
+	TARGET_DISTANCE="$2"
+	shift # past argument
+	shift # p
+	;;
+    *)    # unknown option
+    POSITIONAL+=("$1") # save it in an array for later
+    shift # past argument
+    ;;
+esac
+done
+set -- "${POSITIONAL[@]}" # restore positional parameters
+
+STARTSEED=1
+TRIES=10
+
+ENDSEED=$(echo "$STARTSEED + $TRIES - 1" | bc)
+
+VARS=( 0 25 50 75 100 )
+
+
+echo "Going to run donation rate simulations for $NUMBOTS bots, $TARGET_DISTANCE target distance and $DONATION_RATE donation rate"
+if [ "$OUTPUT_FILE" != "false" ]
+then
+	echo "Going to run donation rate simulations for $NUMBOTS bots" >> $OUTPUT_FILE
+fi
+
+for i in $(seq $STARTSEED $ENDSEED)
+do
+	SEED=$i
+	for VAR in "${VARS[@]}"
+	do
+		echo "USING $VAR VAR and SEED $SEED"
+		if [ "$OUTPUT_FILE" != "false" ]
+		then
+			echo "USING $VAR VAR and SEED $SEED" >> $OUTPUT_FILE
+		fi
+		./simulate -a 4 -s $i -b $NUMBOTS -r $DONATION_RATE -cbc $VAR -t $TARGET_DISTANCE -d 500000 |
+		while IFS= read -r line
+		do
+			echo "$line"
+			if [ "$OUTPUT_FILE" != "false" ]
+			then
+				echo "$line" >> $OUTPUT_FILE
+			fi
+		done
+	done
+done
+
+
