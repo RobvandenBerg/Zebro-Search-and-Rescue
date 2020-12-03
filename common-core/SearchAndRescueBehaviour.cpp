@@ -1635,7 +1635,8 @@ void SearchAndRescueBehaviour::ReceiveMessage_RELOCATESEARCHER(ZebroIdentifier s
 
 void SearchAndRescueBehaviour::ReceiveMessage_FOUNDTARGET(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, ZebroIdentifier parent, CByteArray compressedPosition)
 {
-	CVector3 receivedPosition = IntroduceNoise(DecompressPosition(compressedPosition));
+	//CVector3 receivedPosition = IntroduceNoise(DecompressPosition(compressedPosition));
+	CVector3 receivedPosition = DecompressPosition(compressedPosition);
 	if(role == ROLE_PASSIVE || role == ROLE_SEARCHER || role == ROLE_BASEKEEPER)
 	{
 		targetFound = true;
@@ -1681,7 +1682,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_FOUNDTARGET(ZebroIdentifier sender
 				{
 					BOTDEBUG << "use " << useAmountOfSearchers << " searchers (and 1 node)." << endl;
 				}
-				BOTDEBUG << "Mission accomplished! Ticks passed: " << (ticksPassed+1) << endl;
+				BOTDEBUG << "Mission accomplished! Ticks passed: " << (ticksPassed+1) << ". Path length: " << distanceLeft << endl;
 				sendMessageId++;
 				unsigned char msgNum = (unsigned char) sendMessageId;
 				SendMessage_CYCLECOMPLETE(myId, msgNum, linkToTarget);
@@ -1763,7 +1764,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_FOUNDTARGETUPSTREAM(ZebroIdentifie
 				{
 					BOTDEBUG << "use " << useAmountOfSearchers << " searchers (and 1 node)." << endl;
 				}
-				BOTDEBUG << "Mission accomplished! Ticks passed: " << (ticksPassed+1) << endl;
+				BOTDEBUG << "Mission accomplished! Ticks passed: " << (ticksPassed+1) << ". Path length: " << distanceLeft << endl;
 				sendMessageId++;
 				unsigned char msgNum = (unsigned char) sendMessageId;
 				SendMessage_PATHDATA(myId, msgNum, linkToTarget, hopsLeftToTarget - 1, amountOfSearchersLeft, sendSearchersNumber);
