@@ -38,6 +38,7 @@ public:
 	int dieChance;
 	bool threwMissionFailError;
 	Real localisationNoise;
+	int chooseBasekeeperChance;
 
 private:
 	Real targetX;

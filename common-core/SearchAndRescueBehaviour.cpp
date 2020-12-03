@@ -123,6 +123,8 @@ void SearchAndRescueBehaviour::Init() {
 	
 	minBasekeeperDistance = 1;
 	disbandTestingTicksLeft = 0;
+
+	chooseBasekeeperChance = 67;
 	
 	if(debug)
 	{
@@ -167,6 +169,11 @@ CVector3 SearchAndRescueBehaviour::IntroduceNoise(CVector3 input)
 	*/
 	
 	return output;
+}
+
+void SearchAndRescueBehaviour::SetChooseBasekeeperChance(int chance)
+{
+	chooseBasekeeperChance = chance;
 }
 
 void SearchAndRescueBehaviour::SetLocalisationNoise(Real noise)
@@ -2475,12 +2482,12 @@ void SearchAndRescueBehaviour::DonateSearchers(int amountOfDonations)
 	
 	while(amountOfDonations > 0)
 	{
-		int chooseAction = GetRand()%(2-0 + 1) + 0;
+		int chooseAction = GetRand()%(100) + 0;
 		if(debug)
 		{
 			BOTDEBUG << "Chose random number " << chooseAction << endl;
 		}
-		if(canCreateNewBasekeeper && (!canRelocateSearchers || chooseAction != 1))
+		if(canCreateNewBasekeeper && (!canRelocateSearchers || chooseAction < chooseBasekeeperChance))
 		{
 			// if both actions are possible, this option has a chance of 67%
 			

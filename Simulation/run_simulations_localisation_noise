@@ -1,5 +1,6 @@
 OUTPUT_FILE=false
 NUMBOTS=25
+STARTSEED=1
 
 POSITIONAL=()
 while [[ $# -gt 0 ]]
@@ -17,6 +18,11 @@ case $key in
 	shift # past argument
 	shift # p
 	;;
+	-s|--seed)
+	STARTSEED="$2"
+	shift
+	shift
+	;;
     *)    # unknown option
     POSITIONAL+=("$1") # save it in an array for later
     shift # past argument
@@ -28,7 +34,6 @@ set -- "${POSITIONAL[@]}" # restore positional parameters
 
 MINVAR=0
 VARSTEP=20
-STARTSEED=1
 TOTALSTEPS=6
 
 TRIES=10

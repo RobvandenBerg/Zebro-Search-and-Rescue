@@ -110,6 +110,7 @@
 	  <donation_rate value="$DONATION_RATE"/>
 	  <die_chance value="$KILL_CHANCE"/>
 	  <localisation_noise value="$NOISE"/>
+	  <choose_basekeeper_chance value="$CHOOSE_BASEKEEPER_CHANCE"/>
 	</loop_functions>
 
   <!-- *********************** -->

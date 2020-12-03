@@ -1,5 +1,8 @@
 OUTPUT_FILE=false
-NUMBOTS=25
+NUMBOTS=40
+DONATION_RATE=30
+
+TARGET_DISTANCE=5
 
 POSITIONAL=()
 while [[ $# -gt 0 ]]
@@ -17,6 +20,16 @@ case $key in
 	shift # past argument
 	shift # p
 	;;
+	-r|--donation_rate)
+	DONATION_RATE="$2"
+	shift # past argument
+	shift # p
+	;;
+	-t|--target_distance)
+	TARGET_DISTANCE="$2"
+	shift # past argument
+	shift # p
+	;;
     *)    # unknown option
     POSITIONAL+=("$1") # save it in an array for later
     shift # past argument
@@ -25,21 +38,19 @@ esac
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
-
 STARTSEED=1
 TRIES=10
 
 ENDSEED=$(echo "$STARTSEED + $TRIES - 1" | bc)
 
-VARS=( 259780 122659 76738 53581 39488 29871 22734 17007 )
+VARS=( 0 25 50 75 100 )
 
 
-echo "Going to run dying nodes simulations for $NUMBOTS bots"
+echo "Going to run donation rate simulations for $NUMBOTS bots, $TARGET_DISTANCE target distance and $DONATION_RATE donation rate"
 if [ "$OUTPUT_FILE" != "false" ]
 then
-	echo "Going to run dying nodes simulations for $NUMBOTS bots" >> $OUTPUT_FILE
+	echo "Going to run donation rate simulations for $NUMBOTS bots" >> $OUTPUT_FILE
 fi
-
 
 for i in $(seq $STARTSEED $ENDSEED)
 do
@@ -51,7 +62,7 @@ do
 		then
 			echo "USING $VAR VAR and SEED $SEED" >> $OUTPUT_FILE
 		fi
-		./simulate -a 3 -s $i -b $NUMBOTS -k $VAR -d 1000000 |
+		./simulate -a 4 -s $i -b $NUMBOTS -r $DONATION_RATE -cbc $VAR -t $TARGET_DISTANCE -d 500000 |
 		while IFS= read -r line
 		do
 			echo "$line"
@@ -62,6 +73,5 @@ do
 		done
 	done
 done
-
 
 
