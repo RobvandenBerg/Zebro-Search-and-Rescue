@@ -1,6 +1,7 @@
 OUTPUT_FILE=false
 NUMBOTS=40
 DONATION_RATE=30
+STARTSEED=1
 
 TARGET_DISTANCE=5
 
@@ -18,17 +19,22 @@ case $key in
 	-b|--bots)
 	NUMBOTS="$2"
 	shift # past argument
-	shift # p
+	shift # past value
 	;;
 	-r|--donation_rate)
 	DONATION_RATE="$2"
 	shift # past argument
-	shift # p
+	shift # past value
 	;;
 	-t|--target_distance)
 	TARGET_DISTANCE="$2"
 	shift # past argument
-	shift # p
+	shift # past value
+	;;
+	-s|--seed)
+	STARTSEED="$2"
+	shift # past argument
+	shift # past value
 	;;
     *)    # unknown option
     POSITIONAL+=("$1") # save it in an array for later
@@ -38,7 +44,7 @@ esac
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
-STARTSEED=1
+
 TRIES=10
 
 ENDSEED=$(echo "$STARTSEED + $TRIES - 1" | bc)
