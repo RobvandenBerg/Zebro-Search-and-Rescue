@@ -23,7 +23,7 @@
           or set to zero, this value is taken from the clock and a warning
           message is displayed.
     -->
-    <experiment length="0"
+    <experiment length="100000"
                 ticks_per_second="10"
                 random_seed="124" />
   </framework>
@@ -85,7 +85,7 @@
       <sensors>
 		<positioning implementation="default"/>
         <footbot_proximity implementation="default" show_rays="true" />
-		<range_and_bearing implementation="medium" medium="rab" show_rays="true" packet_drop_prob="0.0" />
+		<range_and_bearing implementation="medium" medium="rab" show_rays="false" packet_drop_prob="0.0" />
       </sensors>
       <!--
           The <params> section is passed as-is to the controller's Init()
@@ -105,8 +105,12 @@
   <!-- ****************** -->
   <loop_functions library="build/loop_functions/zone_loop_functions/libzone_loop_functions"
                   label="estimatedtrajectory_loop_functions">
-	  <target x="3.8" y="1.0"/>
-	  <debug value="false"/>
+	  <target x="3.8" y="3.8"/>
+	  <debug value="true"/>
+	  <donation_rate value="10.0"/>
+	  <die_chance value="0"/>
+	  <localisation_noise value="0"/>
+	  <choose_basekeeper_chance value="67"/>
 	</loop_functions>
 
   <!-- *********************** -->
@@ -128,127 +132,9 @@
       $ argos3 -q box
   -->
   <arena size="8, 8, 1" center="0,0,0.5">
-
-    <!-- Place four boxes in a square to delimit the arena -->
-    <box id="wall_north" size="2,0.1,0.5" movable="false">
-      <body position="0,1,0" orientation="0,0,0" />
-    </box>
-    <box id="wall_south" size="2,0.1,0.5" movable="false">
-      <body position="0,-1,0" orientation="0,0,0" />
-    </box>
-    <box id="wall_east" size="0.1,2,0.5" movable="false">
-      <body position="1,0,0" orientation="0,0,0" />
-    </box>
-    <box id="wall_west" size="0.1,2,0.5" movable="false">
-      <body position="-1,0,0" orientation="0,0,0" />
-    </box>
-	
-	<box id="wall_north2" size="8,0.1,0.5" movable="false">
-      <body position="0,4,0" orientation="0,0,0" />
-    </box>
-    <box id="wall_south2" size="8,0.1,0.5" movable="false">
-      <body position="0,-4,0" orientation="0,0,0" />
-    </box>
-    <box id="wall_east2" size="0.1,8,0.5" movable="false">
-      <body position="4,0,0" orientation="0,0,0" />
-    </box>
-    <box id="wall_west2" size="0.1,8,0.5" movable="false">
-      <body position="-4,0,0" orientation="0,0,0" />
-    </box>
-
-    <!-- Place a foot-bot in the origin and bind it to the controller -->
-    <!-- <foot-bot id="fb_0">
-      <body position="0,0,0" orientation="0,0,0" />
-      <controller config="fzc"/>
-    </foot-bot>
-	<foot-bot id="fb_1">
-      <body position="0.5,0,0" orientation="0,0,0" />
-      <controller config="fzc"/>
-    </foot-bot>
-		<foot-bot id="fb_9">
-      <body position="-0.5,-0.5,0" orientation="0,0,0" />
-      <controller config="fzc"/>
-    </foot-bot>
-	-->
-	
-	<foot-bot id="fb_2">
-      <body position="2.5,0,0" orientation="0,0,0" />
-      <controller config="fzc"/>
-    </foot-bot>
-	
-	<foot-bot id="fb_3">
-      <body position="3,0,0" orientation="0,0,0" />
-      <controller config="fzc"/>
-    </foot-bot>
-	
-	
-	<foot-bot id="fb_4">
-      <body position="3.5,0,0" orientation="0,0,0" />
-      <controller config="fzc"/>
-    </foot-bot>
-	
-	
-	<foot-bot id="fb_5">
-      <body position="2.5,1,0" orientation="0,0,0" />
-      <controller config="fzc"/>
-    </foot-bot>
-	
-	
-	<foot-bot id="fb_6">
-      <body position="3.5,1,0" orientation="0,0,0" />
-      <controller config="fzc"/>
-    </foot-bot>
-	
-	
-	<foot-bot id="fb_7">
-      <body position="3.5,-1,0" orientation="0,0,0" />
-      <controller config="fzc"/>
-    </foot-bot>
-	
-	
-	<foot-bot id="fb_8">
-      <body position="2.5,-1,0" orientation="0,0,0" />
-      <controller config="fzc"/>
-    </foot-bot>
-
-	
-	<foot-bot id="fb_10">
-      <body position="1.5,0.5,0" orientation="0,0,0" />
-      <controller config="fzc"/>
-    </foot-bot>
-
-<foot-bot id="fb_11">
-      <body position="0.5,1.5,0" orientation="0,0,0" />
-      <controller config="fzc"/>
-    </foot-bot>
-	<foot-bot id="fb_12">
-      <body position="-0.5,2.5,0" orientation="0,0,0" />
-      <controller config="fzc"/>
-    </foot-bot>
-	<foot-bot id="fb_13">
-      <body position="-1.5,1.5,0" orientation="0,0,0" />
-      <controller config="fzc"/>
-    </foot-bot>
-	<foot-bot id="fb_14">
-      <body position="-1.5,0.5,0" orientation="0,0,0" />
-      <controller config="fzc"/>
-    </foot-bot>
-	<foot-bot id="fb_15">
-      <body position="-0.5,1.5,0" orientation="0,0,0" />
-      <controller config="fzc"/>
-    </foot-bot>
-	
-	
-	
-	
-	<foot-bot id="fb_t1">
-      <body position="-2,-2,0" orientation="0,0,0" />
-      <controller config="fzc"/>
-    </foot-bot>
-	<foot-bot id="fb_t2">
-      <body position="1,-2,0" orientation="0,0,0" />
-      <controller config="fzc"/>
-    </foot-bot>
+	<box id="wall_north" size="2,0.1,0.5" movable="false"><body position="0,1,0" orientation="0,0,0" /></box><box id="wall_south" size="2,0.1,0.5" movable="false"><body position="0,-1,0" orientation="0,0,0" /></box><box id="wall_east" size="0.1,2,0.5" movable="false"><body position="1,0,0" orientation="0,0,0" /></box><box id="wall_west" size="0.1,2,0.5" movable="false"><body position="-1,0,0" orientation="0,0,0" /></box><box id="wall_north2" size="8,0.1,0.5" movable="false"><body position="0,4,0" orientation="0,0,0" /></box><box id="wall_south2" size="8,0.1,0.5" movable="false"><body position="0,-4,0" orientation="0,0,0" /></box><box id="wall_east2" size="0.1,8,0.5" movable="false"><body position="4,0,0" orientation="0,0,0" /></box><box id="wall_west2" size="0.1,8,0.5" movable="false"><body position="-4,0,0" orientation="0,0,0" /></box>
+	<foot-bot id="fb_1"><body position="2.0,2.0,0" orientation="0,0,0" /><controller config="fzc"/></foot-bot><foot-bot id="fb_2"><body position="2.2,2.0,0" orientation="0,0,0" /><controller config="fzc"/></foot-bot><foot-bot id="fb_3"><body position="2.4,2.0,0" orientation="0,0,0" /><controller config="fzc"/></foot-bot><foot-bot id="fb_4"><body position="2.6,2.0,0" orientation="0,0,0" /><controller config="fzc"/></foot-bot><foot-bot id="fb_5"><body position="2.0,2.2,0" orientation="0,0,0" /><controller config="fzc"/></foot-bot><foot-bot id="fb_6"><body position="2.2,2.2,0" orientation="0,0,0" /><controller config="fzc"/></foot-bot><foot-bot id="fb_7"><body position="2.4,2.2,0" orientation="0,0,0" /><controller config="fzc"/></foot-bot><foot-bot id="fb_8"><body position="2.6,2.2,0" orientation="0,0,0" /><controller config="fzc"/></foot-bot><foot-bot id="fb_9"><body position="2.0,2.4,0" orientation="0,0,0" /><controller config="fzc"/></foot-bot><foot-bot id="fb_10"><body position="2.2,2.4,0" orientation="0,0,0" /><controller config="fzc"/></foot-bot>
+    
   </arena>
 
   <!-- ******************* -->
@@ -297,12 +183,7 @@
 
       $ argos3 -q visualizations
   -->
-  <visualization>
-    <qt-opengl>
-	
-	<user_functions library="build/loop_functions/zone_loop_functions/libzone_loop_functions"
-                      label="zone_qtuser_functions" />
-    </qt-opengl>
-  </visualization>
+  <visualization><qt-opengl><user_functions library="build/loop_functions/zone_loop_functions/libzone_loop_functions" label="zone_qtuser_functions" /></qt-opengl></visualization>
 
 </argos-configuration>
+
