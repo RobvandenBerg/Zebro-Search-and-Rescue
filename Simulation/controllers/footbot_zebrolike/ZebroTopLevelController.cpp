@@ -159,11 +159,6 @@ void ZebroTopLevelController::PickId(int id)
 	myId = ZebroIdentifier((unsigned char) id);
 }
 
-std::string ZebroTopLevelController::GetId()
-{
-	return myId.ToString();
-}
-
 int ZebroTopLevelController::GetRand() {
 	CRange<Real> range(0.0, (Real) RAND_MAX);
 	Real res = m_pcRNG->Uniform(range);

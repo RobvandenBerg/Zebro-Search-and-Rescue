@@ -186,7 +186,6 @@ public:
 	int GetRand();
 	
 	void PickId(int id);
-	std::string GetId();
 	
 	
 private:
