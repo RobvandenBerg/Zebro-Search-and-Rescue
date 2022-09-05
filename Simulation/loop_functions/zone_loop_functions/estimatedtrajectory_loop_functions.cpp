@@ -109,7 +109,7 @@ void CEstimatedTrajectoryLoopFunctions::Init(TConfigurationNode& t_tree) {
 	   botId++;
 	   cController.PickId(botId);
 	   
-	   if(firstBot)
+	   if(firstBot || botId == 4)
 	   {
 		   cController.BecomeCandidate();
 			firstBot = false;
@@ -162,6 +162,11 @@ void CEstimatedTrajectoryLoopFunctions::PostStep() {
    /* Get the map of all foot-bots from the space */
    CSpace::TMapPerType& tFBMap = GetSpace().GetEntitiesByType("foot-bot");
 	ticksPassed++;
+if(ticksPassed == 40)
+	{
+		LOG << "40 ticks have passed!" << endl;
+}
+
    /* Go through them */
    for(CSpace::TMapPerType::iterator it = tFBMap.begin();
        it != tFBMap.end();
@@ -170,6 +175,12 @@ void CEstimatedTrajectoryLoopFunctions::PostStep() {
       CFootBotEntity* pcFB = any_cast<CFootBotEntity*>(it->second);
 	  SearchAndRescueBehaviour& cController = dynamic_cast<SearchAndRescueBehaviour&>(pcFB->GetControllableEntity().GetController());
 	  CVector3 pos = cController.GetMyPosition();
+
+	if(ticksPassed == 40)
+	{
+		LOG << "Messages for bot " << cController.GetId() << ": " << cController.messagesCounter << endl;
+	}
+
 	  //CVector3 pos = cController.GetMyAbsolutePosition();
       /* Add the current position of the foot-bot if it's sufficiently far from the last */
       if(SquareDistance(pos,
