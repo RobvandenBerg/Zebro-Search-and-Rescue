@@ -69,6 +69,8 @@ void SearchAndRescueBehaviour::Init() {
 	#endif
 	
 	requiredGoStraightTicks = 0;
+
+	messagesCounter = 0;
 	
 	returningToBasekeeper = false;
 	actionNum = 0;
@@ -2223,6 +2225,7 @@ void SearchAndRescueBehaviour::SendMessage_RELOCATESEARCHER(ZebroIdentifier from
 
 void SearchAndRescueBehaviour::SendMessage_CAPTUREACK(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsLeft, ZebroIdentifier candidateId, ZebroIdentifier capturedNodeId, ZebroIdentifier capturedNodeId2, ZebroIdentifier capturedNodeId3)
 {
+	messagesCounter++;
 	CByteArray cBuf(3+4*idsize);
 	cBuf[0] = MESSAGETYPE_CAPTUREACK; // type of message
 	cBuf[1] = hopsLeft; // hops left
@@ -2236,6 +2239,7 @@ void SearchAndRescueBehaviour::SendMessage_CAPTUREACK(ZebroIdentifier from, unsi
 
 void SearchAndRescueBehaviour::SendMessage_CAPTUREBROADCAST(ZebroIdentifier from, unsigned char messageNumber, unsigned char hopsMade, unsigned char level, ZebroIdentifier candidateId)
 {
+	messagesCounter++;
 	CByteArray cBuf(3+idsize);
 	cBuf[0] = MESSAGETYPE_CAPTUREBROADCAST; // type of message
 	cBuf[1] = hopsMade; // hops made

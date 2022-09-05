@@ -216,6 +216,8 @@ public:
 	
 	/* The random number generator */
    CRandom::CRNG* m_pcRNG;
+
+	int messagesCounter;
 	
 
 private:
