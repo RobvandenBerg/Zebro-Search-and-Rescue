@@ -2,6 +2,8 @@
 #include <argos3/core/simulator/entity/controllable_entity.h>
 #include <../common-core/SearchAndRescueBehaviour.h>
 
+
+
 /****************************************/
 /****************************************/
 
@@ -19,6 +21,13 @@ static const Real MIN_DISTANCE_SQUARED = MIN_DISTANCE * MIN_DISTANCE;
 /****************************************/
 
 void CEstimatedTrajectoryLoopFunctions::Init(TConfigurationNode& t_tree) {
+
+  writingTicksLeft = 100000;
+  skipWritingTicks = 0;
+  myfile.open("areadata.txt");
+  
+
+
    /*
     * Go through all the robots in the environment
     * and create an entry in the waypoint map for each of them
@@ -156,35 +165,63 @@ void CEstimatedTrajectoryLoopFunctions::Reset() {
 
 
 
-void CEstimatedTrajectoryLoopFunctions::PostStep() {
+void CEstimatedTrajectoryLoopFunctions::PostStep()
+{
 	int deadBots = 0;
-   int totalBots = 0;
-   /* Get the map of all foot-bots from the space */
-   CSpace::TMapPerType& tFBMap = GetSpace().GetEntitiesByType("foot-bot");
+	int totalBots = 0;
+	/* Get the map of all foot-bots from the space */
+	CSpace::TMapPerType& tFBMap = GetSpace().GetEntitiesByType("foot-bot");
 	ticksPassed++;
-   /* Go through them */
-   for(CSpace::TMapPerType::iterator it = tFBMap.begin();
+	/* Go through them */
+	bool first = true;
+	for(CSpace::TMapPerType::iterator it = tFBMap.begin();
        it != tFBMap.end();
-       ++it) {
-      /* Create a pointer to the current foot-bot */
-      CFootBotEntity* pcFB = any_cast<CFootBotEntity*>(it->second);
-	  SearchAndRescueBehaviour& cController = dynamic_cast<SearchAndRescueBehaviour&>(pcFB->GetControllableEntity().GetController());
-	  CVector3 pos = cController.GetMyPosition();
-	  //CVector3 pos = cController.GetMyAbsolutePosition();
-      /* Add the current position of the foot-bot if it's sufficiently far from the last */
-      if(SquareDistance(pos,
-                        m_tWaypoints[pcFB].back()) > MIN_DISTANCE_SQUARED) {
-         m_tWaypoints[pcFB].push_back(pos);
-      }
-      if(cController.IsDead())
-	   {
-	   	deadBots++;
-	   }
-	   totalBots++;
+       ++it)
+	{
+		/* Create a pointer to the current foot-bot */
+		CFootBotEntity* pcFB = any_cast<CFootBotEntity*>(it->second);
+		  SearchAndRescueBehaviour& cController = dynamic_cast<SearchAndRescueBehaviour&>(pcFB->GetControllableEntity().GetController());
+		  CVector3 pos = cController.GetMyPosition();
+	
+		if(writingTicksLeft > 0 && skipWritingTicks == 0)
+		{
+			if(!first)
+			{
+				myfile << pos.GetX() << "," << pos.GetY() << "\n";
+			}
+			
+		}
+	
+		  //CVector3 pos = cController.GetMyAbsolutePosition();
+		/* Add the current position of the foot-bot if it's sufficiently far from the last */
+		if(SquareDistance(pos, m_tWaypoints[pcFB].back()) > MIN_DISTANCE_SQUARED)
+		{
+			m_tWaypoints[pcFB].push_back(pos);
+		}
+		if(cController.IsDead())
+		{
+			deadBots++;
+		}
+		totalBots++;
 	   
-	  cController.FindTarget(target, 0.24);
-   }
-   if(deadBots == totalBots - 1 && dieChance != 0 && !threwMissionFailError)
+		cController.FindTarget(target, 0.24);
+
+		first = false;
+	}
+	skipWritingTicks--;
+	if(skipWritingTicks < 0)
+	{
+		skipWritingTicks = 5;
+	}
+	if(writingTicksLeft > 0)
+	{
+		writingTicksLeft--;
+		if(writingTicksLeft == 0)
+		{
+			myfile.close();
+		}
+	}
+	if(deadBots == totalBots - 1 && dieChance != 0 && !threwMissionFailError)
 	{
 		// all bots have died
 		threwMissionFailError = true;

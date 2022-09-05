@@ -1,0 +1,250 @@
+<html>
+<head>
+<script>
+window.onload = function()
+{
+	document.getElementById('file-input').addEventListener('change', readSingleFile, false);
+	init();
+}
+function init()
+{
+	//loadData(drawData);
+}
+
+function loadData(doWhenDone)
+{
+	fetch('areadata.txt')
+  .then(response => response.text())
+  .then((data) => {
+    drawData(data);
+  })
+
+}
+var canvas,ctx,scalar,addX,addY,botRadius=0.1,scaledBotRadius;
+var result = [];
+function prepareCanvas()
+{
+	canvas = document.getElementById('canvas');
+	canvas.width = 1000;
+	canvas.height = 1000;
+	ctx = canvas.getContext('2d');
+	scalar = canvas.width/2/3;
+	addX = canvas.width/2;
+	addY = canvas.height/2;
+	scaledBotRadius = botRadius * scalar;
+
+	ctx.fillStyle='black';
+	ctx.strokeStyle='black';
+	ctx.lineWidth = 5;
+	ctx.beginPath();
+	ctx.arc(addX, addY, addX-2.5, 0, 2 * Math.PI);
+	ctx.stroke();
+	ctx.closePath();
+}
+
+function countDrawnArea(ticksDone)
+{
+	var canvasWidth = canvas.width;
+	var canvasHeight = canvas.height;
+	var imageData = ctx.getImageData(0,0,canvasWidth,canvasHeight);
+	var countingPixels = 0;
+	var drawnPixels = 0;
+	for(var i = 0; i < imageData.data.length; i += 4)
+	{
+		var index = i/4;
+		var y = Math.floor(index / canvasWidth);
+		var x = index - y * canvasWidth;
+		
+		var distanceToMiddle = Math.sqrt(Math.pow(y-canvasHeight/2, 2) + Math.pow(x-canvasWidth/2,2));
+		if(distanceToMiddle > 2.4 * scalar || distanceToMiddle < 0.2 * scalar)
+		{
+			continue;
+		}
+		//console.log('a counting pixel: ', x, y, i, index);
+		//break;
+		countingPixels++;
+		if(imageData.data[i+3] > 0 || imageData.data[i+0] > 0 || imageData.data[i+2] > 0 || imageData.data[i+1] > 0)
+		{
+			drawnPixels++;
+		}
+		
+	}
+
+	console.log('Counting pixels: ', countingPixels);
+	console.log('Drawn pixels: ', drawnPixels);
+	var percentageFilled = drawnPixels/countingPixels*100
+	console.log('Percentage filled: ', percentageFilled);
+	result.push([ticksDone, percentageFilled]);
+
+	return percentageFilled;
+}
+
+function drawData(data)
+{
+	prepareCanvas();
+	console.log('data to draw:');
+	console.log(data);
+	var splittedData = data.split("\n");
+	ctx.fillStyle = 'red';
+	ctx.lineCap = "round";
+	ctx.lineJoin = "round";
+	ctx.lineWidth = scaledBotRadius*2;
+	ctx.beginPath();
+	ctx.fillStyle='black';
+	
+	for(var i = 0; i < splittedData.length; i++)
+	{
+		var coordinates = splittedData[i].split(',');
+		var x = parseFloat(coordinates[0]);
+		var y = parseFloat(coordinates[1]);
+		
+		var drawX = x * scalar + addX;
+		var drawY = y * scalar + addY;
+		
+		if(i == 0)
+		{
+			ctx.moveTo(drawX,drawY);
+		}
+		else
+		{
+			ctx.lineTo(drawX,drawY);
+		}
+		//ctx.fillRect(drawX,drawY,2,2);
+		//ctx.beginPath();
+		//ctx.arc(addX, addY, addX, 0, 2 * Math.PI);
+		//ctx.stroke();
+		if(i % 100 == 0)
+		{
+			ctx.stroke();
+			console.log(splittedData[i]);
+			var percentageFilled = countDrawnArea(i*6);
+			ctx.beginPath();
+			ctx.moveTo(drawX,drawY);
+
+			if(i % 250 == 0)
+			{
+				exportDemonstrationDrawing(i*6, percentageFilled);
+			}
+		}
+	}
+	ctx.stroke();
+	displayResult();
+}
+
+function readSingleFile(e) {
+  var file = e.target.files[0];
+  if (!file) {
+    return;
+  }
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var contents = e.target.result;
+    loadedFileContents(contents);
+  };
+  reader.readAsText(file);
+}
+
+function loadedFileContents(contents)
+{
+	//displayContents(contents);
+	drawData(contents);
+}
+
+function displayContents(contents) {
+  var element = document.getElementById('file-content');
+  element.textContent = contents;
+}
+
+function displayResult()
+{
+	var table = document.getElementById('table');
+	for(var i = 0; i < result.length; i++)
+	{
+		var tr = document.createElement('tr');
+		for(var j = 0; j < result[i].length; j++)
+		{
+			var td = document.createElement('td');
+			td.innerHTML = result[i][j];
+			tr.appendChild(td);
+		}
+		table.appendChild(tr);
+	}
+}
+
+var stencilCanvas = null;
+function getStencilCanvas()
+{
+	if(!stencilCanvas)
+	{
+		var newCanvas = document.createElement('canvas');
+		newCanvas.width = canvas.width;
+		newCanvas.height = canvas.height;
+		var newCtx = newCanvas.getContext('2d');
+		document.body.appendChild(newCanvas);
+
+		newCtx.strokeStyle='red';
+		newCtx.beginPath();
+		newCtx.arc(addX, addY, 2.4 * scalar, 0, 2 * Math.PI);
+		newCtx.stroke();
+		
+		newCtx.fillStyle='rgba(255,0,0,0.3)';
+		newCtx.fill();
+		
+		//newCtx.endPath();
+
+		newCtx.beginPath();
+		newCtx.arc(addX, addY, 0.2 * scalar, 0, 2 * Math.PI);
+		newCtx.stroke();
+		newCtx.fillStyle = 'white';
+		newCtx.globalCompositeOperation='destination-out';
+		newCtx.fill();
+
+		stencilCanvas = newCanvas;
+	}
+	return stencilCanvas;
+}
+
+function exportDemonstrationDrawing(ticksDone = -1, percentage)
+{
+	var newCanvas = document.createElement('canvas');
+	newCanvas.width = canvas.width;
+	newCanvas.height = canvas.height;
+	var newCtx = newCanvas.getContext('2d');
+	newCtx.drawImage(canvas, 0, 0);
+	
+
+	/*newCtx.strokeStyle='red';
+	newCtx.beginPath();
+	newCtx.arc(addX, addY, 2.4 * scalar, 0, 2 * Math.PI);
+	newCtx.stroke();
+
+	newCtx.beginPath();
+	newCtx.arc(addX, addY, 0.2 * scalar, 0, 2 * Math.PI);
+	newCtx.stroke();*/
+
+	var stencil = getStencilCanvas();
+	newCtx.drawImage(stencil, 0, 0);
+
+	if(ticksDone != -1)
+	{
+		var div = document.createElement('div');
+		div.innerHTML = 'Ticks done: ' +ticksDone+'. Percentage filled: ' +percentage+'.';
+		document.body.appendChild(div);
+	}
+
+	document.body.appendChild(newCanvas);
+	
+	
+}
+</script>
+</head>
+<body>
+<input type="file" id="file-input" />
+<h3>Contents of the file:</h3>
+<pre id="file-content"></pre>
+<canvas id='canvas'></canvas>
+<table id='table'>
+
+</table>
+</body>
+</html>
