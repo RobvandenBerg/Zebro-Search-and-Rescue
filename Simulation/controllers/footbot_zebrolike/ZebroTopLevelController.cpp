@@ -438,7 +438,7 @@ void ZebroTopLevelController::ReceiveMessage_FOUNDTARGETUPSTREAM(ZebroIdentifier
 
 }
 
-void ZebroTopLevelController::ReceiveMessage_PATHDATA(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, ZebroIdentifier to, unsigned char hopsLeftToTarget, int amountOfSearchersLeft, int sendSearchersNumber)
+void ZebroTopLevelController::ReceiveMessage_PATHDATA(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, ZebroIdentifier to, int pathpointsLeft)
 {
 
 }

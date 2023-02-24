@@ -442,8 +442,10 @@ void SearchAndRescueBehaviour::Loop()
 					disbandTestingNode = ZebroIdentifier();	
 				}
 			}
-			RelocateSearchersNeededElsewhere();
-			TryToInstructSearchers();
+			if(targetFound)
+			{
+				HandleInstructionLogic();
+			}
 			if(!targetFound)
 			{
 				if(ticksSinceStartedLookingForNewBasekeeper == -1) // if you're looking for a new basekeeper, most searchers, if not all, will be standing still, so you won't be covering any ground
@@ -588,7 +590,7 @@ void SearchAndRescueBehaviour::Loop()
 			ticksSinceLastHeartbeat++;
 			if(ticksSinceLastHeartbeat >= 100) // send heartbeat every 100 ticks
 			{
-				if(!basekeeper.IsEmpty() && !iAmAPathpoint) { SendMessage_HEARTBEAT(basekeeper); }
+				if(!basekeeper.IsEmpty()) { SendMessage_HEARTBEAT(basekeeper); }
 				ticksSinceLastHeartbeat = 0;
 			}
 			if(!targetFound)
@@ -684,6 +686,7 @@ void SearchAndRescueBehaviour::Loop()
 				else if(targetFound && iAmAPathpoint)
 				{
 					// todo: form more perfect line by going as perfectly to the point as possible.
+					// todo: stop obstacle avoidance behaviour after having reached the destination.
 					bool reached = MoveTowardsPosition(lastMeasuredBasekeeperPosition + pathpointPositionFromBasekeeper, 0.1);
 					if(reached)
 					{
@@ -910,7 +913,7 @@ void SearchAndRescueBehaviour::ReceiveMessage(CByteArray message)
 	
 	if(debug)
 	{
-		BOTDEBUG << "Receiving a " << MessageTypeToString(messageType) << " message in SearchAndRescueBehaviour" << endl;
+		//BOTDEBUG << "Receiving a " << MessageTypeToString(messageType) << " message in SearchAndRescueBehaviour" << endl;
 	}
 
 	switch(messageType)
@@ -1045,11 +1048,9 @@ void SearchAndRescueBehaviour::ReceiveMessage(CByteArray message)
 		case MESSAGETYPE_PATHDATA:
 		{
 			ZebroIdentifier to = GetIdFromArray(message, idsize*2+2);
-			unsigned char hopsLeftToTarget = message[idsize*3+2];
-			int amountOfSearchersLeft = (int) message[idsize*3+3];
-			int sendSearchersNumber = (int) message[idsize*3+4];
+			int pathpointsLeft = (int) message[idsize*3+2];
 
-			ReceiveMessage_PATHDATA(senderId, messageNumber, intendedReceiver, to, hopsLeftToTarget, amountOfSearchersLeft, sendSearchersNumber);
+			ReceiveMessage_PATHDATA(senderId, messageNumber, intendedReceiver, to, pathpointsLeft);
 			break;
 		}
 
@@ -1624,9 +1625,10 @@ void SearchAndRescueBehaviour::ReceiveMessage_RELOCATESEARCHER(ZebroIdentifier s
 				basekeeper = basekeeperId.Copy();
 
 				// to do: rewrite this to keep in mind relative positioning
-				absoluteBasekeeperPosition = receivedPosition;
+				/*absoluteBasekeeperPosition = receivedPosition;
 				myLastAbsolutePosition = myAbsolutePosition;
-				lastMeasuredBasekeeperPosition = absoluteBasekeeperPosition - myAbsolutePosition;
+				lastMeasuredBasekeeperPosition = absoluteBasekeeperPosition - myAbsolutePosition;*/
+				lastMeasuredBasekeeperPosition = lastMeasuredBasekeeperPosition + receivedPosition;
 				myTrackedPosition = CVector3();
 				basekeeperPositionKnown = true;
 			}
@@ -1662,6 +1664,8 @@ void SearchAndRescueBehaviour::ReceiveMessage_FOUNDTARGET(ZebroIdentifier sender
 		ticksSinceLastPathDataMessage = 0;
 		if(parent.Equals(myId))
 		{
+			totalSearchersForNextNode = 0;
+			savedTotalSearchers = mySearchersTotal - 1;
 			linkToTarget = senderId;
 			CVector3 absoluteResponsePosition = receivedPosition;
 			CVector3 relativeFinderPosition = absoluteResponsePosition - myAbsolutePosition;
@@ -1722,11 +1726,13 @@ void SearchAndRescueBehaviour::ReceiveMessage_FOUNDTARGETUPSTREAM(ZebroIdentifie
 	
 	if(role == ROLE_CANDIDATE || role == ROLE_BASEKEEPER)
 	{
-		totalSearchers += mySearchersTotal;
 		targetFound = true;
 		ticksSinceLastPathDataMessage = 0;
 		if(parent.Equals(myId))
 		{
+			totalSearchersForNextNode = totalSearchers;
+			totalSearchers += mySearchersTotal;
+			savedTotalSearchers = totalSearchers;
 			linkToTarget = senderId;
 			vectorToTarget = GetVectorToChild(senderId);
 			if(debug)
@@ -1747,34 +1753,8 @@ void SearchAndRescueBehaviour::ReceiveMessage_FOUNDTARGETUPSTREAM(ZebroIdentifie
 					BOTDEBUG << "FOUND TARGET ARRIVED AT MAIN BASEKEEPER" << endl;
 					BOTDEBUG << "total searchers: " << totalSearchers << endl;
 				}
-				Real totalNodesLeft = totalSearchers + hopsLeftToTarget;
 
-				Real nodesPerDistanceUnit = (Real) totalNodesLeft/distanceLeft;
-				int useAmountOfNodes = nodesPerDistanceUnit * distanceToNextNode;
-				int useAmountOfSearchers = useAmountOfNodes - 1;
-				int amountOfSearchersLeft = totalSearchers - useAmountOfSearchers;
-
-				int sendSearchersNumber = mySearchersTotal - useAmountOfSearchers; // this number can be negative!
-				searchersToSendDownstream = 0;
-				searchersToSendUpstream = 0;
-				if(sendSearchersNumber > 0)
-				{
-					searchersToSendDownstream = sendSearchersNumber;
-				}
-				if(useAmountOfSearchers > 10)
-				{
-					useAmountOfSearchers = 10;
-				}
-				myTotalPathPoints = useAmountOfNodes;
-				amountOfRemainingSearchersToInstruct = useAmountOfSearchers;
-				if(debug)
-				{
-					BOTDEBUG << "use " << useAmountOfSearchers << " searchers (and 1 node)." << endl;
-				}
-				BOTDEBUG << "Mission accomplished! Ticks passed: " << (ticksPassed+1) << ". Path length: " << distanceLeft << endl;
-				sendMessageId++;
-				unsigned char msgNum = (unsigned char) sendMessageId;
-				SendMessage_PATHDATA(myId, msgNum, linkToTarget, hopsLeftToTarget - 1, amountOfSearchersLeft, sendSearchersNumber);
+				HandlePathCreationLogic(totalSearchers);
 				ticksSinceLastPathDataMessage = 0;
 			}
 			else
@@ -1788,7 +1768,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_FOUNDTARGETUPSTREAM(ZebroIdentifie
 	}
 }
 
-void SearchAndRescueBehaviour::ReceiveMessage_PATHDATA(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, ZebroIdentifier to, unsigned char hopsLeftToTarget, int amountOfSearchersLeft, int sendSearchersNumber)
+void SearchAndRescueBehaviour::ReceiveMessage_PATHDATA(ZebroIdentifier senderId, unsigned char messageNumber, ZebroIdentifier intendedReceiver, ZebroIdentifier to, int pathpointsLeft)
 {
 	ticksSinceLastPathDataMessage = 0;
 	if(role == ROLE_PASSIVE || role == ROLE_SEARCHER || role == ROLE_BASEKEEPER)
@@ -1802,7 +1782,7 @@ void SearchAndRescueBehaviour::ReceiveMessage_PATHDATA(ZebroIdentifier senderId,
 			if(senderId.Equals(basekeeper) || to.Equals(basekeeper) || to.Equals(parentBasekeeper))
 			{
 				// propagate this message
-				SendMessage_PATHDATA(senderId, messageNumber, to, hopsLeftToTarget, amountOfSearchersLeft, sendSearchersNumber);
+				SendMessage_PATHDATA(senderId, messageNumber, to, pathpointsLeft);
 			}
 		}
 	}
@@ -1812,54 +1792,66 @@ void SearchAndRescueBehaviour::ReceiveMessage_PATHDATA(ZebroIdentifier senderId,
 	{
 		if(myId.Equals(to))
 		{
-			searchersToSendDownstream = 0;
-			searchersToSendUpstream = 0;
-			if(sendSearchersNumber < 0)
-			{
-				searchersToSendUpstream = -sendSearchersNumber;
-			}
-			Real totalNodesLeft = amountOfSearchersLeft + hopsLeftToTarget;
-			Real nodesPerDistanceUnit = (Real) totalNodesLeft/distanceLeft;
-			int useAmountOfNodes = (int) nodesPerDistanceUnit * distanceToNextNode;
-			int useAmountOfSearchers = useAmountOfNodes - 1;
-			if(useAmountOfSearchers > 10)
-			{
-				useAmountOfSearchers = 10;
-			}
-			if(myTotalPathPoints != useAmountOfNodes)
-			{
-				amountOfRemainingSearchersToInstruct = useAmountOfSearchers;
-			}
-			myTotalPathPoints = useAmountOfNodes;
-			amountOfSearchersLeft = amountOfSearchersLeft - useAmountOfSearchers;
-			int newSendSearchersNumber = mySearchersTotal + sendSearchersNumber - useAmountOfSearchers; // this number can be negative!
-			if(newSendSearchersNumber > 0)
-			{
-				searchersToSendDownstream = newSendSearchersNumber;
-			}
-			if(debug)
-			{
-				BOTDEBUG << "use " << useAmountOfSearchers << " searchers.(and 1 node)" << endl;
-			}
-
-			sendMessageId++;
-			unsigned char msgNum = (unsigned char) sendMessageId;
-			if(hopsLeftToTarget > 1)
-			{
-				SendMessage_PATHDATA(myId, msgNum, linkToTarget, hopsLeftToTarget - 1, amountOfSearchersLeft, newSendSearchersNumber);
-			}
-			else
-			{
-				searchersToSendDownstream = 0;
-				//BOTDEBUG << "CYCLE COMPLETE!!!" << endl;
-				SendMessage_CYCLECOMPLETE(myId, msgNum, linkToTarget);
-			}
+			HandlePathCreationLogic(pathpointsLeft);
 		}
 		else if(linkToTarget.IsEmpty())
 		{
 			// This basekeeper is not part of the chain from the main base keeper to the target. So disband
 			Disband();
 		}
+	}
+}
+
+void SearchAndRescueBehaviour::HandlePathCreationLogic(int pathpointsLeft)
+{
+	/* variables we already know from previous messages */
+	// totalSearchers // the amount of searchers from this node until the found target
+	// distanceLeft; // the distance of the path from there until the target
+	// totalSearchersForNextNode
+	// hopsLeftToTarget
+
+	BOTDEBUG << "Handling path creation logic. " << pathpointsLeft << " pathpoints left. " << hopsLeftToTarget << " hopsLeftToTarget. " << savedTotalSearchers << " savedTotalSearchers" << endl;
+
+	searchersToSendUpstream = 0;
+	searchersToSendDownstream = 0;
+	pathpointsInstructed = 0;
+	if(savedTotalSearchers > pathpointsLeft)
+	{
+		searchersToSendUpstream = savedTotalSearchers - pathpointsLeft;
+	}
+
+		
+	distanceToNextNode = vectorToTarget.Length();
+	
+	Real nodesPerDistanceUnit = (pathpointsLeft+1)/distanceLeft;
+
+	myTotalPathPoints = nodesPerDistanceUnit * distanceToNextNode;
+	pathpointsInstructed = 0;
+
+	
+
+	int pathpointsLeftForNextNode = pathpointsLeft - myTotalPathPoints;
+
+	if(totalSearchersForNextNode < pathpointsLeftForNextNode)
+	{
+		searchersToSendDownstream = pathpointsLeftForNextNode - totalSearchersForNextNode;
+	}
+
+	BOTDEBUG "distanceLeft: " << distanceLeft << ". nodesPerDistanceUnit: " << nodesPerDistanceUnit << ". distanceToNextNode: " << distanceToNextNode << ". mytotalPathPoints: " << myTotalPathPoints << ". pathpointsLeftForNextNode: " << pathpointsLeftForNextNode << ". searchersToSendDownstream: " << searchersToSendDownstream << ". searchersToSendUpstream: " << searchersToSendUpstream << endl;
+
+	/* now the amount of bots to keep, send upstream and send downstream is known */
+
+	/* in the loop, first instruct path points, then send leftover ones upstream and downstream */	
+
+	sendMessageId++;
+	unsigned char msgNum = (unsigned char) sendMessageId;
+	if(hopsLeftToTarget > 1)
+	{
+		SendMessage_PATHDATA(myId, msgNum, linkToTarget, pathpointsLeftForNextNode);
+	}
+	else
+	{
+		SendMessage_CYCLECOMPLETE(myId, msgNum, linkToTarget);
 	}
 }
 
@@ -1893,7 +1885,11 @@ void SearchAndRescueBehaviour::ReceiveMessage_BECOMEPATHPOINT(ZebroIdentifier se
 			ticksSinceLastPathDataMessage = 0;
 			if(debug)
 			{
-				BOTDEBUG << "Searcher " << myId.ToString() << " is now a pathpoint for " << basekeeper.ToString() << "!" << endl;
+				BOTDEBUG << "Searcher " << myId.ToString() << " is now a pathpoint for " << basekeeper.ToString() << "! pos: (" << receivedPosition.GetX() << ", " << receivedPosition.GetY() << ")" << endl;
+				if(!senderId.Equals(basekeeper))
+				{
+					BOTDEBUG << "Which is weird, because the message sender is " << senderId.ToString() << endl;
+				}
 			}
 			pathpointPositionFromBasekeeper = receivedPosition;
 		}
@@ -2118,14 +2114,12 @@ void SearchAndRescueBehaviour::SendMessage_FOUNDTARGETUPSTREAM(ZebroIdentifier f
 	SendMessage(cBuf, from, messageNumber);
 }
 
-void SearchAndRescueBehaviour::SendMessage_PATHDATA(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier linkToTarget, unsigned char hopsLeftToTarget, int amountOfSearchersLeft, int sendSearchersNumber)
+void SearchAndRescueBehaviour::SendMessage_PATHDATA(ZebroIdentifier from, unsigned char messageNumber, ZebroIdentifier linkToTarget, int pathpointsLeft)
 {
 	CByteArray cBuf(4+idsize);
 	cBuf[0] = MESSAGETYPE_PATHDATA;
 	WriteIdToArray(cBuf, 1, linkToTarget);
-	cBuf[idsize+1] = hopsLeftToTarget;
-	cBuf[idsize+2] = (unsigned char) amountOfSearchersLeft;
-	cBuf[idsize+3] = (char) sendSearchersNumber;
+	cBuf[idsize+1] = (unsigned char) pathpointsLeft;
 	
 	if(from.Equals(myId))
 	{
@@ -2589,6 +2583,70 @@ void SearchAndRescueBehaviour::BecomeBasekeeper()
 		BOTDEBUG << "I (id " << myId.ToString() << ") am becoming a basekeeper" << endl;
 	}
 	SharpRightTurn();
+}
+
+void SearchAndRescueBehaviour::HandleInstructionLogic()
+{
+	// first instruct my pathpoints
+	/* variables known:
+	myTotalPathPoints
+	mySearchersTotal... if its useful
+	some variable about how many are instructed / are left to instruct
+	*/
+	
+	// todo: check if pathpoints still send heartbeats
+	// todo: handle the finder of the target as a special case
+	// todo: check if the target finder sends out the target found message on an interval
+	
+	int pathpointNum = 0;
+
+	int excludeFinderNum = 0;
+	if(hopsLeftToTarget == 1)
+	{
+		excludeFinderNum = 1; // exclude the bot that found the target as a searcher here
+	}
+
+	if(mySearchersTotal - excludeFinderNum > pathpointsInstructed && (myTotalPathPoints > pathpointsInstructed || searchersToSendUpstream > 0 || searchersToSendDownstream > 0))
+	{
+		pathpointsInstructed = 0;
+		int newMySearchersTotal = 0;
+		for(int i = 0; i < 10; i++)
+		{
+			ZebroIdentifier searcherId = GetIdFromArray(mySearchers, i*(idsize+1));
+			if(!searcherId.IsEmpty() && !searcherId.Equals(linkToTarget))
+			{
+				if(pathpointNum < myTotalPathPoints)
+				{
+					pathpointNum++;
+					// send the pathpoint message to this searcher
+					Real fractionOfDistance = (Real)pathpointNum/(Real) (myTotalPathPoints + 1);
+					CVector3 pathpointPosition = CVector3(vectorToTarget.GetX() * fractionOfDistance, vectorToTarget.GetY() * fractionOfDistance, vectorToTarget.GetZ() * fractionOfDistance);
+					
+					sendMessageId++;
+					unsigned char messageNumber = (unsigned char) sendMessageId;
+					SendMessage_BECOMEPATHPOINT(myId, messageNumber, searcherId, pathpointPosition);
+				}
+				else if(searchersToSendUpstream > 0)
+				{
+					sendMessageId++;
+					unsigned char messageNumber = (unsigned char) sendMessageId;
+					SendMessage_RELOCATESEARCHER(myId, messageNumber, searcherId, parentBasekeeper, lastMeasuredParentBasekeeperPosition);
+					RemoveFromMySearchers(searcherId);
+					searchersToSendUpstream--;
+				}
+				else if(searchersToSendDownstream > 0)
+				{
+					sendMessageId++;
+					unsigned char messageNumber = (unsigned char) sendMessageId;
+					SendMessage_RELOCATESEARCHER(myId, messageNumber, searcherId, linkToTarget, GetVectorToChild(linkToTarget));
+					RemoveFromMySearchers(searcherId);
+					searchersToSendDownstream--;
+				}
+					
+			}
+		}
+		pathpointsInstructed = pathpointNum;
+	}
 }
 
 void SearchAndRescueBehaviour::TryToInstructSearchers()
