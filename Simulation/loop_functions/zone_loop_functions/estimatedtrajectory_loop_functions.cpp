@@ -196,7 +196,7 @@ void CEstimatedTrajectoryLoopFunctions::PostStep()
 		/* Add the current position of the foot-bot if it's sufficiently far from the last */
 		if(SquareDistance(pos, m_tWaypoints[pcFB].back()) > MIN_DISTANCE_SQUARED)
 		{
-			m_tWaypoints[pcFB].push_back(pos);
+			//m_tWaypoints[pcFB].push_back(pos);
 		}
 		if(cController.IsDead())
 		{

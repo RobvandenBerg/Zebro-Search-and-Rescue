@@ -40,10 +40,10 @@ void CZONEQTUserFunctions::Draw(CFootBotEntity& c_entity) {
 		   //s.append(c_entity.GetId().c_str());
 		   //s.append(" - ");
 		   s.append(cController.GetId());
-	DrawText(CVector3(0.0, 0.0, 0.3),   // position
+	/*DrawText(CVector3(0.0, 0.0, 0.3),   // position
            //c_entity.GetId().c_str() << " - " << cController.GetId()); // text
 		   
-		   s); // text
+		   s); // text*/
 		   
 	CRay3 basekeeperRay = cController.GetDrawGreenLine();
 	if(basekeeperRay.GetEnd().GetX() != 0 || basekeeperRay.GetEnd().GetY() != 0)
